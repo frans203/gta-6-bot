@@ -55,6 +55,10 @@ Pedido tipo "X vídeos por hora até HH:MM": calcule `X × horas` por plataforma
 
 ## Regras e decisões já tomadas pelo usuário
 
+- **Nunca envie/poste usando ferramentas do agente** (claude-in-chrome, computer use etc.). Todo envio passa por
+  `jason.py`/`postar.py`. Se algo falhar ou faltar, **corrija o script** (`plataformas/*.py`) e rode a CLI de novo:
+  o pipeline existe justamente para não gastar tokens com skills a cada post. O navegador do agente só serve para
+  mapear um fluxo novo ou que mudou, antes de escrever o script.
 - **Confirme com o usuário antes de publicar de verdade** em uma conta pela 1ª vez num fluxo novo, ou antes de
   aceitar diálogos de consentimento de uma plataforma. Para testar, use `--revisar` (preenche e não publica).
 - YouTube: sempre "não é conteúdo para crianças"; publicar mesmo com Content ID (`youtube.py`, constantes no topo).
