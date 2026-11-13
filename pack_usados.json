@@ -1,0 +1,18 @@
+{
+ "10WjEv1NMCW3Tklbimd1NVTIorwviLaby": {
+  "num": 1,
+  "bruto": "video_0001.mp4",
+  "titulo_pack": "Vídeo 0001",
+  "hd": true,
+  "baixado_em": "2026-11-13T02:54:00",
+  "limpo": "gta6_007.mp4"
+ },
+ "12-HVODnvkYkW6u5asrAeyIQeE6h16WxO": {
+  "num": 2,
+  "bruto": "video_0002.mp4",
+  "titulo_pack": "Vídeo 0002",
+  "hd": false,
+  "baixado_em": "2026-11-13T02:54:00",
+  "limpo": "gta6_008.mp4"
+ }
+}

@@ -1,0 +1,24 @@
+# 🎬 Vídeos e legendas gerados (pesados, recriados pelo pipeline)
+baixados/
+limpos/
+*.mp4
+*.mov
+*.part
+
+# 🔐 Login do Chrome do script (cookies/sessões das contas) — NUNCA versionar
+perfil-chrome/
+
+# 🧾 Estado local de cada pessoa (o que foi postado em CADA conta)
+postados.json
+baixados.json
+# OBS: pack_usados.json NAO esta aqui de proposito: ele vai pro git para
+# os parceiros saberem quais videos do pack ja foram pegos e nao repetirem.
+
+# 📜 Logs e prints de erro
+logs/
+
+# 🐍 Python
+__pycache__/
+*.pyc
+.venv/
+venv/
