@@ -33,18 +33,45 @@ def ocupados(plataforma, hist):
     return out
 
 
-def plano(plataformas, agora: datetime | None = None):
-    """[{plataforma, video(Path), quando(datetime)}] para todos os pendentes."""
+def slots_por_hora(por_hora: int, a_partir: datetime, ate: datetime, ocupados: set):
+    """Modo lote: `por_hora` horarios espalhados em cada hora (minutos multiplos de 5, exigencia do TikTok)
+    de `a_partir` ate `ate` (exclusivo). Ex.: 5/h -> :00 :10 :25 :35 :50."""
+    minutos = sorted({min(int(5 * round(i * 60 / por_hora / 5)), 55) for i in range(por_hora)})
+    hora = a_partir.replace(minute=0, second=0, microsecond=0)
+    while hora < ate:
+        for m in minutos:
+            quando = hora + timedelta(minutes=m)
+            if a_partir <= quando < ate and quando not in ocupados:
+                yield quando
+        hora += timedelta(hours=1)
+
+
+def limite(hhmm: str, agora: datetime) -> datetime:
+    """'00:00' -> proxima meia-noite; '23:00' -> hoje 23h (ou amanha, se ja passou)."""
+    h, m = map(int, hhmm.split(":"))
+    d = agora.replace(hour=h, minute=m, second=0, microsecond=0)
+    return d if d > agora else d + timedelta(days=1)
+
+
+def plano(plataformas, agora: datetime | None = None, por_hora: int | None = None, ate: str | None = None):
+    """[{plataforma, video(Path), quando(datetime)}] para os pendentes.
+    Padrao: grade do horarios.json, todos os pendentes. Com por_hora/ate: lote de N por hora ate o limite
+    (o que nao couber fica pendente)."""
     agora = agora or datetime.now()
     inicio = agora + timedelta(minutes=ANTECEDENCIA_MIN)
+    fim = limite(ate or "00:00", agora) if (por_hora or ate) else None
     hist = carregar_hist()
     out = []
     for p in plataformas:
-        livres = slots(p, inicio, ocupados(p, hist))
+        oc = ocupados(p, hist)
+        livres = slots_por_hora(por_hora or 5, inicio, fim, oc) if fim else slots(p, inicio, oc)
         for v in sorted(LIMPOS.glob("*.mp4")):
             if hist.get(v.name, {}).get(p, {}).get("status") in FEITO:
                 continue
-            out.append({"plataforma": p, "video": v, "quando": next(livres)})
+            quando = next(livres, None)
+            if quando is None:
+                break
+            out.append({"plataforma": p, "video": v, "quando": quando})
     return sorted(out, key=lambda x: (x["quando"], x["plataforma"]))
 
 

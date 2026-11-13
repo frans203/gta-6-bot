@@ -10,16 +10,20 @@ CLI de envio de videos (nucleo do JASON_GTAVI_PIPELINE). Todos os comandos aceit
   python postar.py enviar -p tiktok --revisar    # preenche tudo mas nao publica
 """
 import argparse
+import contextlib
 import json
+import msvcrt
 import subprocess
 import sys
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from plataformas import PLATAFORMAS, agenda, comum, tarefas_windows
 from plataformas.comum import LIMPOS, LOGS, PERFIL, NaoLogado, carregar_hist, log, registrar
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+MIN_ANTECEDENCIA = timedelta(minutes=16)  # TikTok exige >= 15 min para agendar
 OK = ("publicado", "agendado", "agendado_pc", "revisar", "fila_vazia", "pulado_reivindicacao")
 
 
@@ -46,6 +50,38 @@ def proximo(plataforma):
     return None
 
 
+@contextlib.contextmanager
+def trava_perfil(espera_max_min=55):
+    """So um processo por vez usa o perfil-chrome (lote + tarefas do Agendador do Windows)."""
+    LOGS.mkdir(exist_ok=True)
+    f = open(LOGS / "perfil-chrome.lock", "a+")
+    limite = time.time() + espera_max_min * 60
+    avisou = False
+    while True:
+        try:
+            f.seek(0)
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+            break
+        except OSError:
+            if time.time() > limite:
+                f.close()
+                raise RuntimeError("perfil-chrome ocupado por outro envio ha muito tempo")
+            if not avisou:
+                log("perfil-chrome em uso por outro envio; aguardando...")
+                avisou = True
+            time.sleep(15)
+    try:
+        yield
+    finally:
+        f.seek(0)
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+        f.close()
+
+
+def status_de(video: Path, plataforma: str):
+    return carregar_hist().get(video.name, {}).get(plataforma, {}).get("status")
+
+
 def executar(tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fim=None):
     """tarefas: [{plataforma, video: Path, quando: datetime|None}]. Navegador so abre se precisar."""
     resultados = []
@@ -64,16 +100,37 @@ def executar(tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fim=None)
         resultados.append({"plataforma": t["plataforma"], "video": t["video"].name, **r})
         if ao_fim: ao_fim(t, r)
 
+    # Instagram agendado no PC cujo horario chegar durante o lote e postado aqui mesmo
+    # (a tarefa do Windows ficaria travada esperando o perfil; depois ela ve "publicado" e pula)
+    ig_pendentes = [t for t in locais if t.get("quando")]
+
     if navegador:
         from playwright.sync_api import sync_playwright
-        with sync_playwright() as pw:
+        espera = 24 * 60 if any(t.get("quando") for t in navegador) else 55
+        with trava_perfil(espera_max_min=espera), sync_playwright() as pw:
             ctx = pw.chromium.launch_persistent_context(
                 str(PERFIL), channel="chrome", headless=False,
                 viewport={"width": 1366, "height": 850}, locale="pt-BR",
             )
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
             sem_login = set()
-            for t in navegador:
+
+            def vencidos_ig():
+                agora = datetime.now()
+                out = [x for x in ig_pendentes if x["quando"] <= agora]
+                for x in out:
+                    ig_pendentes.remove(x)
+                return [{**x, "quando": None, "_inline": True} for x in out
+                        if status_de(x["video"], x["plataforma"]) not in ("publicado",)]
+
+            fila_nav = list(navegador)
+            while fila_nav or (fila_nav := vencidos_ig()):
+                if not fila_nav[0].get("_inline"):
+                    fila_nav[:0] = vencidos_ig()
+                t = fila_nav.pop(0)
+                if t.get("quando") and t["quando"] - datetime.now() < MIN_ANTECEDENCIA:
+                    log(f"{t['video'].name}: horario {t['quando']:%H:%M} ficou perto demais; postando agora", t["plataforma"])
+                    t = {**t, "quando": None}
                 nome, video = t["plataforma"], t["video"]
                 if ao_inicio: ao_inicio(t)
                 if nome in sem_login:
@@ -132,6 +189,9 @@ def main():
         if nome == "enviar":
             s.add_argument("--video")
             s.add_argument("--revisar", action="store_true")
+        if nome in ("plano", "agendar"):
+            s.add_argument("--por-hora", type=int, help="modo lote: N posts por hora por plataforma")
+            s.add_argument("--ate", help="modo lote: horario limite HH:MM (padrao 00:00 = meia-noite)")
     sub.add_parser("fila")
     a = ap.parse_args()
     comum.JSON_MODE = a.json
@@ -152,7 +212,7 @@ def main():
         return 0
 
     if a.cmd in ("plano", "agendar"):
-        p = agenda.plano(a.plataformas)
+        p = agenda.plano(a.plataformas, por_hora=a.por_hora, ate=a.ate)
         if a.cmd == "plano" or not p:
             if a.json:
                 return dump([{**x, "video": x["video"].name} for x in p]) or 0
@@ -162,7 +222,12 @@ def main():
         res = executar(p)
     else:
         if a.video:
-            tarefas = [{"plataforma": n, "video": Path(a.video).resolve(), "quando": None} for n in a.plataformas]
+            v = Path(a.video).resolve()
+            tarefas = [{"plataforma": n, "video": v, "quando": None} for n in a.plataformas
+                       if status_de(v, n) != "publicado"]
+            if not tarefas:
+                log(f"{v.name}: ja publicado em {','.join(a.plataformas)}; nada a fazer")
+                return 0
         else:
             tarefas = [{"plataforma": n, "video": v, "quando": None} for n in a.plataformas if (v := proximo(n))]
         res = executar(tarefas, revisar=a.revisar)

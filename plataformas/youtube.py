@@ -115,12 +115,16 @@ def postar(page, video: Path, revisar=False, quando: datetime | None = None, pro
         return {"status": "revisar", "obs": status_txt}
 
     dlg.locator("#done-button").click()
+    # Sucesso = dialogo de compartilhar ("Video publicado") OU "Processando video" (agendado, aguardando SD)
     share = page.locator("ytcp-video-share-dialog")
-    share.wait_for(state="visible", timeout=120_000)
-    link = re.search(r"https://(?:www\.)?youtube\.com/shorts/[\w-]+|https://youtu\.be/[\w-]+", share.inner_text())
-    fechar = share.get_by_role("button", name=re.compile("Fechar|Close"))
-    if fechar.count():
-        fechar.first.click()
+    processando = page.get_by_text(re.compile(r"^Processando v[íi]deo$|^Processing video$")).first
+    share.or_(processando).first.wait_for(state="visible", timeout=120_000)
+    caixa = share if share.is_visible() else page.locator("tp-yt-paper-dialog, ytcp-dialog").filter(has=processando).last
+    texto = caixa.inner_text() if caixa.count() else ""
+    link = re.search(r"https://(?:www\.)?youtube\.com/shorts/[\w-]+|https://youtu\.be/[\w-]+", texto)
+    fechar = page.get_by_role("button", name=re.compile(r"^(Fechar|Close)$"))
+    if fechar.count() and fechar.last.is_visible():
+        fechar.last.click()
     r = {"link": link.group(0) if link else None, "reivindicado": reivindicado}
     if quando:
         return {"status": "agendado", "para": quando.isoformat(timespec="minutes"), **r}

@@ -145,6 +145,17 @@ python jason.py tarefas     # vê os agendamentos do Instagram no Windows
 
 > 🧾 Ele **nunca repete**: tudo que foi postado ou agendado fica anotado em `postados.json`. Vídeo que já foi pro TikTok mas não pro Insta? Ele manda só pro Insta.
 
+### 🔥 Modo lote: N por hora até um horário
+```powershell
+python jason.py plano   --por-hora 3 --ate 00:00      # confere
+python jason.py agendar --por-hora 3 --ate 00:00 -y   # agenda
+```
+Ignora a grade do `horarios.json` e agenda **N posts por hora em cada plataforma** até o limite
+(`00:00` = meia-noite). 3/h → `:00 :20 :40`. Precisa de `N × horas` vídeos pendentes: se faltar, rode
+`baixar --qtd X` antes. **O que não couber fica pendente** e é usado no próximo agendamento.
+
+> ⚠️ Muitos posts seguidos podem derrubar o alcance (cara de spam) e o YouTube tem limite diário de uploads. Comece com pouco e acompanhe o desempenho.
+
 ### ⚡ Postar AGORA (sem agendar)
 ```powershell
 python jason.py enviar -p tiktok,youtube,instagram

@@ -18,6 +18,12 @@
   - Instagram (a web não agenda): Agendador do Windows, pasta `\JASON_GTAVI\` (PC ligado no horário)
 - [x] CLI estilizada `jason.py` (JASON_GTAVI_PIPELINE): logo de Vice City, cores neon, barras de progresso
 
+- [x] Modo lote: `python jason.py agendar --por-hora 3 --ate 00:00 -y` (N posts/hora por plataforma até o limite; minutos múltiplos de 5 → :00 :10 :25 :35 :50; o que não couber fica pendente)
+  - trava `logs/perfil-chrome.lock`: lote e tarefas do Agendador do Windows não abrem o perfil ao mesmo tempo
+  - Instagram que vence durante o lote é postado na hora pelo próprio lote; a tarefa do Windows depois vê "publicado" e pula
+  - horário que ficou a < 16 min durante o lote → posta agora
+- [x] YouTube: diálogo "Processando vídeo" (agendado aguardando SD) agora conta como sucesso (antes dava timeout falso)
+
 ## Em andamento
 - [ ] Rodar `python jason.py agendar -y` (7 vídeos × 3 plataformas) assim que o login do perfil do script estiver feito
 - [ ] **Login único no perfil do script**: `python postar.py login` (abre um Chrome normal com TikTok, YouTube e Instagram) e depois fechar o Chrome

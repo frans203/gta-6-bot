@@ -5,6 +5,7 @@ JASON_GTAVI_PIPELINE — CLI estilizada da automacao.
   python jason.py fila            videos x plataformas
   python jason.py plano           o que seria agendado e quando
   python jason.py agendar [-y]    agenda todos os pendentes nos melhores horarios
+  python jason.py agendar --por-hora 5 --ate 00:00 -y   lote: 5/hora em cada plataforma ate meia-noite
   python jason.py enviar -p tiktok [--video X] [--revisar]
   python jason.py baixar --qtd 5  baixa do pack, limpa metadados e gera legendas
   python jason.py tarefas         agendamentos locais (Instagram) no Windows
@@ -244,12 +245,12 @@ def rodar(tarefas, revisar=False):
 
 
 def cmd_plano(a):
-    p = agenda.plano(a.plataformas)
+    p = agenda.plano(a.plataformas, por_hora=a.por_hora, ate=a.ate)
     con.print(tabela_plano(p) if p else f"[{VERDE}]Nada pendente. Tudo postado ou agendado.[/]")
 
 
 def cmd_agendar(a):
-    p = agenda.plano(a.plataformas)
+    p = agenda.plano(a.plataformas, por_hora=a.por_hora, ate=a.ate)
     if not p:
         con.print(f"[{VERDE}]Nada pendente. Tudo postado ou agendado.[/]")
         return 0
@@ -326,6 +327,9 @@ def main():
         s.add_argument("-p", "--plataformas", type=postar._plats, default=postar._plats(todas))
         if nome == "agendar":
             s.add_argument("-y", "--yes", action="store_true", help="não pedir confirmação")
+        if nome in ("plano", "agendar"):
+            s.add_argument("--por-hora", type=int, help="modo lote: N posts por hora em cada plataforma")
+            s.add_argument("--ate", help="modo lote: até HH:MM (padrão 00:00 = meia-noite)")
         if nome == "enviar":
             s.add_argument("--video")
             s.add_argument("--revisar", action="store_true")
