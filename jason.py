@@ -40,7 +40,7 @@ ICONE = {"tiktok": "♪ TikTok", "youtube": "▶ YouTube", "instagram": "◎ Ins
 COR_STATUS = {
     "publicado": f"bold {VERDE}", "agendado": f"bold {ROSA}", "agendado_pc": f"bold {LARANJA}",
     "pendente": "grey50", "erro": "bold red", "nao_logado": "bold red", "revisar": CIANO,
-    "pulado_reivindicacao": "yellow", "limite_diario": "bold yellow", "fila_vazia": "grey50",
+    "pulado_reivindicacao": "yellow", "limite_diario": "bold yellow", "atrasado": "bold red", "fila_vazia": "grey50",
 }
 
 con = Console(highlight=False)

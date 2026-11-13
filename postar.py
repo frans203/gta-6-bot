@@ -36,7 +36,8 @@ def fila():
         feito = h.get(v.name, {})
         itens.append({
             "video": v.name, "mb": round(v.stat().st_size / 1e6, 1),
-            **{p: feito.get(p, {}).get("status", "pendente") for p in PLATAFORMAS},
+            **{p: ("atrasado" if feito.get(p, {}).get("status") == "agendado_pc" and not agenda.feito(feito[p])
+                   else feito.get(p, {}).get("status", "pendente")) for p in PLATAFORMAS},
             **{f"{p}_para": feito.get(p, {}).get("para") for p in PLATAFORMAS},
         })
     return itens
@@ -45,7 +46,7 @@ def fila():
 def proximo(plataforma):
     h = carregar_hist()
     for v in sorted(LIMPOS.glob("*.mp4")):
-        if h.get(v.name, {}).get(plataforma, {}).get("status") not in agenda.FEITO:
+        if not agenda.feito(h.get(v.name, {}).get(plataforma, {})):
             return v
     return None
 

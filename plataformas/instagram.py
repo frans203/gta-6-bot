@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from .comum import NaoLogado, log, passo, textos
+from .comum import LOGS, NaoLogado, log, passo, textos
 
 NOME = "instagram"
 AGENDA_NATIVA = False
@@ -78,6 +78,10 @@ def postar(page, video: Path, revisar=False, quando: datetime | None = None, pro
 
     feito = page.locator("[role=dialog]:has-text('foi compartilhado')")
     feito.wait_for(timeout=10 * 60_000)
+    try:  # prova do sucesso para conferir depois sem abrir o navegador
+        page.screenshot(path=str(LOGS / f"ok_instagram_{video.stem}_{datetime.now():%Y%m%d_%H%M}.png"))
+    except Exception:
+        pass
     fechar = feito.locator("[role=button]:text-is('Concluir'), button:text-is('Concluir')")
     if fechar.count():
         fechar.first.click()

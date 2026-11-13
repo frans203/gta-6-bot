@@ -9,6 +9,15 @@ ANTECEDENCIA_MIN = 30          # TikTok exige >= 15 min; damos folga para o uplo
 MESES_PT = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."]
 
 FEITO = ("publicado", "agendado", "agendado_pc", "pulado_reivindicacao")
+ATRASO_PC = timedelta(hours=1)  # agendado_pc vencido ha mais que isso = tarefa do Windows nao rodou
+
+
+def feito(info: dict, agora: datetime | None = None) -> bool:
+    """Ja foi (ou vai ser) postado nessa plataforma? agendado_pc vencido conta como pendente de novo."""
+    st = info.get("status")
+    if st == "agendado_pc" and info.get("para"):
+        return datetime.fromisoformat(info["para"]) > (agora or datetime.now()) - ATRASO_PC
+    return st in FEITO
 
 
 def slots(plataforma, a_partir: datetime, ocupados: set):
@@ -28,7 +37,7 @@ def ocupados(plataforma, hist):
     out = set()
     for info in hist.values():
         p = info.get(plataforma, {})
-        if p.get("status") in ("agendado", "agendado_pc") and p.get("para"):
+        if p.get("status") in ("agendado", "agendado_pc") and p.get("para") and feito(p):
             out.add(datetime.fromisoformat(p["para"]))
     return out
 
@@ -66,7 +75,7 @@ def plano(plataformas, agora: datetime | None = None, por_hora: int | None = Non
         oc = ocupados(p, hist)
         livres = slots_por_hora(por_hora or 5, inicio, fim, oc) if fim else slots(p, inicio, oc)
         for v in sorted(LIMPOS.glob("*.mp4")):
-            if hist.get(v.name, {}).get(p, {}).get("status") in FEITO:
+            if feito(hist.get(v.name, {}).get(p, {}), agora):
                 continue
             quando = next(livres, None)
             if quando is None:
