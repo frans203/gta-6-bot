@@ -73,7 +73,17 @@ Pedido tipo "X vídeos por hora até HH:MM": calcule `X × horas` por plataforma
 - **TikTok** só agenda com minutos múltiplos de 5 e com ≥ 15 min de antecedência. `executar()` troca para
   "postar agora" se o horário ficar a < 16 min durante um lote longo.
 - **YouTube**: ao agendar, às vezes aparece o diálogo **"Processando vídeo… ficará público em…"** em vez do de
-  compartilhar. Isso é **sucesso** (já tratado). O canal tem limite diário de uploads; lotes grandes podem falhar no fim.
+  compartilhar. Isso é **sucesso** (detectado pelo texto da página inteira, não por um seletor de diálogo).
+- **YouTube: nunca usar `Escape`** nos campos do upload. Sem sugestão de hashtag aberta, ele fecha o diálogo
+  inteiro (o vídeo vira rascunho e o próximo clique dá timeout). O script termina o texto com espaço.
+- **YouTube: não usar `networkidle`** no Studio (nunca fica ocioso); esperar `#upload-icon`/`#create-icon`.
+- **YouTube: limite diário de envios.** Canal sem verificação por telefone tem teto baixo (estourou em ~10 uploads
+  em 13/11/2026). O script levanta `LimiteDiario` → status `limite_diario` (fica pendente) e pula o YouTube no
+  resto do lote. Só resolve com verificação do canal (youtube.com/verify) ou esperando 24h.
+- **Rodar lote longo**: em processo independente (`Start-Process powershell -File ...`), não como comando com
+  timeout do agente. Para parar: filtre por `Name='python.exe'` + `*agendar*` (um filtro só por linha de comando
+  casa com o próprio shell do agente e o mata) e feche os `chrome.exe` com `*perfil-chrome*` na linha de comando.
+  Pare logo depois de uma linha `... : agendado` no log para não deixar um envio pela metade.
 - **Perfil do Chrome é exclusivo**: só um processo por vez. `trava_perfil()` (`logs/perfil-chrome.lock`) serializa
   o lote e as tarefas do Windows. Se o Chrome do script estiver aberto à mão, o envio falha ("browser has been closed").
 - Durante um lote, Instagram cujo horário chegar é postado **pelo próprio lote**; a tarefa do Windows depois vê

@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from plataformas import PLATAFORMAS, agenda, comum, tarefas_windows
-from plataformas.comum import LIMPOS, LOGS, PERFIL, NaoLogado, carregar_hist, log, registrar
+from plataformas.comum import LIMPOS, LOGS, PERFIL, LimiteDiario, NaoLogado, carregar_hist, log, registrar
 
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 MIN_ANTECEDENCIA = timedelta(minutes=16)  # TikTok exige >= 15 min para agendar
@@ -114,6 +114,7 @@ def executar(tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fim=None)
             )
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
             sem_login = set()
+            bloqueadas = {}
 
             def vencidos_ig():
                 agora = datetime.now()
@@ -135,6 +136,8 @@ def executar(tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fim=None)
                 if ao_inicio: ao_inicio(t)
                 if nome in sem_login:
                     r = {"status": "nao_logado", "erro": "pulado: plataforma sem login"}
+                elif nome in bloqueadas:
+                    r = {"status": bloqueadas[nome], "erro": "pulado: limite diario da plataforma"}
                 else:
                     log(f"{video.name} {'agendar ' + t['quando'].isoformat(timespec='minutes') if t.get('quando') else 'agora'}", nome)
                     try:
@@ -145,6 +148,13 @@ def executar(tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fim=None)
                     except NaoLogado as e:
                         sem_login.add(nome)
                         r = {"status": "nao_logado", "erro": str(e)}
+                    except LimiteDiario as e:
+                        bloqueadas[nome] = "limite_diario"
+                        r = {"status": "limite_diario", "erro": str(e)}
+                        try:  # descarta o envio recusado para nao travar a proxima plataforma
+                            page.keyboard.press("Escape")
+                        except Exception:
+                            pass
                     except Exception as e:
                         shot = LOGS / f"erro_{nome}_{datetime.now():%Y%m%d_%H%M%S}.png"
                         try:

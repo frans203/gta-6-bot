@@ -40,7 +40,7 @@ ICONE = {"tiktok": "♪ TikTok", "youtube": "▶ YouTube", "instagram": "◎ Ins
 COR_STATUS = {
     "publicado": f"bold {VERDE}", "agendado": f"bold {ROSA}", "agendado_pc": f"bold {LARANJA}",
     "pendente": "grey50", "erro": "bold red", "nao_logado": "bold red", "revisar": CIANO,
-    "pulado_reivindicacao": "yellow", "fila_vazia": "grey50",
+    "pulado_reivindicacao": "yellow", "limite_diario": "bold yellow", "fila_vazia": "grey50",
 }
 
 con = Console(highlight=False)
@@ -239,6 +239,8 @@ def rodar(tarefas, revisar=False):
     cor = VERDE if ok == len(resultados) else LARANJA
     con.print(Panel(Text(f"{ok}/{len(resultados)} concluídos", style=f"bold {cor}", justify="center"),
                     border_style=ROSA, title="MISSÃO", title_align="left"))
+    if any(r["status"] == "limite_diario" for r in resultados):
+        con.print(f"[{LARANJA}]YouTube no limite diário de envios: verifique o canal (telefone) ou espere 24h. Os vídeos ficaram pendentes.[/]")
     if any(r["status"] == "nao_logado" for r in resultados):
         con.print(f"[{LARANJA}]Alguma plataforma está sem login no perfil do script → [bold]python jason.py login[/][/]")
     return 0 if ok == len(resultados) else 1

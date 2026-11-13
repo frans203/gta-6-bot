@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .agenda import data_yt
-from .comum import NaoLogado, log, passo, textos
+from .comum import LimiteDiario, NaoLogado, log, passo, textos
 
 NOME = "youtube"
 LOGIN_URL = "https://studio.youtube.com"
@@ -23,9 +23,10 @@ def _digitar(page, campo, texto):
     campo.click()
     page.keyboard.press("Control+A")
     page.keyboard.press("Backspace")
-    page.keyboard.type(texto, delay=random.randint(20, 45))
-    page.wait_for_timeout(600)
-    page.keyboard.press("Escape")  # fecha sugestoes de hashtag
+    # Espaco no fim fecha a lista de sugestoes de hashtag. NAO usar Escape: sem sugestao aberta,
+    # o Escape fecha o dialogo de upload inteiro (o video vira rascunho e o fluxo quebra).
+    page.keyboard.type(texto + " ", delay=random.randint(20, 45))
+    page.wait_for_timeout(800)
 
 
 def _agendar(page, dlg, quando: datetime):
@@ -52,11 +53,36 @@ def _agendar(page, dlg, quando: datetime):
         raise RuntimeError(f"YouTube nao aceitou o horario {quando:%d/%m %H:%M}")
 
 
+LIMITE_RE = re.compile(r"limite di[áa]rio de envios|daily upload limit", re.I)
+
+
 def postar(page, video: Path, revisar=False, quando: datetime | None = None, progresso=None) -> dict:
+    try:
+        return _postar(page, video, revisar, quando, progresso)
+    except LimiteDiario:
+        raise
+    except Exception as e:
+        # O aviso de limite diario aparece alguns segundos depois do upload e trava os botoes
+        try:
+            if page.get_by_text(LIMITE_RE).count():
+                raise LimiteDiario("YouTube: limite diario de envios alcancado (verifique o canal ou espere 24h)") from e
+        except LimiteDiario:
+            raise
+        except Exception:
+            pass
+        raise
+
+
+def _postar(page, video: Path, revisar=False, quando: datetime | None = None, progresso=None) -> dict:
     titulo, tags = textos(video)
     passo(progresso, "abrindo YouTube Studio")
     page.goto(STUDIO_URL, wait_until="domcontentloaded")
-    page.wait_for_load_state("networkidle", timeout=60_000)
+    # networkidle nao serve: o Studio fica fazendo requisicoes sem parar. Espera o botao de upload (ou o login).
+    try:
+        page.locator("#upload-icon, #create-icon").first.wait_for(state="visible", timeout=90_000)
+    except Exception:
+        if "accounts.google.com" not in page.url:
+            raise
     if "accounts.google.com" in page.url:
         raise NaoLogado("YouTube/Google nao esta logado no perfil do script")
 
@@ -73,13 +99,16 @@ def postar(page, video: Path, revisar=False, quando: datetime | None = None, pro
 
     passo(progresso, "enviando video")
     entrada.set_input_files(str(video))
+    page.wait_for_timeout(2500)
+    if dlg.get_by_text(LIMITE_RE).count():
+        raise LimiteDiario("YouTube: limite diario de envios alcancado (verifique o canal ou espere 24h)")
     caixas = dlg.locator("#textbox")
     caixas.first.wait_for(timeout=120_000)
     page.wait_for_timeout(1500)
 
     passo(progresso, "titulo e descricao")
     titulo_yt = f"{titulo} #gta6 #shorts"
-    _digitar(page, caixas.nth(0), titulo_yt if len(titulo_yt) <= 100 else titulo[:100])
+    _digitar(page, caixas.nth(0), titulo_yt if len(titulo_yt) <= 99 else titulo[:99])
     _digitar(page, caixas.nth(1), f"{titulo} {tags}")
 
     kids = "VIDEO_MADE_FOR_KIDS_MFK" if FEITO_PARA_CRIANCAS else "VIDEO_MADE_FOR_KIDS_NOT_MFK"
@@ -116,15 +145,20 @@ def postar(page, video: Path, revisar=False, quando: datetime | None = None, pro
 
     dlg.locator("#done-button").click()
     # Sucesso = dialogo de compartilhar ("Video publicado") OU "Processando video" (agendado, aguardando SD)
-    share = page.locator("ytcp-video-share-dialog")
-    processando = page.get_by_text(re.compile(r"^Processando v[íi]deo$|^Processing video$")).first
-    share.or_(processando).first.wait_for(state="visible", timeout=120_000)
-    caixa = share if share.is_visible() else page.locator("tp-yt-paper-dialog, ytcp-dialog").filter(has=processando).last
-    texto = caixa.inner_text() if caixa.count() else ""
+    # (o "Processando video" nao e um ytcp-video-share-dialog; checamos o texto da pagina inteira)
+    page.wait_for_function(
+        r"""() => /Processando v[íi]deo|ficar[áa] p[úu]blico em|V[íi]deo publicado|Processing video|Video published/
+                  .test(document.body.innerText)""",
+        timeout=120_000,
+    )
+    page.wait_for_timeout(1000)
+    texto = page.locator("body").inner_text()
     link = re.search(r"https://(?:www\.)?youtube\.com/shorts/[\w-]+|https://youtu\.be/[\w-]+", texto)
     fechar = page.get_by_role("button", name=re.compile(r"^(Fechar|Close)$"))
-    if fechar.count() and fechar.last.is_visible():
-        fechar.last.click()
+    for i in range(fechar.count()):
+        if fechar.nth(i).is_visible():
+            fechar.nth(i).click()
+            break
     r = {"link": link.group(0) if link else None, "reivindicado": reivindicado}
     if quando:
         return {"status": "agendado", "para": quando.isoformat(timespec="minutes"), **r}

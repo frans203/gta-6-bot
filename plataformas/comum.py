@@ -19,6 +19,10 @@ class NaoLogado(Exception):
     pass
 
 
+class LimiteDiario(Exception):
+    """A plataforma recusou novos envios hoje (ex.: YouTube sem verificacao do canal)."""
+
+
 def passo(progresso, msg):
     """Avisa a UI (CLI/React) sobre a etapa atual, se alguem estiver ouvindo."""
     if progresso:
