@@ -1,10 +1,16 @@
 """Configuração central. Valores podem ser trocados por variáveis JASON_* ou pelo arquivo .env na raiz."""
+import sys
 from functools import cached_property
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 RAIZ = Path(__file__).resolve().parents[2]
+
+if sys.platform == "darwin":
+    CHROME_PADRAO = Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+else:
+    CHROME_PADRAO = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
 
 
 class Config(BaseSettings):
@@ -14,7 +20,7 @@ class Config(BaseSettings):
     dados: Path = RAIZ / "dados"          # banco SQLite
     logs: Path = RAIZ / "logs"
     midia: Path = RAIZ / "midia"          # VODs, cortes, perfis de contas novas (pode ficar em outro disco)
-    chrome: Path = Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
+    chrome: Path = CHROME_PADRAO
     host: str = "127.0.0.1"
     porta: int = 8765
 

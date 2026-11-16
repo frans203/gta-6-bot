@@ -15,6 +15,8 @@
 
 `baixar` → `limpar` → `agendar` → **💰 lucro**
 
+🍎 **Usa Mac?** Siga o [TUTORIAL-MAC.md](TUTORIAL-MAC.md).
+
 </div>
 
 ---
