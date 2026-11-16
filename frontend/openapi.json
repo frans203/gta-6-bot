@@ -1,0 +1,5525 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "JASON_GTAVI_PIPELINE",
+  "description": "API local: postagem, agenda, jobs e cortador de lives.",
+  "version": "2.0.0"
+ },
+ "paths": {
+  "/api/contas": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Listar Contas",
+    "operationId": "listar_contas_api_contas_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ContaOut"
+         },
+         "type": "array",
+         "title": "Response Listar Contas Api Contas Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Criar Conta",
+    "operationId": "criar_conta_api_contas_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ContaIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ContaOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}": {
+   "patch": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Atualizar Conta",
+    "operationId": "atualizar_conta_api_contas__conta_id__patch",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ContaPatch"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ContaOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/login": {
+   "post": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Login",
+    "description": "Abre o Chrome da conta (normal, sem automação) para logar. Feche o Chrome inteiro depois.",
+    "operationId": "login_api_contas__conta_id__login_post",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "anyOf": [
+         {
+          "type": "array",
+          "items": {
+           "type": "string"
+          }
+         },
+         {
+          "type": "null"
+         }
+        ],
+        "title": "Plataformas"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/videos": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Fila",
+    "operationId": "fila_api_contas__conta_id__videos_get",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/VideoOut"
+         },
+         "title": "Response Fila Api Contas  Conta Id  Videos Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/videos/{nome}/arquivo": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Arquivo",
+    "operationId": "arquivo_api_contas__conta_id__videos__nome__arquivo_get",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/videos/{nome}/legenda": {
+   "put": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Salvar Legenda",
+    "operationId": "salvar_legenda_api_contas__conta_id__videos__nome__legenda_put",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LegendaIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/plano": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Plano",
+    "operationId": "plano_api_contas__conta_id__plano_get",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "plataformas",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Plataformas"
+      }
+     },
+     {
+      "name": "por_hora",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Por Hora"
+      }
+     },
+     {
+      "name": "ate",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Ate"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/PlanoItem"
+         },
+         "title": "Response Plano Api Contas  Conta Id  Plano Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/agendar": {
+   "post": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Agendar",
+    "operationId": "agendar_api_contas__conta_id__agendar_post",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AgendarIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/enviar": {
+   "post": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Enviar",
+    "operationId": "enviar_api_contas__conta_id__enviar_post",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EnviarIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/posts": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Listar Posts",
+    "description": "Posts registrados. `de`/`ate` (ISO) filtram pelo horário agendado (`para`) ou registro (`em`).",
+    "operationId": "listar_posts_api_posts_get",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "status",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "name": "de",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "De"
+      }
+     },
+     {
+      "name": "ate",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Ate"
+      }
+     },
+     {
+      "name": "limite",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 500,
+       "title": "Limite"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/PostOut"
+         },
+         "title": "Response Listar Posts Api Posts Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/posts/{post_id}": {
+   "patch": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Corrigir Post",
+    "description": "Correção manual (ex.: marcar como publicado depois de conferir no app).",
+    "operationId": "corrigir_post_api_posts__post_id__patch",
+    "parameters": [
+     {
+      "name": "post_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Post Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PostPatch"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PostOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Apagar Post",
+    "description": "Volta o vídeo a 'pendente' naquela plataforma.",
+    "operationId": "apagar_post_api_posts__post_id__delete",
+    "parameters": [
+     {
+      "name": "post_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Post Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/horarios": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Horarios",
+    "operationId": "horarios_api_horarios_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "$ref": "#/components/schemas/Grade"
+         },
+         "type": "object",
+         "title": "Response Horarios Api Horarios Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Salvar Horarios",
+    "operationId": "salvar_horarios_api_horarios_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "additionalProperties": {
+         "$ref": "#/components/schemas/Grade"
+        },
+        "type": "object",
+        "title": "Grade"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "additionalProperties": {
+          "$ref": "#/components/schemas/Grade"
+         },
+         "type": "object",
+         "title": "Response Salvar Horarios Api Horarios Put"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/pack/baixar": {
+   "post": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Baixar Pack",
+    "operationId": "baixar_pack_api_pack_baixar_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PackIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/tarefas-windows": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Tarefas",
+    "operationId": "tarefas_api_tarefas_windows_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/TarefaWindowsOut"
+         },
+         "type": "array",
+         "title": "Response Tarefas Api Tarefas Windows Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/historico/{conta_id}": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Exportar",
+    "description": "Histórico no formato antigo do postados.json.",
+    "operationId": "exportar_api_historico__conta_id__get",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/jobs": {
+   "get": {
+    "tags": [
+     "jobs"
+    ],
+    "summary": "Listar",
+    "operationId": "listar_api_jobs_get",
+    "parameters": [
+     {
+      "name": "status",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "name": "tipo",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Tipo"
+      }
+     },
+     {
+      "name": "limite",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 100,
+       "title": "Limite"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/JobOut"
+         },
+         "title": "Response Listar Api Jobs Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/jobs/{job_id}": {
+   "get": {
+    "tags": [
+     "jobs"
+    ],
+    "summary": "Obter",
+    "operationId": "obter_api_jobs__job_id__get",
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Job Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobDetalheOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/jobs/{job_id}/cancelar": {
+   "post": {
+    "tags": [
+     "jobs"
+    ],
+    "summary": "Cancelar Job",
+    "operationId": "cancelar_job_api_jobs__job_id__cancelar_post",
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Job Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/jobs/{job_id}/repetir": {
+   "post": {
+    "tags": [
+     "jobs"
+    ],
+    "summary": "Repetir",
+    "operationId": "repetir_api_jobs__job_id__repetir_post",
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Job Id"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/eventos": {
+   "get": {
+    "tags": [
+     "jobs"
+    ],
+    "summary": "Eventos",
+    "description": "Server-Sent Events: `job` (cada mudança de job) e `log` (linhas novas do logs/postar.log).",
+    "operationId": "eventos_api_eventos_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/logs": {
+   "get": {
+    "tags": [
+     "jobs"
+    ],
+    "summary": "Logs",
+    "operationId": "logs_api_logs_get",
+    "parameters": [
+     {
+      "name": "linhas",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 300,
+       "title": "Linhas"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         },
+         "title": "Response Logs Api Logs Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/prints": {
+   "get": {
+    "tags": [
+     "jobs"
+    ],
+    "summary": "Prints",
+    "description": "Prints de erro/sucesso das plataformas (mais recentes primeiro).",
+    "operationId": "prints_api_prints_get",
+    "parameters": [
+     {
+      "name": "limite",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "default": 60,
+       "title": "Limite"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         },
+         "title": "Response Prints Api Prints Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/prints/{nome}": {
+   "get": {
+    "tags": [
+     "jobs"
+    ],
+    "summary": "Print ",
+    "operationId": "print__api_prints__nome__get",
+    "parameters": [
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/plugins": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Listar Plugins",
+    "operationId": "listar_plugins_api_plugins_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PluginsOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/modelos": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Listar Modelos",
+    "operationId": "listar_modelos_api_modelos_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/ModeloOut"
+         },
+         "type": "array",
+         "title": "Response Listar Modelos Api Modelos Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Criar Modelo",
+    "operationId": "criar_modelo_api_modelos_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ModeloIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ModeloOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/modelos/{modelo_id}": {
+   "patch": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Atualizar Modelo",
+    "operationId": "atualizar_modelo_api_modelos__modelo_id__patch",
+    "parameters": [
+     {
+      "name": "modelo_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Modelo Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ModeloPatch"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ModeloOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Remover Modelo",
+    "operationId": "remover_modelo_api_modelos__modelo_id__delete",
+    "parameters": [
+     {
+      "name": "modelo_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Modelo Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/previa": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Previa",
+    "description": "Um quadro 1080x1920 do modelo, renderizado pelo mesmo ffmpeg do corte final (JPEG).",
+    "operationId": "previa_api_previa_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PreviaIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "image/jpeg": {}
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/streamers": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Listar Streamers",
+    "operationId": "listar_streamers_api_streamers_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/StreamerOut"
+         },
+         "type": "array",
+         "title": "Response Listar Streamers Api Streamers Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Criar Streamer",
+    "operationId": "criar_streamer_api_streamers_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StreamerIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StreamerOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/streamers/{streamer_id}": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Obter Streamer",
+    "operationId": "obter_streamer_api_streamers__streamer_id__get",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StreamerOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "patch": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Atualizar Streamer",
+    "operationId": "atualizar_streamer_api_streamers__streamer_id__patch",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/StreamerPatch"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StreamerOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Remover Streamer",
+    "operationId": "remover_streamer_api_streamers__streamer_id__delete",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/streamers/{streamer_id}/buscar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Buscar Fontes",
+    "description": "Procura VODs ou clipes recentes do canal (job).",
+    "operationId": "buscar_fontes_api_streamers__streamer_id__buscar_post",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BuscarFontesIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/streamers/{streamer_id}/webcam/detectar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Detectar Webcam",
+    "description": "Detecta a posição da webcam num trecho de um VOD do streamer (job).",
+    "operationId": "detectar_webcam_api_streamers__streamer_id__webcam_detectar_post",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     },
+     {
+      "name": "fonte_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Fonte Id"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/streamers/{streamer_id}/quadro": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Quadro",
+    "description": "Último quadro de referência usado na detecção da webcam (para ajustar o retângulo na tela).",
+    "operationId": "quadro_api_streamers__streamer_id__quadro_get",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fontes": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Listar Fontes",
+    "operationId": "listar_fontes_api_fontes_get",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/FonteOut"
+         },
+         "title": "Response Listar Fontes Api Fontes Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Adicionar Fonte",
+    "description": "Adiciona um VOD/clipe pela URL (Twitch ou YouTube).",
+    "operationId": "adicionar_fonte_api_fontes_post",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FonteIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FonteOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fontes/{fonte_id}/analisar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Analisar",
+    "description": "Encontra os melhores trechos (picos de áudio, mais assistidos, clipes) e cria cortes candidatos (job).",
+    "operationId": "analisar_api_fontes__fonte_id__analisar_post",
+    "parameters": [
+     {
+      "name": "fonte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Fonte Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AnalisarIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Listar Cortes",
+    "operationId": "listar_cortes_api_cortes_get",
+    "parameters": [
+     {
+      "name": "status",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Status"
+      }
+     },
+     {
+      "name": "streamer_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Streamer Id"
+      }
+     },
+     {
+      "name": "fonte_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Fonte Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/CorteOut"
+         },
+         "title": "Response Listar Cortes Api Cortes Get"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Obter Corte",
+    "operationId": "obter_corte_api_cortes__corte_id__get",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CorteOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "patch": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Editar Corte",
+    "operationId": "editar_corte_api_cortes__corte_id__patch",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CortePatch"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CorteOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}/enquadrar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Enquadrar",
+    "description": "Baixa o trecho, salva um quadro e procura a webcam do streamer, sem renderizar (job).",
+    "operationId": "enquadrar_api_cortes__corte_id__enquadrar_post",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}/quadro": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Quadro Corte",
+    "description": "Quadro do trecho do corte (fundo do editor de enquadramento).",
+    "operationId": "quadro_corte_api_cortes__corte_id__quadro_get",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}/renderizar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Renderizar",
+    "description": "Baixa o trecho, transcreve, monta o vertical com legenda e salva o mp4 (job, usa a GPU).",
+    "operationId": "renderizar_api_cortes__corte_id__renderizar_post",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}/arquivo": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Arquivo Corte",
+    "operationId": "arquivo_corte_api_cortes__corte_id__arquivo_get",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}/publicar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Publicar",
+    "description": "Manda o corte renderizado para a fila de postagem da conta.",
+    "operationId": "publicar_api_cortes__corte_id__publicar_post",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PublicarCorteIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CorteOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/identificar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Identificar",
+    "description": "Lê o link (sem baixar): plataforma, canal, título, duração e, se o site informar, o idioma.",
+    "operationId": "identificar_api_identificar_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/IdentificarIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/IdentificarOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Cortar Video",
+    "description": "Cola um link -> cadastra o streamer (se novo) e o vídeo -> job que acha os N melhores trechos e já prepara\ncada um (streamer, barras pretas, idioma).",
+    "operationId": "cortar_video_api_cortar_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CortarVideoIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CortarVideoOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fontes/{fonte_id}": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Obter Fonte",
+    "operationId": "obter_fonte_api_fontes__fonte_id__get",
+    "parameters": [
+     {
+      "name": "fonte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Fonte Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FonteOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fontes/{fonte_id}/aplicar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Aplicar Em Todos",
+    "description": "Mesmo modelo / idioma da legenda / imagem de fundo para todos os cortes do vídeo.",
+    "operationId": "aplicar_em_todos_api_fontes__fonte_id__aplicar_post",
+    "parameters": [
+     {
+      "name": "fonte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Fonte Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AplicarCortesIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/CorteOut"
+         },
+         "title": "Response Aplicar Em Todos Api Fontes  Fonte Id  Aplicar Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fontes/{fonte_id}/renderizar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Renderizar Todos",
+    "description": "Renderiza todos os cortes do vídeo que estão prontos para isso (pula os que esperam marcar a webcam).",
+    "operationId": "renderizar_todos_api_fontes__fonte_id__renderizar_post",
+    "parameters": [
+     {
+      "name": "fonte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Fonte Id"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/JobOut"
+         },
+         "title": "Response Renderizar Todos Api Fontes  Fonte Id  Renderizar Post"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fundos": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Listar Fundos",
+    "operationId": "listar_fundos_api_fundos_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/FundoOut"
+         },
+         "type": "array",
+         "title": "Response Listar Fundos Api Fundos Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Enviar Fundo",
+    "description": "Envia uma imagem de fundo (corpo = os bytes da imagem; Content-Type image/jpeg, png ou webp).",
+    "operationId": "enviar_fundo_api_fundos_post",
+    "requestBody": {
+     "content": {
+      "image/jpeg": {
+       "schema": {
+        "type": "string",
+        "format": "binary"
+       }
+      },
+      "image/png": {
+       "schema": {
+        "type": "string",
+        "format": "binary"
+       }
+      },
+      "image/webp": {
+       "schema": {
+        "type": "string",
+        "format": "binary"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FundoOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fundos/{nome}": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Arquivo Fundo",
+    "operationId": "arquivo_fundo_api_fundos__nome__get",
+    "parameters": [
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Remover Fundo",
+    "operationId": "remover_fundo_api_fundos__nome__delete",
+    "parameters": [
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/sistema": {
+   "get": {
+    "tags": [
+     "sistema"
+    ],
+    "summary": "Sistema",
+    "operationId": "sistema_api_sistema_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SistemaOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/sistema/resumo": {
+   "get": {
+    "tags": [
+     "sistema"
+    ],
+    "summary": "Resumo",
+    "description": "Contagem de jobs por status (para o painel).",
+    "operationId": "resumo_api_sistema_resumo_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "AgendarIn": {
+    "properties": {
+     "plataformas": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string",
+         "enum": [
+          "tiktok",
+          "youtube",
+          "instagram"
+         ]
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Plataformas"
+     },
+     "por_hora": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 12.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Por Hora"
+     },
+     "ate": {
+      "anyOf": [
+       {
+        "type": "string",
+        "pattern": "^\\d{2}:\\d{2}$"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ate"
+     }
+    },
+    "type": "object",
+    "title": "AgendarIn"
+   },
+   "AnalisarIn": {
+    "properties": {
+     "max_cortes": {
+      "type": "integer",
+      "maximum": 40.0,
+      "minimum": 1.0,
+      "title": "Max Cortes",
+      "default": 8
+     },
+     "duracao": {
+      "type": "integer",
+      "maximum": 180.0,
+      "minimum": 15.0,
+      "title": "Duracao",
+      "description": "duração alvo de cada corte, em segundos",
+      "default": 45
+     },
+     "detectores": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Detectores"
+     }
+    },
+    "type": "object",
+    "title": "AnalisarIn"
+   },
+   "AplicarCortesIn": {
+    "properties": {
+     "modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Modelo Id"
+     },
+     "idioma_legenda": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "pt",
+         "en",
+         "es"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idioma Legenda"
+     },
+     "fundo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fundo"
+     },
+     "estilo_legenda": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Estilo Legenda"
+     }
+    },
+    "type": "object",
+    "title": "AplicarCortesIn",
+    "description": "Aplica os mesmos ajustes a todos os cortes de um vídeo (os que não foram descartados)."
+   },
+   "BuscarFontesIn": {
+    "properties": {
+     "tipo": {
+      "type": "string",
+      "enum": [
+       "vod",
+       "clipe"
+      ],
+      "title": "Tipo",
+      "default": "vod"
+     },
+     "limite": {
+      "type": "integer",
+      "maximum": 50.0,
+      "minimum": 1.0,
+      "title": "Limite",
+      "default": 5
+     },
+     "periodo_dias": {
+      "type": "integer",
+      "maximum": 365.0,
+      "minimum": 1.0,
+      "title": "Periodo Dias",
+      "default": 7
+     }
+    },
+    "type": "object",
+    "title": "BuscarFontesIn"
+   },
+   "ContaIn": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{2,40}$",
+      "title": "Id"
+     },
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "idioma": {
+      "type": "string",
+      "enum": [
+       "pt",
+       "en",
+       "es"
+      ],
+      "title": "Idioma",
+      "default": "pt"
+     },
+     "plataformas": {
+      "items": {
+       "type": "string",
+       "enum": [
+        "tiktok",
+        "youtube",
+        "instagram"
+       ]
+      },
+      "type": "array",
+      "title": "Plataformas",
+      "default": [
+       "tiktok",
+       "youtube",
+       "instagram"
+      ]
+     },
+     "tags": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tags"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "nome"
+    ],
+    "title": "ContaIn"
+   },
+   "ContaOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "idioma": {
+      "type": "string",
+      "title": "Idioma"
+     },
+     "pasta": {
+      "type": "string",
+      "title": "Pasta"
+     },
+     "perfil": {
+      "type": "string",
+      "title": "Perfil"
+     },
+     "plataformas": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Plataformas"
+     },
+     "tags": {
+      "type": "string",
+      "title": "Tags"
+     },
+     "padrao": {
+      "type": "boolean",
+      "title": "Padrao"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "nome",
+     "idioma",
+     "pasta",
+     "perfil",
+     "plataformas",
+     "tags",
+     "padrao"
+    ],
+    "title": "ContaOut"
+   },
+   "ContaPatch": {
+    "properties": {
+     "nome": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nome"
+     },
+     "idioma": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "pt",
+         "en",
+         "es"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idioma"
+     },
+     "plataformas": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string",
+         "enum": [
+          "tiktok",
+          "youtube",
+          "instagram"
+         ]
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Plataformas"
+     },
+     "tags": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tags"
+     }
+    },
+    "type": "object",
+    "title": "ContaPatch"
+   },
+   "CortarVideoIn": {
+    "properties": {
+     "url": {
+      "type": "string",
+      "minLength": 8,
+      "title": "Url"
+     },
+     "quantidade": {
+      "type": "integer",
+      "maximum": 20.0,
+      "minimum": 1.0,
+      "title": "Quantidade",
+      "default": 3
+     },
+     "duracao": {
+      "type": "integer",
+      "maximum": 180.0,
+      "minimum": 15.0,
+      "title": "Duracao",
+      "default": 45
+     },
+     "modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Modelo Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "url"
+    ],
+    "title": "CortarVideoIn"
+   },
+   "CortarVideoOut": {
+    "properties": {
+     "job": {
+      "$ref": "#/components/schemas/JobOut"
+     },
+     "fonte_id": {
+      "type": "integer",
+      "title": "Fonte Id"
+     },
+     "streamer_id": {
+      "type": "integer",
+      "title": "Streamer Id"
+     },
+     "streamer_criado": {
+      "type": "boolean",
+      "title": "Streamer Criado"
+     }
+    },
+    "type": "object",
+    "required": [
+     "job",
+     "fonte_id",
+     "streamer_id",
+     "streamer_criado"
+    ],
+    "title": "CortarVideoOut"
+   },
+   "CorteOut": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "fonte_id": {
+      "type": "integer",
+      "title": "Fonte Id"
+     },
+     "inicio": {
+      "type": "number",
+      "title": "Inicio"
+     },
+     "fim": {
+      "type": "number",
+      "title": "Fim"
+     },
+     "score": {
+      "type": "number",
+      "title": "Score"
+     },
+     "sinais": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Sinais"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Modelo Id"
+     },
+     "estilo_legenda": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Estilo Legenda"
+     },
+     "webcam": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Webcam"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "jogo": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Regiao"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "titulo": {
+      "type": "string",
+      "title": "Titulo"
+     },
+     "gancho": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gancho"
+     },
+     "arquivo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Arquivo"
+     },
+     "erro": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Erro"
+     },
+     "criado_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Criado Em"
+     },
+     "atualizado_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Atualizado Em"
+     },
+     "fonte_url": {
+      "type": "string",
+      "title": "Fonte Url",
+      "default": ""
+     },
+     "fonte_titulo": {
+      "type": "string",
+      "title": "Fonte Titulo",
+      "default": ""
+     },
+     "fonte_tipo": {
+      "type": "string",
+      "title": "Fonte Tipo",
+      "default": ""
+     },
+     "streamer_id": {
+      "type": "integer",
+      "title": "Streamer Id",
+      "default": 0
+     },
+     "streamer_nome": {
+      "type": "string",
+      "title": "Streamer Nome",
+      "default": ""
+     },
+     "plataforma": {
+      "type": "string",
+      "title": "Plataforma",
+      "default": ""
+     },
+     "conta_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conta Id"
+     },
+     "streamer_modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Streamer Modelo Id"
+     },
+     "streamer_webcam": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Webcam"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "tem_quadro": {
+      "type": "boolean",
+      "title": "Tem Quadro",
+      "default": false
+     },
+     "idioma_legenda": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idioma Legenda"
+     },
+     "fundo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fundo"
+     },
+     "extra": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Extra",
+      "default": {}
+     },
+     "fonte_idioma": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fonte Idioma"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "fonte_id",
+     "inicio",
+     "fim",
+     "score",
+     "sinais",
+     "status",
+     "modelo_id",
+     "estilo_legenda",
+     "webcam",
+     "jogo",
+     "titulo",
+     "gancho",
+     "arquivo",
+     "erro",
+     "criado_em",
+     "atualizado_em"
+    ],
+    "title": "CorteOut"
+   },
+   "CortePatch": {
+    "properties": {
+     "inicio": {
+      "anyOf": [
+       {
+        "type": "number",
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Inicio"
+     },
+     "fim": {
+      "anyOf": [
+       {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fim"
+     },
+     "titulo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Titulo"
+     },
+     "gancho": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gancho"
+     },
+     "modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Modelo Id"
+     },
+     "estilo_legenda": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Estilo Legenda"
+     },
+     "webcam": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Regiao"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "marcada à mão (vira origem 'manual')"
+     },
+     "jogo": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Regiao"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "idioma_legenda": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "pt",
+         "en",
+         "es"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idioma Legenda"
+     },
+     "fundo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fundo"
+     },
+     "sem_webcam": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Sem Webcam",
+      "description": "true = este corte não tem o streamer (sai sem a webcam)"
+     },
+     "status": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "candidato",
+         "descartado"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status"
+     }
+    },
+    "type": "object",
+    "title": "CortePatch"
+   },
+   "EnviarIn": {
+    "properties": {
+     "plataformas": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string",
+         "enum": [
+          "tiktok",
+          "youtube",
+          "instagram"
+         ]
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Plataformas"
+     },
+     "video": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Video"
+     },
+     "revisar": {
+      "type": "boolean",
+      "title": "Revisar",
+      "default": false
+     }
+    },
+    "type": "object",
+    "title": "EnviarIn"
+   },
+   "EstadoPlataforma": {
+    "properties": {
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "para": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Para"
+     },
+     "link": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Link"
+     }
+    },
+    "type": "object",
+    "required": [
+     "status"
+    ],
+    "title": "EstadoPlataforma"
+   },
+   "FonteIn": {
+    "properties": {
+     "streamer_id": {
+      "type": "integer",
+      "title": "Streamer Id"
+     },
+     "url": {
+      "type": "string",
+      "title": "Url"
+     }
+    },
+    "type": "object",
+    "required": [
+     "streamer_id",
+     "url"
+    ],
+    "title": "FonteIn"
+   },
+   "FonteOut": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "streamer_id": {
+      "type": "integer",
+      "title": "Streamer Id"
+     },
+     "tipo": {
+      "type": "string",
+      "enum": [
+       "vod",
+       "clipe"
+      ],
+      "title": "Tipo"
+     },
+     "url": {
+      "type": "string",
+      "title": "Url"
+     },
+     "titulo": {
+      "type": "string",
+      "title": "Titulo"
+     },
+     "duracao": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Duracao"
+     },
+     "views": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Views"
+     },
+     "publicado_em": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Publicado Em"
+     },
+     "miniatura": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Miniatura"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "criado_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Criado Em"
+     },
+     "total_cortes": {
+      "type": "integer",
+      "title": "Total Cortes",
+      "default": 0
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "streamer_id",
+     "tipo",
+     "url",
+     "titulo",
+     "duracao",
+     "views",
+     "publicado_em",
+     "miniatura",
+     "status",
+     "criado_em"
+    ],
+    "title": "FonteOut"
+   },
+   "FundoOut": {
+    "properties": {
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "kb": {
+      "type": "integer",
+      "title": "Kb"
+     }
+    },
+    "type": "object",
+    "required": [
+     "nome",
+     "kb"
+    ],
+    "title": "FundoOut"
+   },
+   "Grade": {
+    "properties": {
+     "semana": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Semana"
+     },
+     "fimdesemana": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Fimdesemana"
+     }
+    },
+    "type": "object",
+    "required": [
+     "semana",
+     "fimdesemana"
+    ],
+    "title": "Grade"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "IdentificarIn": {
+    "properties": {
+     "url": {
+      "type": "string",
+      "minLength": 8,
+      "title": "Url"
+     }
+    },
+    "type": "object",
+    "required": [
+     "url"
+    ],
+    "title": "IdentificarIn"
+   },
+   "IdentificarOut": {
+    "properties": {
+     "url": {
+      "type": "string",
+      "title": "Url"
+     },
+     "plataforma": {
+      "type": "string",
+      "enum": [
+       "twitch",
+       "youtube",
+       "kick",
+       "outro"
+      ],
+      "title": "Plataforma"
+     },
+     "site": {
+      "type": "string",
+      "title": "Site"
+     },
+     "tipo": {
+      "type": "string",
+      "enum": [
+       "vod",
+       "clipe"
+      ],
+      "title": "Tipo"
+     },
+     "canal": {
+      "type": "string",
+      "title": "Canal"
+     },
+     "canal_nome": {
+      "type": "string",
+      "title": "Canal Nome"
+     },
+     "titulo": {
+      "type": "string",
+      "title": "Titulo"
+     },
+     "duracao": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Duracao"
+     },
+     "views": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Views"
+     },
+     "publicado_em": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Publicado Em"
+     },
+     "miniatura": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Miniatura"
+     },
+     "idioma": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idioma"
+     },
+     "largura": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Largura"
+     },
+     "altura": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Altura"
+     },
+     "streamer_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Streamer Id",
+      "description": "streamer já cadastrado (dono do vídeo, se ele já existe)"
+     },
+     "streamer_nome": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Streamer Nome"
+     },
+     "streamer_modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Streamer Modelo Id",
+      "description": "modelo de corte do streamer (None = o padrão)"
+     },
+     "fonte_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fonte Id",
+      "description": "este vídeo já foi adicionado antes"
+     }
+    },
+    "type": "object",
+    "required": [
+     "url",
+     "plataforma",
+     "site",
+     "tipo",
+     "canal",
+     "canal_nome",
+     "titulo",
+     "duracao",
+     "views",
+     "publicado_em",
+     "miniatura",
+     "idioma",
+     "largura",
+     "altura"
+    ],
+    "title": "IdentificarOut"
+   },
+   "JobDetalheOut": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "tipo": {
+      "type": "string",
+      "title": "Tipo"
+     },
+     "titulo": {
+      "type": "string",
+      "title": "Titulo"
+     },
+     "params": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Params"
+     },
+     "recurso": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recurso"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "progresso": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Progresso"
+     },
+     "mensagem": {
+      "type": "string",
+      "title": "Mensagem"
+     },
+     "resultado": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Resultado"
+     },
+     "erro": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Erro"
+     },
+     "criado_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Criado Em"
+     },
+     "iniciado_em": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Iniciado Em"
+     },
+     "terminado_em": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Terminado Em"
+     },
+     "atualizado_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Atualizado Em"
+     },
+     "log": {
+      "type": "string",
+      "title": "Log"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "tipo",
+     "titulo",
+     "params",
+     "recurso",
+     "status",
+     "progresso",
+     "mensagem",
+     "resultado",
+     "erro",
+     "criado_em",
+     "iniciado_em",
+     "terminado_em",
+     "atualizado_em",
+     "log"
+    ],
+    "title": "JobDetalheOut"
+   },
+   "JobOut": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "tipo": {
+      "type": "string",
+      "title": "Tipo"
+     },
+     "titulo": {
+      "type": "string",
+      "title": "Titulo"
+     },
+     "params": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Params"
+     },
+     "recurso": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Recurso"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "progresso": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Progresso"
+     },
+     "mensagem": {
+      "type": "string",
+      "title": "Mensagem"
+     },
+     "resultado": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Resultado"
+     },
+     "erro": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Erro"
+     },
+     "criado_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Criado Em"
+     },
+     "iniciado_em": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Iniciado Em"
+     },
+     "terminado_em": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Terminado Em"
+     },
+     "atualizado_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Atualizado Em"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "tipo",
+     "titulo",
+     "params",
+     "recurso",
+     "status",
+     "progresso",
+     "mensagem",
+     "resultado",
+     "erro",
+     "criado_em",
+     "iniciado_em",
+     "terminado_em",
+     "atualizado_em"
+    ],
+    "title": "JobOut"
+   },
+   "LegendaIn": {
+    "properties": {
+     "titulo": {
+      "type": "string",
+      "title": "Titulo"
+     },
+     "tags": {
+      "type": "string",
+      "title": "Tags"
+     }
+    },
+    "type": "object",
+    "required": [
+     "titulo",
+     "tags"
+    ],
+    "title": "LegendaIn"
+   },
+   "ModeloIn": {
+    "properties": {
+     "nome": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Nome"
+     },
+     "layout": {
+      "type": "string",
+      "title": "Layout"
+     },
+     "estilo_legenda": {
+      "type": "string",
+      "title": "Estilo Legenda",
+      "default": "destaque"
+     },
+     "params": {
+      "$ref": "#/components/schemas/ModeloParams",
+      "default": {
+       "barra": true,
+       "credito": true
+      }
+     },
+     "padrao": {
+      "type": "boolean",
+      "title": "Padrao",
+      "default": false
+     }
+    },
+    "type": "object",
+    "required": [
+     "nome",
+     "layout"
+    ],
+    "title": "ModeloIn"
+   },
+   "ModeloOut": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "layout": {
+      "type": "string",
+      "title": "Layout"
+     },
+     "estilo_legenda": {
+      "type": "string",
+      "title": "Estilo Legenda"
+     },
+     "params": {
+      "$ref": "#/components/schemas/ModeloParams"
+     },
+     "padrao": {
+      "type": "boolean",
+      "title": "Padrao"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "nome",
+     "layout",
+     "estilo_legenda",
+     "params",
+     "padrao"
+    ],
+    "title": "ModeloOut"
+   },
+   "ModeloParams": {
+    "properties": {
+     "divisao": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 0.8,
+        "minimum": 0.2
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Divisao",
+      "description": "fração da altura que fica com a 1ª área"
+     },
+     "legenda_y": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 0.97,
+        "minimum": 0.03
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Legenda Y",
+      "description": "centro da legenda"
+     },
+     "gancho_y": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 0.9,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gancho Y",
+      "description": "topo do texto de gancho"
+     },
+     "topo": {
+      "anyOf": [
+       {
+        "type": "number",
+        "maximum": 0.4,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Topo",
+      "description": "(fundo com imagem) onde o vídeo começa"
+     },
+     "fundo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fundo",
+      "description": "(fundo com imagem) imagem padrão do modelo, em midia/fundos"
+     },
+     "barra": {
+      "type": "boolean",
+      "title": "Barra",
+      "default": true
+     },
+     "credito": {
+      "type": "boolean",
+      "title": "Credito",
+      "default": true
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "title": "ModeloParams",
+    "description": "Posições do modelo de corte, em frações da altura do vídeo final (0 = topo, 1 = base)."
+   },
+   "ModeloPatch": {
+    "properties": {
+     "nome": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 100,
+        "minLength": 1
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nome"
+     },
+     "layout": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Layout"
+     },
+     "estilo_legenda": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Estilo Legenda"
+     },
+     "params": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ModeloParams"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "padrao": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Padrao"
+     }
+    },
+    "type": "object",
+    "title": "ModeloPatch"
+   },
+   "PackIn": {
+    "properties": {
+     "qtd": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 100.0,
+        "minimum": 1.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Qtd",
+      "default": 5
+     },
+     "ids": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "integer"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ids"
+     }
+    },
+    "type": "object",
+    "title": "PackIn"
+   },
+   "PlanoItem": {
+    "properties": {
+     "plataforma": {
+      "type": "string",
+      "title": "Plataforma"
+     },
+     "video": {
+      "type": "string",
+      "title": "Video"
+     },
+     "quando": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Quando"
+     },
+     "como": {
+      "type": "string",
+      "enum": [
+       "nativo",
+       "windows"
+      ],
+      "title": "Como"
+     }
+    },
+    "type": "object",
+    "required": [
+     "plataforma",
+     "video",
+     "quando",
+     "como"
+    ],
+    "title": "PlanoItem"
+   },
+   "PluginOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "descricao": {
+      "type": "string",
+      "title": "Descricao"
+     },
+     "opcoes": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Opcoes"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "nome",
+     "descricao",
+     "opcoes"
+    ],
+    "title": "PluginOut"
+   },
+   "PluginsOut": {
+    "properties": {
+     "layouts": {
+      "items": {
+       "$ref": "#/components/schemas/PluginOut"
+      },
+      "type": "array",
+      "title": "Layouts"
+     },
+     "estilos": {
+      "items": {
+       "$ref": "#/components/schemas/PluginOut"
+      },
+      "type": "array",
+      "title": "Estilos"
+     },
+     "detectores": {
+      "items": {
+       "$ref": "#/components/schemas/PluginOut"
+      },
+      "type": "array",
+      "title": "Detectores"
+     },
+     "plataformas": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Plataformas"
+     }
+    },
+    "type": "object",
+    "required": [
+     "layouts",
+     "estilos",
+     "detectores",
+     "plataformas"
+    ],
+    "title": "PluginsOut"
+   },
+   "PostOut": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "conta_id": {
+      "type": "string",
+      "title": "Conta Id"
+     },
+     "video": {
+      "type": "string",
+      "title": "Video"
+     },
+     "plataforma": {
+      "type": "string",
+      "title": "Plataforma"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "para": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Para"
+     },
+     "link": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Link"
+     },
+     "erro": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Erro"
+     },
+     "print": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Print"
+     },
+     "tarefa": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tarefa"
+     },
+     "obs": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obs"
+     },
+     "em": {
+      "type": "string",
+      "title": "Em"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "conta_id",
+     "video",
+     "plataforma",
+     "status",
+     "para",
+     "link",
+     "erro",
+     "print",
+     "tarefa",
+     "obs",
+     "em"
+    ],
+    "title": "PostOut"
+   },
+   "PostPatch": {
+    "properties": {
+     "status": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Status"
+     },
+     "para": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Para"
+     },
+     "link": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Link"
+     },
+     "obs": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Obs"
+     }
+    },
+    "type": "object",
+    "title": "PostPatch"
+   },
+   "PreviaIn": {
+    "properties": {
+     "modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Modelo Id"
+     },
+     "layout": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Layout"
+     },
+     "estilo_legenda": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Estilo Legenda"
+     },
+     "params": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ModeloParams"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "corte_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Corte Id",
+      "description": "usa o quadro, a webcam e o jogo deste corte"
+     },
+     "streamer_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Streamer Id",
+      "description": "usa o quadro de referência deste streamer"
+     },
+     "webcam": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Regiao"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "jogo": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Regiao"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "gancho": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gancho"
+     },
+     "fundo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fundo",
+      "description": "imagem de fundo (nome em midia/fundos)"
+     }
+    },
+    "type": "object",
+    "title": "PreviaIn",
+    "description": "Prévia de 1 quadro. Sem modelo_id usa os campos soltos (para o editor de modelos)."
+   },
+   "PublicarCorteIn": {
+    "properties": {
+     "conta_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conta Id"
+     }
+    },
+    "type": "object",
+    "title": "PublicarCorteIn"
+   },
+   "Regiao": {
+    "properties": {
+     "x": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "X"
+     },
+     "y": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Y"
+     },
+     "w": {
+      "type": "number",
+      "maximum": 1.0,
+      "exclusiveMinimum": 0.0,
+      "title": "W"
+     },
+     "h": {
+      "type": "number",
+      "maximum": 1.0,
+      "exclusiveMinimum": 0.0,
+      "title": "H"
+     }
+    },
+    "type": "object",
+    "required": [
+     "x",
+     "y",
+     "w",
+     "h"
+    ],
+    "title": "Regiao",
+    "description": "Retângulo no quadro original, em frações 0..1."
+   },
+   "SistemaOut": {
+    "properties": {
+     "versao": {
+      "type": "string",
+      "title": "Versao"
+     },
+     "agora": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Agora"
+     },
+     "midia": {
+      "type": "string",
+      "title": "Midia"
+     },
+     "disco_livre_gb": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Disco Livre Gb"
+     },
+     "worker_ativo": {
+      "type": "boolean",
+      "title": "Worker Ativo"
+     },
+     "gpu": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Gpu"
+     },
+     "twitch_api": {
+      "type": "boolean",
+      "title": "Twitch Api"
+     },
+     "whisper_modelo": {
+      "type": "string",
+      "title": "Whisper Modelo"
+     }
+    },
+    "type": "object",
+    "required": [
+     "versao",
+     "agora",
+     "midia",
+     "disco_livre_gb",
+     "worker_ativo",
+     "gpu",
+     "twitch_api",
+     "whisper_modelo"
+    ],
+    "title": "SistemaOut"
+   },
+   "StreamerIn": {
+    "properties": {
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "plataforma": {
+      "type": "string",
+      "enum": [
+       "twitch",
+       "youtube"
+      ],
+      "title": "Plataforma"
+     },
+     "canal": {
+      "type": "string",
+      "title": "Canal"
+     },
+     "idioma": {
+      "type": "string",
+      "enum": [
+       "pt",
+       "en",
+       "es"
+      ],
+      "title": "Idioma",
+      "default": "pt"
+     },
+     "conta_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conta Id"
+     },
+     "modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Modelo Id"
+     },
+     "campanha_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Campanha Url"
+     },
+     "notas": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notas"
+     }
+    },
+    "type": "object",
+    "required": [
+     "nome",
+     "plataforma",
+     "canal"
+    ],
+    "title": "StreamerIn"
+   },
+   "StreamerOut": {
+    "properties": {
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "plataforma": {
+      "type": "string",
+      "enum": [
+       "twitch",
+       "youtube",
+       "kick",
+       "outro"
+      ],
+      "title": "Plataforma"
+     },
+     "canal": {
+      "type": "string",
+      "title": "Canal"
+     },
+     "idioma": {
+      "type": "string",
+      "title": "Idioma"
+     },
+     "conta_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conta Id"
+     },
+     "webcam": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Webcam"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Modelo Id"
+     },
+     "campanha_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Campanha Url"
+     },
+     "notas": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notas"
+     },
+     "ativo": {
+      "type": "boolean",
+      "title": "Ativo"
+     },
+     "criado_em": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Criado Em"
+     },
+     "total_fontes": {
+      "type": "integer",
+      "title": "Total Fontes",
+      "default": 0
+     },
+     "total_cortes": {
+      "type": "integer",
+      "title": "Total Cortes",
+      "default": 0
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "nome",
+     "plataforma",
+     "canal",
+     "idioma",
+     "conta_id",
+     "webcam",
+     "modelo_id",
+     "campanha_url",
+     "notas",
+     "ativo",
+     "criado_em"
+    ],
+    "title": "StreamerOut"
+   },
+   "StreamerPatch": {
+    "properties": {
+     "nome": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Nome"
+     },
+     "canal": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Canal"
+     },
+     "idioma": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "pt",
+         "en",
+         "es"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Idioma"
+     },
+     "conta_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Conta Id"
+     },
+     "modelo_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Modelo Id"
+     },
+     "campanha_url": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Campanha Url"
+     },
+     "notas": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Notas"
+     },
+     "ativo": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ativo"
+     },
+     "webcam": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Webcam"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "title": "StreamerPatch"
+   },
+   "TarefaWindowsOut": {
+    "properties": {
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "proxima": {
+      "type": "string",
+      "title": "Proxima"
+     },
+     "estado": {
+      "type": "string",
+      "title": "Estado"
+     }
+    },
+    "type": "object",
+    "required": [
+     "nome",
+     "proxima",
+     "estado"
+    ],
+    "title": "TarefaWindowsOut"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "ctx": {
+      "type": "object",
+      "title": "Context"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   },
+   "VideoOut": {
+    "properties": {
+     "video": {
+      "type": "string",
+      "title": "Video"
+     },
+     "mb": {
+      "type": "number",
+      "title": "Mb"
+     },
+     "titulo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Titulo"
+     },
+     "tags": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tags"
+     },
+     "plataformas": {
+      "additionalProperties": {
+       "$ref": "#/components/schemas/EstadoPlataforma"
+      },
+      "type": "object",
+      "title": "Plataformas"
+     }
+    },
+    "type": "object",
+    "required": [
+     "video",
+     "mb",
+     "titulo",
+     "tags",
+     "plataformas"
+    ],
+    "title": "VideoOut"
+   },
+   "Webcam": {
+    "properties": {
+     "x": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "X"
+     },
+     "y": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Y"
+     },
+     "w": {
+      "type": "number",
+      "maximum": 1.0,
+      "exclusiveMinimum": 0.0,
+      "title": "W"
+     },
+     "h": {
+      "type": "number",
+      "maximum": 1.0,
+      "exclusiveMinimum": 0.0,
+      "title": "H"
+     },
+     "confianca": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Confianca",
+      "description": "fração das amostras em que o rosto apareceu (detecção)"
+     },
+     "origem": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "auto",
+         "manual",
+         "sugerida"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Origem",
+      "description": "auto = detectada com segurança; manual = marcada por você; sugerida = precisa conferir"
+     }
+    },
+    "type": "object",
+    "required": [
+     "x",
+     "y",
+     "w",
+     "h"
+    ],
+    "title": "Webcam"
+   }
+  }
+ }
+}

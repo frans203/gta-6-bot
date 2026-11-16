@@ -49,8 +49,10 @@ Depois, na pasta do projeto, instala as dependências:
 
 ```powershell
 cd C:\caminho\da\pasta\gta6
-python -m pip install playwright rich pyfiglet
+python -m pip install -r backend/requirements.txt
 ```
+
+> Para a interface web também precisa do **Node.js 20+** (https://nodejs.org) e, uma vez só: `cd frontend; npm install; npm run build`.
 
 > 💡 Não precisa rodar `playwright install`: o script usa o **seu Chrome instalado**.
 
@@ -61,7 +63,7 @@ Copia a pasta do projeto inteira, **MENOS** estas:
 | ❌ Não copiar | Por quê |
 |---|---|
 | `perfil-chrome/` | É o login de **outra pessoa** (cookies da conta dela) |
-| `postados.json` | Histórico de postagem de **outra conta**. Você começa do zero |
+| `dados/` | Banco com o histórico de postagem de **outra conta**. Você começa do zero |
 | `baixados/`, `limpos/`, `logs/` | Arquivos gerados. Os seus serão criados aí |
 
 ---
@@ -143,7 +145,7 @@ Mostra o plano, pede confirmação e manda ver com a barra de progresso neon. O 
 python jason.py tarefas     # vê os agendamentos do Instagram no Windows
 ```
 
-> 🧾 Ele **nunca repete**: tudo que foi postado ou agendado fica anotado em `postados.json`. Vídeo que já foi pro TikTok mas não pro Insta? Ele manda só pro Insta.
+> 🧾 Ele **nunca repete**: tudo que foi postado ou agendado fica anotado no banco (`dados/jason.db`). Vídeo que já foi pro TikTok mas não pro Insta? Ele manda só pro Insta.
 
 ### 🔥 Modo lote: N por hora até um horário
 ```powershell
@@ -217,11 +219,11 @@ Pesquisa completa em `horarios-tiktok.md`.
 
 | Regra | Como está |
 |---|---|
-| 👶 **YouTube: "é conteúdo para crianças?"** | Sempre marca **NÃO**. Se o seu conteúdo for diferente, mude `FEITO_PARA_CRIANCAS` em `plataformas/youtube.py` |
+| 👶 **YouTube: "é conteúdo para crianças?"** | Sempre marca **NÃO**. Se o seu conteúdo for diferente, mude `FEITO_PARA_CRIANCAS` em `backend/app/plataformas/youtube.py` |
 | ©️ **YouTube: "conteúdo reivindicado" (Content ID)** | **Publica mesmo assim**. Pra pular esses vídeos: `PUBLICAR_COM_REIVINDICACAO = False` |
 | 🔍 **TikTok: "ativar verificações automáticas?"** | Fecha **sem ativar** |
 | 🖼️ **Instagram: corte** | Sempre **Original** (vertical 9:16 inteiro) |
-| 🏷️ **Tags** | `#gta6 #gtavi #gta #rockstargames #vicecity #gta6trailer #gameplay #gamer #viral #fyp #shorts #gaming` (mude em `baixar.py` e `plataformas/comum.py`) |
+| 🏷️ **Tags** | `#gta6 #gtavi #gta #rockstargames #vicecity #gta6trailer #gameplay #gamer #viral #fyp #shorts #gaming` (mude em `backend/app/servicos/pack.py` e `backend/app/plataformas/comum.py`; nas contas novas, as tags ficam na tela **Contas**) |
 
 ---
 
@@ -235,7 +237,69 @@ Pesquisa completa em `horarios-tiktok.md`.
 | Instagram não postou no horário | O PC estava desligado/bloqueado. Rode `python jason.py enviar -p instagram` |
 | Captcha / "confirme que é você" | Rode `python jason.py login` e resolva **na mão** |
 | Cores feias / caracteres estranhos | Use o **Windows Terminal** e deixe a janela larga (110+ colunas) |
-| Site mudou o layout | Os passos de cada plataforma estão em `plataformas/*.py` e no `TODO.md`. Pode ser preciso reajustar um seletor |
+| Site mudou o layout | Os passos de cada plataforma estão em `backend/app/plataformas/*.py` e no `TODO.md`. Pode ser preciso reajustar um seletor |
+
+---
+
+## 🖥️ MISSÃO 4 — A INTERFACE WEB
+
+```powershell
+python jason.py web
+```
+
+Abre `http://127.0.0.1:8765` no navegador com tudo num lugar só: **Painel**, **Fila**, **Agenda**,
+**Cortador**, **Jobs**, **Logs** e **Contas**. Tarefas longas (postar, agendar, baixar, renderizar)
+viram **jobs** que rodam em segundo plano. Dá para acompanhar o progresso ao vivo e cancelar.
+Feche com `Ctrl+C` no terminal. Se um envio estiver no meio, espere ele terminar.
+
+## ✂️ MISSÃO 5 — O CORTADOR (cortes de lives)
+
+### ⚡ Jeito rápido: **Cortar vídeo** (menu lateral)
+
+1. Cole o **link** (Twitch, YouTube, Kick ou outro site) → **Ler link**: ele mostra a plataforma, o canal,
+   a duração e se o streamer já está cadastrado (se não estiver, cadastra sozinho).
+2. **Quantos cortes?** (1 a 20), a duração de cada um e o modelo → **Fazer os cortes**.
+3. Ele acha os melhores trechos e já prepara cada um: procura o **streamer**, mede as **barras pretas** e
+   descobre o **idioma falado**.
+4. **Legenda em:** se o vídeo for em inglês ou português, escolha manter o original ou traduzir (a tradução
+   roda no seu PC, grátis; na 1ª vez baixa ~80 MB).
+5. **Imagem de fundo:** se o vídeo tiver muito espaço preto, ele avisa. Envie/escolha uma imagem e o corte
+   fica: **imagem atrás, vídeo em cima, legenda, streamer embaixo**.
+6. **Enquadramento:** os cortes em amarelo não tiveram o streamer identificado: arraste o retângulo
+   STREAMER até a webcam e **Salvar enquadramento**.
+7. **Gerar os vídeos** → depois “Ver prontos e mandar para a fila”.
+
+### Jeito completo (por streamer)
+
+1. **Cortador → Novo streamer**: nome, Twitch ou YouTube, canal, idioma e para qual **conta** os cortes vão.
+2. **Buscar VODs** (ou cole a URL de uma live) → **Analisar**: o programa acha os momentos mais
+   agitados (picos de áudio, partes mais assistidas do YouTube, clipes da Twitch) e cria **cortes candidatos**.
+3. **Revisar**: assista ao trecho original, ajuste início/fim, escreva o título e o **gancho** (texto que
+   aparece nos primeiros segundos), escolha o **modelo de corte** e o estilo de legenda.
+4. **Enquadramento** (no mesmo cartão): clique em **Enquadrar**. Ele baixa o trecho, procura o streamer
+   (o rosto que fica parado no mesmo lugar) e mostra o quadro com o retângulo **STREAMER** e a **prévia** do
+   vertical ao lado. Se ele **não achar o streamer com segurança**, o corte fica amarelo, **“marcar webcam”**:
+   arraste o retângulo até a webcam (puxe o canto para o tamanho) e confira na prévia. Opcional: ligue
+   “Escolher a área do jogo” para recortar outra parte da tela.
+5. **Renderizar**. Sem o streamer identificado ou marcado à mão, o botão fica bloqueado: nunca sai um corte
+   com a webcam errada.
+6. Ficou bom? **Mandar para a fila** → ele entra na fila da conta e é agendado igual aos outros vídeos.
+
+> 🧩 **Modelos de corte** (menu lateral): o padrão é **jogo em cima + streamer embaixo**, com a legenda na
+> divisa. Lá você ajusta a altura do jogo, a posição da legenda (em cima / no meio / embaixo ou no slider),
+> a posição do gancho, a barra de progresso e o crédito, vendo a prévia real. Dá para duplicar e ter
+> vários modelos; cada streamer usa um, e cada corte pode trocar.
+>
+> 🔑 **Clipes da Twitch** precisam da API oficial (grátis): crie um app em https://dev.twitch.tv/console/apps
+> e coloque `JASON_TWITCH_CLIENT_ID` e `JASON_TWITCH_CLIENT_SECRET` no arquivo `.env` (veja o `.env.example`).
+>
+> 💾 Vídeos e modelos ficam na pasta `JASON_MIDIA` do `.env`. Use um disco com espaço.
+
+### 👥 Mais de uma conta
+
+Na tela **Contas** dá para criar outra conta (ex.: uma gamer em inglês). Cada conta tem a própria
+pasta de vídeos e o próprio Chrome. Faça o login dela com o botão **Abrir Chrome para login** ou com
+`python jason.py --conta gamer_en login`. Todos os comandos aceitam `--conta`.
 
 ---
 
@@ -243,19 +307,19 @@ Pesquisa completa em `horarios-tiktok.md`.
 
 ```
 gta6/
-├── jason.py               🌅 a CLI estilizada (use essa)
-├── postar.py              ⚙️ núcleo de envio (aceita --json, pra futura página React)
-├── baixar.py              🎬 baixa do pack
-├── limpar-metadados.ps1   🧼 limpa metadados (ffmpeg)
+├── jason.py / postar.py / baixar.py   atalhos (o código está em backend/)
 ├── horarios.json          ⏰ grade de horários
-├── plataformas/
-│   ├── tiktok.py          ♪
-│   ├── youtube.py         ▶
-│   ├── instagram.py       ◎
-│   ├── agenda.py          🗓️ monta o plano
-│   └── tarefas_windows.py 🪟 agendamento local do Instagram
-├── limpos/                ✨ vídeos prontos + legendas .txt
-├── postados.json          🧾 o que já foi pra onde
+├── .env                   ⚙️ configuração desta máquina (copie do .env.example)
+├── backend/app/
+│   ├── cli/               🌅 jason.py (CLI bonita) e postar.py (sem visual, --json)
+│   ├── api/               🌐 API da interface web (FastAPI)
+│   ├── jobs/              🧵 fila de jobs + worker
+│   ├── servicos/          🗓️ agenda, postagem, contas, pack
+│   ├── plataformas/       ♪ tiktok ▶ youtube ◎ instagram + Agendador do Windows
+│   └── cortes/            ✂️ cortador: fontes, detectores, webcam, layouts, legendas, render
+├── frontend/              🖥️ a interface (React)
+├── dados/jason.db         🧾 o que já foi pra onde (banco)
+├── limpos/                ✨ vídeos prontos da conta principal + legendas .txt
 └── perfil-chrome/         🔐 SEU login (não compartilhe!)
 ```
 

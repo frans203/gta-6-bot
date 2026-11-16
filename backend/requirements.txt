@@ -1,0 +1,19 @@
+# Mesmas dependências do pyproject.toml (instalação simples: python -m pip install -r backend/requirements.txt)
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sqlalchemy>=2.0
+alembic>=1.13
+pydantic>=2.7
+pydantic-settings>=2.3
+playwright>=1.45
+rich>=13
+pyfiglet>=1.0
+yt-dlp>=2025.1.1
+faster-whisper>=1.0
+opencv-python>=4.9
+numpy>=1.26
+sentencepiece>=0.2        # tradução local da legenda (com o C: cheio: pip install --target E:\jason-midia\libs sentencepiece)
+# desenvolvimento
+pytest>=8
+httpx>=0.27
+ruff>=0.5

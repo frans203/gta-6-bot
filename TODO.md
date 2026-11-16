@@ -1,4 +1,39 @@
-# TODO — Automação de posts GTA 6
+# TODO — JASON_GTAVI_PIPELINE
+
+## v2 (14/11/2026): interface web + cortador de lives
+- [x] Pesquisa: como Opus Clip/Klap/Vizard funcionam; monetização em USD (clipping pago ~US$1/mil views >> RPM
+      de Shorts); penalidade do Instagram para conteúdo não original (abr/2026)
+- [x] Código movido para `backend/app` (pacote), atalhos `jason.py`/`postar.py`/`baixar.py` na raiz
+- [x] SQLite + Alembic (`dados/jason.db`); `postados.json` importado (verificado idêntico) → `postados.importado.json`
+- [x] Várias contas (perfil do Chrome, pasta de vídeos, trava e tarefas do Windows por conta); `--conta` na CLI
+- [x] Fila de jobs no SQLite + worker (recurso exclusivo por conta/GPU, cancelar, repetir, log por job)
+- [x] API FastAPI (`/docs`) + SSE (`/api/eventos`: jobs e log ao vivo); `python jason.py web`
+- [x] Cortador: fontes (yt-dlp; Twitch Helix p/ clipes), detectores (áudio, heatmap YouTube, clipes Twitch),
+      webcam automática (OpenCV), layouts (webcam em cima / só jogo / tela cheia desfocada), legenda palavra
+      por palavra (faster-whisper + .ass), gancho, crédito, barra de progresso, NVENC
+- [x] Testado de ponta a ponta: VOD real do alanzoka → corte 1080x1920 com webcam + legenda (106 s, Whisper CPU);
+      análise de VOD de 2,7 h do Speed em 35 s
+- [x] Testes (pytest) e lint (ruff)
+- [x] Frontend React + TS + Tailwind + shadcn/ui (Painel, Fila, Agenda, Cortador, Revisão, Jobs, Logs, Contas)
+- [x] Whisper na GPU (libs CUDA em E:\jason-midia\libs, modelo medium); streamers do MVP e conta gamer_en cadastrados
+- [x] Enquadramento por corte: detecção do streamer (Haar frente + perfil) no próprio trecho; se não achar com
+      segurança, status "marcar webcam" e marcação manual na revisão (render bloqueado até confirmar);
+      área do jogo opcional; prévia real (ffmpeg) ao lado
+- [x] Modelos de corte (tabela + página): padrão "jogo em cima + streamer embaixo", legenda na divisa ou
+      embaixo/em cima/livre, altura do jogo, gancho, barra e crédito ajustáveis; streamer e corte escolhem
+- [x] Fluxo rápido "Cortar vídeo": colar link (Twitch/YouTube/Kick/outros) → quantos cortes → prepara cada um
+      (streamer, barras pretas, idioma) → legenda original ou traduzida (EN↔PT local, grátis) → imagem de
+      fundo quando há espaço preto (layout fundo_imagem) → enquadramento manual dos não identificados → gerar
+- [ ] Tradução: o modelo grátis puxa para PT de Portugal ("O que raio..."); avaliar trocar o par en→pt
+- [ ] **Usuário**: criar app grátis na Twitch (dev.twitch.tv) e pôr `JASON_TWITCH_CLIENT_ID/SECRET` no `.env`
+- [ ] **Usuário**: criar a conta gamer em inglês nas 3 redes, `python jason.py --conta gamer_en login`
+- [ ] Rodar o MVP: alanzoka + Flow Games (YouTube channel/UCUZfhX79dQrJvAgYefiXCCA; a Twitch deles não tem VODs),
+      Kai Cenat, Speed + um streamer em ascensão com campanha de clipping ativa (escolher na Whop)
+- [ ] Medir desempenho dos cortes (views por post) → tela de métricas
+- [ ] Ideias: título automático a partir da transcrição (palavras-chave), zoom nos picos, música de fundo,
+      modelo com 2 webcams, rastrear a webcam quando ela muda de lugar no meio da live, detector de risada/palavras-chave na transcrição, upload em lote para campanhas
+
+## v1 — Automação de posts GTA 6
 
 ## Feito
 - [x] `limpar-metadados.ps1`: remove metadados, recodifica com tamanho próximo do original e dá nomes `gta6_NNN.mp4`

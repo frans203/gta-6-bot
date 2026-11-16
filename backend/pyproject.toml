@@ -1,0 +1,43 @@
+[project]
+name = "jason-backend"
+version = "2.0.0"
+description = "JASON_GTAVI_PIPELINE: cortes automáticos de lives + postagem em TikTok, YouTube Shorts e Instagram"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "playwright>=1.45",
+    "rich>=13",
+    "pyfiglet>=1.0",
+    "yt-dlp>=2025.1.1",
+    "faster-whisper>=1.0",
+    "opencv-python>=4.9",
+    "numpy>=1.26",
+    "sentencepiece>=0.2",
+]
+
+[project.optional-dependencies]
+gpu = ["nvidia-cublas-cu12", "nvidia-cudnn-cu12==9.*"]
+dev = ["pytest>=8", "httpx>=0.27", "ruff>=0.5"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E701", "E702", "E731", "E402", "E501", "E741", "B008", "B905"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -22,3 +22,13 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# 🗄️ Banco local, mídia pesada e configuração da máquina
+dados/
+midia/
+.env
+postados.importado.json
+
+# 🌐 Front
+frontend/node_modules/
+frontend/dist/
