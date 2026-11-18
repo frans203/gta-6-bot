@@ -144,7 +144,8 @@ function ParaRevisar() {
         ) : fontes.length ? (
           <ul className="space-y-2 text-sm">
             {fontes.slice(0, 6).map((f) => {
-              const n = (f.cortes_status.candidato ?? 0) + (f.cortes_status.enquadrar ?? 0) + (f.cortes_status.erro ?? 0)
+              const st = f.cortes_status ?? {}
+              const n = (st.candidato ?? 0) + (st.enquadrar ?? 0) + (st.erro ?? 0)
               return (
                 <li key={f.id}>
                   <Link

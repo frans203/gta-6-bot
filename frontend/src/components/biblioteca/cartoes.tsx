@@ -84,7 +84,7 @@ function Casca({ onClick, children, className }: { onClick: () => void; children
 
 /** Vídeo original na aba "Para revisar": capa + título completo + quantos cortes. */
 export function CartaoFonte({ fonte, onAbrir }: { fonte: Fonte; onAbrir: () => void }) {
-  const st = fonte.cortes_status
+  const st = fonte.cortes_status ?? {} // backend antigo (sem reiniciar) não manda o campo
   const aRevisar = (st.candidato ?? 0) + (st.enquadrar ?? 0) + (st.erro ?? 0)
   return (
     <Casca onClick={onAbrir}>
