@@ -50,7 +50,7 @@ if sys.platform == "win32":
         msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
 
     def _destravar(f):
-        _destravar(f)
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
 else:
     import fcntl
 

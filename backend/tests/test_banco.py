@@ -45,3 +45,16 @@ def test_fila_de_jobs_recurso_e_cancelamento(banco):
     assert fila.cancelar(j2.id).status == "cancelado"
     assert fila.cancelar(j1.id).status == "cancelando"
     assert fila.Contexto(j1.id).cancelado
+
+
+def test_trava_perfil_libera(tmp_path, monkeypatch):
+    """A trava do perfil do Chrome precisa soltar no fim (antes ela entrava em recursão infinita no Windows)."""
+    from types import SimpleNamespace
+
+    from app.servicos import contas, postagem
+    monkeypatch.setattr(contas, "arquivo_trava", lambda c: tmp_path / f"perfil-{c.id}.lock")
+    monkeypatch.setattr(postagem, "LOGS", tmp_path)
+    conta = SimpleNamespace(id="teste", padrao=False)
+    for _ in range(2):  # pega, solta e pega de novo
+        with postagem.trava_perfil(conta, espera_max_min=0):
+            pass
