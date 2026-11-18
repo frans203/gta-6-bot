@@ -12,6 +12,7 @@ export const ROTULO_STATUS: Record<string, string> = {
   limite_diario: 'limite diário',
   atrasado: 'atrasado',
   fila_vazia: 'fila vazia',
+  removido: 'não postar',
   // jobs
   fila: 'na fila',
   rodando: 'rodando',
@@ -67,6 +68,7 @@ export const COR_STATUS: Record<string, string> = {
   cancelado: CINZA,
   descartado: CINZA,
   fila_vazia: CINZA,
+  removido: CINZA,
 }
 
 export const corStatus = (s: string) => COR_STATUS[s] ?? ROXO

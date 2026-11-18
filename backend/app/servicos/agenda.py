@@ -9,7 +9,7 @@ HORARIOS = config.raiz / "horarios.json"
 ANTECEDENCIA_MIN = 30          # TikTok exige >= 15 min; damos folga para o upload
 MESES_PT = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."]
 
-FEITO = ("publicado", "agendado", "agendado_pc", "pulado_reivindicacao")
+FEITO = ("publicado", "agendado", "agendado_pc", "pulado_reivindicacao", "removido")  # removido = não postar
 ATRASO_PC = timedelta(hours=1)  # agendado_pc vencido ha mais que isso = tarefa do Windows nao rodou
 
 

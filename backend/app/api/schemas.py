@@ -45,11 +45,54 @@ class EstadoPlataforma(BaseModel):
     link: str | None = None
 
 
+class TextoYoutube(BaseModel):
+    titulo: str | None = Field(None, max_length=100)
+    descricao: str | None = Field(None, max_length=5000)
+
+
+class TextoLegenda(BaseModel):
+    legenda: str | None = Field(None, max_length=2200)
+
+
+class TextosRedes(BaseModel):
+    """Personalização por rede: vazio = usa o texto geral."""
+    youtube: TextoYoutube = TextoYoutube()
+    tiktok: TextoLegenda = TextoLegenda()
+    instagram: TextoLegenda = TextoLegenda()
+
+
+class TextosIn(BaseModel):
+    titulo: str = Field(min_length=1, max_length=100)
+    descricao: str = Field("", max_length=2000)
+    tags: str = Field("", max_length=1000, description="hashtags separadas por espaço")
+    redes: TextosRedes = TextosRedes()
+
+
+class TextosOut(BaseModel):
+    titulo: str
+    descricao: str
+    tags: str
+    redes: dict[str, dict[str, str]]
+    finais: dict[str, dict[str, str]] = Field(description="o que cada rede vai receber de fato")
+
+
+class HashtagsLoteIn(BaseModel):
+    tags: str = Field(min_length=1, max_length=1000)
+    modo: Literal["substituir", "adicionar"] = "substituir"
+    videos: list[str] | None = Field(None, description="None = todos os vídeos ainda não postados em nenhuma rede")
+
+
+class EstadoRedeIn(BaseModel):
+    status: Literal["removido", "pendente"] = Field(description="removido = não postar nesta rede; pendente = volta")
+
+
 class VideoOut(BaseModel):
     video: str
     mb: float
     titulo: str | None
     tags: str | None
+    descricao: str = ""
+    redes: dict[str, dict[str, str]] = {}
     plataformas: dict[str, EstadoPlataforma]
 
 

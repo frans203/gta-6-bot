@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { chaves } from '../chaves'
 import { api, dados } from '../cliente'
+import type { components } from '../schema'
 import type { AgendarIn, EnviarIn, Grade, PostPatch } from '../tipos'
 import { useAcao } from './util'
 
@@ -23,6 +24,49 @@ export function useSalvarLegenda(conta: string) {
         }),
       ),
     { sucesso: 'Legenda salva', invalidar: [chaves.videos(conta)] },
+  )
+}
+
+export type TextosVideo = components['schemas']['TextosIn']
+
+/** Textos do vídeo (geral + por rede) e o que cada rede vai receber. */
+export function useTextos(conta: string, nome: string) {
+  return useQuery({
+    queryKey: ['textos', conta, nome],
+    queryFn: () => dados(api.GET('/api/contas/{conta_id}/videos/{nome}/textos', { params: { path: { conta_id: conta, nome } } })),
+  })
+}
+
+export function useSalvarTextos(conta: string, nome: string) {
+  return useAcao(
+    (body: TextosVideo) =>
+      dados(api.PUT('/api/contas/{conta_id}/videos/{nome}/textos', { params: { path: { conta_id: conta, nome } }, body })),
+    { sucesso: 'Textos salvos', invalidar: [chaves.videos(conta), ['textos', conta, nome]] },
+  )
+}
+
+export function useHashtagsLote(conta: string) {
+  return useAcao(
+    (body: components['schemas']['HashtagsLoteIn']) =>
+      dados(api.POST('/api/contas/{conta_id}/videos/hashtags', { params: { path: { conta_id: conta } }, body })),
+    { sucesso: (r) => `Hashtags aplicadas em ${(r as { videos: number }).videos} vídeo(s)`, invalidar: [chaves.videos(conta), ['textos']] },
+  )
+}
+
+/** "Não postar nesta rede" (removido) ou voltar para pendente. */
+export function useEstadoRede(conta: string) {
+  return useAcao(
+    ({ nome, plataforma, status }: { nome: string; plataforma: string; status: 'removido' | 'pendente' }) =>
+      dados(
+        api.PUT('/api/contas/{conta_id}/videos/{nome}/redes/{plataforma}', {
+          params: { path: { conta_id: conta, nome, plataforma } },
+          body: { status },
+        }),
+      ),
+    {
+      sucesso: (_r) => 'Fila atualizada',
+      invalidar: [chaves.videosTodos, chaves.postsTodos, chaves.planoTodos],
+    },
   )
 }
 

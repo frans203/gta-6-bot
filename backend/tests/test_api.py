@@ -95,3 +95,40 @@ def test_api_biblioteca(banco, tmp_path):
         assert [j["params"]["corte_id"] for j in jobs] == [tarde["id"]]
         # num candidato, só salva
         assert cli.patch(f"/api/cortes/{cedo['id']}", json={"sem_webcam": True}).json()["status"] == "candidato"
+
+
+def test_textos_por_rede_e_removido(banco, tmp_path):
+    """Título/descrição/hashtags com personalização por rede; hashtags em lote; 'não postar nesta rede'."""
+    from app.api.main import create_app
+    from app.plataformas.comum import caminho_meta, ler_txt, textos_rede
+    from app.servicos import agenda, contas, historico
+    conta = contas.criar("teste_txt", "Teste", pasta=str(tmp_path))
+    for n in ("a", "b"):
+        (tmp_path / f"{n}.mp4").write_bytes(b"x")
+    (tmp_path / "b.txt").write_text("Antigo\n\n#velha\n", "utf-8")
+    with TestClient(create_app()) as cli:
+        base = f"/api/contas/{conta.id}/videos"
+        r = cli.put(f"{base}/a.mp4/textos", json={"titulo": "Olha isso", "descricao": "linha 1\nlinha 2",
+                                                    "tags": "#gta6 #fyp",
+                                                    "redes": {"instagram": {"legenda": "só no insta #reels"}}}).json()
+        assert r["finais"]["tiktok"]["legenda"] == "Olha isso linha 1 linha 2 #gta6 #fyp"
+        assert r["finais"]["instagram"]["legenda"] == "só no insta #reels"
+        assert r["finais"]["youtube"] == {"titulo": "Olha isso #gta6 #shorts", "descricao": "linha 1 linha 2 #gta6 #fyp"}
+        assert ler_txt(tmp_path / "a.mp4") == ("Olha isso", "#gta6 #fyp") and caminho_meta(tmp_path / "a.mp4").exists()
+        # sem descrição nem personalização: não deixa .meta.json e o YouTube fica como antes
+        cli.put(f"{base}/a.mp4/textos", json={"titulo": "Só título", "tags": "#x"})
+        assert not caminho_meta(tmp_path / "a.mp4").exists()
+        assert textos_rede(tmp_path / "a.mp4", "youtube") == {"titulo": "Só título #shorts", "descricao": "Só título #x"}
+        v = {x["video"]: x for x in cli.get(base).json()}
+        assert v["b.mp4"]["titulo"] == "Antigo" and v["b.mp4"]["descricao"] == ""
+        # hashtags em lote: acrescenta sem repetir
+        assert cli.post(f"{base}/hashtags", json={"tags": "#nova #x", "modo": "adicionar"}).json()["videos"] == 2
+        assert ler_txt(tmp_path / "b.mp4")[1] == "#velha #nova #x" and ler_txt(tmp_path / "a.mp4")[1] == "#x #nova"
+        # não postar nesta rede
+        assert cli.put(f"{base}/b.mp4/redes/instagram", json={"status": "removido"}).json()["ok"]
+        h = historico.carregar_hist(conta.id)
+        assert h["b.mp4"]["instagram"]["status"] == "removido" and agenda.feito(h["b.mp4"]["instagram"])
+        assert cli.get(base).json()[1]["plataformas"]["instagram"]["status"] == "removido"
+        cli.put(f"{base}/b.mp4/redes/instagram", json={"status": "pendente"})
+        assert "instagram" not in historico.carregar_hist(conta.id).get("b.mp4", {})
+        assert cli.put(f"{base}/b.mp4/redes/orkut", json={"status": "removido"}).status_code == 404

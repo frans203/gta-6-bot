@@ -332,6 +332,237 @@
     }
    }
   },
+  "/api/contas/{conta_id}/videos/{nome}/textos": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Ler Textos",
+    "description": "Título, descrição, hashtags, personalização por rede e o texto final que cada rede vai receber.",
+    "operationId": "ler_textos_api_contas__conta_id__videos__nome__textos_get",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TextosOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Salvar Textos",
+    "operationId": "salvar_textos_api_contas__conta_id__videos__nome__textos_put",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TextosIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TextosOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/videos/hashtags": {
+   "post": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Hashtags Em Lote",
+    "description": "Troca (ou acrescenta) as hashtags de vários vídeos de uma vez.",
+    "operationId": "hashtags_em_lote_api_contas__conta_id__videos_hashtags_post",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/HashtagsLoteIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/videos/{nome}/redes/{plataforma}": {
+   "put": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Estado Rede",
+    "description": "'Não postar nesta rede' (removido) ou voltar a pendente.",
+    "operationId": "estado_rede_api_contas__conta_id__videos__nome__redes__plataforma__put",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     },
+     {
+      "name": "plataforma",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Plataforma"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EstadoRedeIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/contas/{conta_id}/plano": {
    "get": {
     "tags": [
@@ -4167,6 +4398,24 @@
     ],
     "title": "EstadoPlataforma"
    },
+   "EstadoRedeIn": {
+    "properties": {
+     "status": {
+      "type": "string",
+      "enum": [
+       "removido",
+       "pendente"
+      ],
+      "title": "Status",
+      "description": "removido = não postar nesta rede; pendente = volta"
+     }
+    },
+    "type": "object",
+    "required": [
+     "status"
+    ],
+    "title": "EstadoRedeIn"
+   },
    "FonteIn": {
     "properties": {
      "streamer_id": {
@@ -4423,6 +4672,45 @@
     },
     "type": "object",
     "title": "HTTPValidationError"
+   },
+   "HashtagsLoteIn": {
+    "properties": {
+     "tags": {
+      "type": "string",
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Tags"
+     },
+     "modo": {
+      "type": "string",
+      "enum": [
+       "substituir",
+       "adicionar"
+      ],
+      "title": "Modo",
+      "default": "substituir"
+     },
+     "videos": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Videos",
+      "description": "None = todos os vídeos ainda não postados em nenhuma rede"
+     }
+    },
+    "type": "object",
+    "required": [
+     "tags"
+    ],
+    "title": "HashtagsLoteIn"
    },
    "IdentificarIn": {
     "properties": {
@@ -6091,6 +6379,155 @@
     ],
     "title": "TarefaWindowsOut"
    },
+   "TextoLegenda": {
+    "properties": {
+     "legenda": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Legenda"
+     }
+    },
+    "type": "object",
+    "title": "TextoLegenda"
+   },
+   "TextoYoutube": {
+    "properties": {
+     "titulo": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 100
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Titulo"
+     },
+     "descricao": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 5000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Descricao"
+     }
+    },
+    "type": "object",
+    "title": "TextoYoutube"
+   },
+   "TextosIn": {
+    "properties": {
+     "titulo": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Titulo"
+     },
+     "descricao": {
+      "type": "string",
+      "maxLength": 2000,
+      "title": "Descricao",
+      "default": ""
+     },
+     "tags": {
+      "type": "string",
+      "maxLength": 1000,
+      "title": "Tags",
+      "description": "hashtags separadas por espaço",
+      "default": ""
+     },
+     "redes": {
+      "$ref": "#/components/schemas/TextosRedes",
+      "default": {
+       "youtube": {},
+       "tiktok": {},
+       "instagram": {}
+      }
+     }
+    },
+    "type": "object",
+    "required": [
+     "titulo"
+    ],
+    "title": "TextosIn"
+   },
+   "TextosOut": {
+    "properties": {
+     "titulo": {
+      "type": "string",
+      "title": "Titulo"
+     },
+     "descricao": {
+      "type": "string",
+      "title": "Descricao"
+     },
+     "tags": {
+      "type": "string",
+      "title": "Tags"
+     },
+     "redes": {
+      "additionalProperties": {
+       "additionalProperties": {
+        "type": "string"
+       },
+       "type": "object"
+      },
+      "type": "object",
+      "title": "Redes"
+     },
+     "finais": {
+      "additionalProperties": {
+       "additionalProperties": {
+        "type": "string"
+       },
+       "type": "object"
+      },
+      "type": "object",
+      "title": "Finais",
+      "description": "o que cada rede vai receber de fato"
+     }
+    },
+    "type": "object",
+    "required": [
+     "titulo",
+     "descricao",
+     "tags",
+     "redes",
+     "finais"
+    ],
+    "title": "TextosOut"
+   },
+   "TextosRedes": {
+    "properties": {
+     "youtube": {
+      "$ref": "#/components/schemas/TextoYoutube",
+      "default": {}
+     },
+     "tiktok": {
+      "$ref": "#/components/schemas/TextoLegenda",
+      "default": {}
+     },
+     "instagram": {
+      "$ref": "#/components/schemas/TextoLegenda",
+      "default": {}
+     }
+    },
+    "type": "object",
+    "title": "TextosRedes",
+    "description": "Personalização por rede: vazio = usa o texto geral."
+   },
    "TrechoEd": {
     "properties": {
      "i": {
@@ -6183,6 +6620,22 @@
        }
       ],
       "title": "Tags"
+     },
+     "descricao": {
+      "type": "string",
+      "title": "Descricao",
+      "default": ""
+     },
+     "redes": {
+      "additionalProperties": {
+       "additionalProperties": {
+        "type": "string"
+       },
+       "type": "object"
+      },
+      "type": "object",
+      "title": "Redes",
+      "default": {}
      },
      "plataformas": {
       "additionalProperties": {

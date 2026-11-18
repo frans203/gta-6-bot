@@ -110,6 +110,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contas/{conta_id}/videos/{nome}/textos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ler Textos
+         * @description Título, descrição, hashtags, personalização por rede e o texto final que cada rede vai receber.
+         */
+        get: operations["ler_textos_api_contas__conta_id__videos__nome__textos_get"];
+        /** Salvar Textos */
+        put: operations["salvar_textos_api_contas__conta_id__videos__nome__textos_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contas/{conta_id}/videos/hashtags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hashtags Em Lote
+         * @description Troca (ou acrescenta) as hashtags de vários vídeos de uma vez.
+         */
+        post: operations["hashtags_em_lote_api_contas__conta_id__videos_hashtags_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contas/{conta_id}/videos/{nome}/redes/{plataforma}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Estado Rede
+         * @description 'Não postar nesta rede' (removido) ou voltar a pendente.
+         */
+        put: operations["estado_rede_api_contas__conta_id__videos__nome__redes__plataforma__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/contas/{conta_id}/plano": {
         parameters: {
             query?: never;
@@ -1481,6 +1542,15 @@ export interface components {
             /** Link */
             link?: string | null;
         };
+        /** EstadoRedeIn */
+        EstadoRedeIn: {
+            /**
+             * Status
+             * @description removido = não postar nesta rede; pendente = volta
+             * @enum {string}
+             */
+            status: "removido" | "pendente";
+        };
         /** FonteIn */
         FonteIn: {
             /** Streamer Id */
@@ -1599,6 +1669,22 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HashtagsLoteIn */
+        HashtagsLoteIn: {
+            /** Tags */
+            tags: string;
+            /**
+             * Modo
+             * @default substituir
+             * @enum {string}
+             */
+            modo: "substituir" | "adicionar";
+            /**
+             * Videos
+             * @description None = todos os vídeos ainda não postados em nenhuma rede
+             */
+            videos?: string[] | null;
         };
         /** IdentificarIn */
         IdentificarIn: {
@@ -2174,6 +2260,78 @@ export interface components {
             /** Estado */
             estado: string;
         };
+        /** TextoLegenda */
+        TextoLegenda: {
+            /** Legenda */
+            legenda?: string | null;
+        };
+        /** TextoYoutube */
+        TextoYoutube: {
+            /** Titulo */
+            titulo?: string | null;
+            /** Descricao */
+            descricao?: string | null;
+        };
+        /** TextosIn */
+        TextosIn: {
+            /** Titulo */
+            titulo: string;
+            /**
+             * Descricao
+             * @default
+             */
+            descricao: string;
+            /**
+             * Tags
+             * @description hashtags separadas por espaço
+             * @default
+             */
+            tags: string;
+            /**
+             * @default {
+             *       "youtube": {},
+             *       "tiktok": {},
+             *       "instagram": {}
+             *     }
+             */
+            redes: components["schemas"]["TextosRedes"];
+        };
+        /** TextosOut */
+        TextosOut: {
+            /** Titulo */
+            titulo: string;
+            /** Descricao */
+            descricao: string;
+            /** Tags */
+            tags: string;
+            /** Redes */
+            redes: {
+                [key: string]: {
+                    [key: string]: string;
+                };
+            };
+            /**
+             * Finais
+             * @description o que cada rede vai receber de fato
+             */
+            finais: {
+                [key: string]: {
+                    [key: string]: string;
+                };
+            };
+        };
+        /**
+         * TextosRedes
+         * @description Personalização por rede: vazio = usa o texto geral.
+         */
+        TextosRedes: {
+            /** @default {} */
+            youtube: components["schemas"]["TextoYoutube"];
+            /** @default {} */
+            tiktok: components["schemas"]["TextoLegenda"];
+            /** @default {} */
+            instagram: components["schemas"]["TextoLegenda"];
+        };
         /**
          * TrechoEd
          * @description Um pedaço do vídeo, em segundos da live/vídeo original (como corte.inicio/fim).
@@ -2207,6 +2365,20 @@ export interface components {
             titulo: string | null;
             /** Tags */
             tags: string | null;
+            /**
+             * Descricao
+             * @default
+             */
+            descricao: string;
+            /**
+             * Redes
+             * @default {}
+             */
+            redes: {
+                [key: string]: {
+                    [key: string]: string;
+                };
+            };
             /** Plataformas */
             plataformas: {
                 [key: string]: components["schemas"]["EstadoPlataforma"];
@@ -2446,6 +2618,146 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LegendaIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ler_textos_api_contas__conta_id__videos__nome__textos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conta_id: string;
+                nome: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    salvar_textos_api_contas__conta_id__videos__nome__textos_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conta_id: string;
+                nome: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextosIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hashtags_em_lote_api_contas__conta_id__videos_hashtags_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conta_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HashtagsLoteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    estado_rede_api_contas__conta_id__videos__nome__redes__plataforma__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conta_id: string;
+                nome: string;
+                plataforma: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EstadoRedeIn"];
             };
         };
         responses: {

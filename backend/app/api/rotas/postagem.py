@@ -10,7 +10,7 @@ from ...db import sessao
 from ...jobs import enfileirar
 from ...models import Post
 from ...plataformas import PLATAFORMAS, agendador
-from ...plataformas.comum import escrever_txt
+from ...plataformas.comum import REDES_TEXTO, escrever_meta, escrever_txt, ler_meta, textos_rede
 from ...servicos import agenda, contas, historico, postagem
 from .. import schemas as S
 
@@ -69,6 +69,7 @@ def fila(conta_id: str):
     out = []
     for i in postagem.fila(c):
         out.append({"video": i["video"], "mb": i["mb"], "titulo": i["titulo"], "tags": i["tags"],
+                    "descricao": i["descricao"], "redes": i["redes"],
                     "plataformas": {p: {"status": i[p], "para": i[f"{p}_para"], "link": i[f"{p}_link"]}
                                     for p in PLATAFORMAS}})
     return out
@@ -82,6 +83,59 @@ def arquivo(conta_id: str, nome: str):
 @router.put("/contas/{conta_id}/videos/{nome}/legenda")
 def salvar_legenda(conta_id: str, nome: str, dados: S.LegendaIn):
     escrever_txt(_arquivo_video(_conta(conta_id), nome), dados.titulo, dados.tags)
+    return {"ok": True}
+
+
+def _textos_out(video) -> dict:
+    return {**ler_meta(video), "finais": {r: textos_rede(video, r) for r in REDES_TEXTO}}
+
+
+@router.get("/contas/{conta_id}/videos/{nome}/textos", response_model=S.TextosOut)
+def ler_textos(conta_id: str, nome: str):
+    """Título, descrição, hashtags, personalização por rede e o texto final que cada rede vai receber."""
+    return _textos_out(_arquivo_video(_conta(conta_id), nome))
+
+
+@router.put("/contas/{conta_id}/videos/{nome}/textos", response_model=S.TextosOut)
+def salvar_textos(conta_id: str, nome: str, dados: S.TextosIn):
+    video = _arquivo_video(_conta(conta_id), nome)
+    escrever_meta(video, dados.model_dump())
+    return _textos_out(video)
+
+
+@router.post("/contas/{conta_id}/videos/hashtags")
+def hashtags_em_lote(conta_id: str, dados: S.HashtagsLoteIn):
+    """Troca (ou acrescenta) as hashtags de vários vídeos de uma vez."""
+    c = _conta(conta_id)
+    if dados.videos is not None:
+        alvos = [_arquivo_video(c, n) for n in dados.videos]
+    else:  # os que ainda não saíram em nenhuma rede
+        hist = historico.carregar_hist(c.id)
+        alvos = [v for v in contas.videos(c) if not any(agenda.feito(i) for i in hist.get(v.name, {}).values())]
+    novas = dados.tags.split()
+    for v in alvos:
+        m = ler_meta(v)
+        atuais = m["tags"].split()
+        tags = novas if dados.modo == "substituir" else atuais + [t for t in novas if t.lower() not in
+                                                                   {a.lower() for a in atuais}]
+        escrever_meta(v, {**m, "tags": " ".join(tags)})
+    return {"ok": True, "videos": len(alvos)}
+
+
+@router.put("/contas/{conta_id}/videos/{nome}/redes/{plataforma}")
+def estado_rede(conta_id: str, nome: str, plataforma: str, dados: S.EstadoRedeIn):
+    """'Não postar nesta rede' (removido) ou voltar a pendente."""
+    c = _conta(conta_id)
+    video = _arquivo_video(c, nome)
+    if plataforma not in PLATAFORMAS:
+        raise HTTPException(404, f"plataforma desconhecida: {plataforma}")
+    if dados.status == "removido":
+        historico.registrar(c.id, video, plataforma, {"status": "removido"})
+    else:
+        with sessao() as s:
+            for p in s.scalars(select(Post).where(Post.conta_id == c.id, Post.video == video.name,
+                                                  Post.plataforma == plataforma)):
+                s.delete(p)
     return {"ok": True}
 
 

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..config import config
 from ..plataformas import PLATAFORMAS, agendador
-from ..plataformas.comum import LOGS, LimiteDiario, NaoLogado, ler_txt, log
+from ..plataformas.comum import LOGS, LimiteDiario, NaoLogado, ler_meta, log
 from . import agenda, contas, historico
 
 MIN_ANTECEDENCIA = timedelta(minutes=16)  # TikTok exige >= 15 min para agendar
@@ -24,9 +24,10 @@ def fila(conta) -> list[dict]:
     itens = []
     for v in contas.videos(conta):
         feito = h.get(v.name, {})
-        titulo, tags = ler_txt(v)
+        m = ler_meta(v)
         itens.append({
-            "video": v.name, "mb": round(v.stat().st_size / 1e6, 1), "titulo": titulo, "tags": tags,
+            "video": v.name, "mb": round(v.stat().st_size / 1e6, 1), "titulo": m["titulo"] or None,
+            "tags": m["tags"] or None, "descricao": m["descricao"], "redes": m["redes"],
             **{p: ("atrasado" if feito.get(p, {}).get("status") == "agendado_pc" and not agenda.feito(feito[p])
                    else feito.get(p, {}).get("status", "pendente")) for p in PLATAFORMAS},
             **{f"{p}_para": feito.get(p, {}).get("para") for p in PLATAFORMAS},

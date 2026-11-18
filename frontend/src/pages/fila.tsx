@@ -1,11 +1,12 @@
-import { Download, ExternalLink, MoreHorizontal, Send, Undo2, CheckCircle2, ListVideo } from 'lucide-react'
+import { Ban, Download, ExternalLink, MoreHorizontal, Send, Undo2, CheckCircle2, ListVideo } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { urls } from '@/api/cliente'
-import { useApagarPost, useBaixarPack, useCorrigirPost, usePosts, useSalvarLegenda, useVideos } from '@/api/hooks/postagem'
+import { useApagarPost, useBaixarPack, useCorrigirPost, useEstadoRede, usePosts, useVideos } from '@/api/hooks/postagem'
 import type { Conta, Post, Video } from '@/api/tipos'
 import { Cabecalho, Vazio } from '@/components/cabecalho'
 import { DialogoPostar } from '@/components/dialogo-postar'
+import { EditorTextos, HashtagsEmLote } from '@/components/editor-textos'
 import { Plataforma } from '@/components/plataforma'
 import { Player9x16 } from '@/components/players'
 import { StatusChip } from '@/components/status-chip'
@@ -19,19 +20,25 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
 import { useConta } from '@/lib/conta'
 import { fmtDataHora } from '@/lib/formatos'
 
 /** Menu de correção manual do estado de um vídeo numa plataforma. */
-function MenuPost({ post, link }: { post: Post | undefined; link: string | null | undefined }) {
+function MenuPost({ conta, video, plataforma, status, post, link }: {
+  conta: Conta
+  video: string
+  plataforma: string
+  status: string
+  post: Post | undefined
+  link: string | null | undefined
+}) {
   const corrigir = useCorrigirPost()
   const apagar = useApagarPost()
-  if (!post && !link) return null
+  const estado = useEstadoRede(conta.id)
+  const podeRemover = !['publicado', 'agendado', 'removido'].includes(status)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -53,6 +60,11 @@ function MenuPost({ post, link }: { post: Post | undefined; link: string | null 
             <CheckCircle2 /> Marcar como publicado
           </DropdownMenuItem>
         )}
+        {podeRemover && (
+          <DropdownMenuItem onClick={() => estado.mutate({ nome: video, plataforma, status: 'removido' })}>
+            <Ban /> Não postar nesta rede
+          </DropdownMenuItem>
+        )}
         {post && (
           <>
             <DropdownMenuSeparator />
@@ -70,7 +82,7 @@ function MenuPost({ post, link }: { post: Post | undefined; link: string | null 
 function DetalheVideo({ conta, video, onFechar }: { conta: Conta; video: Video | null; onFechar: () => void }) {
   return (
     <Sheet open={!!video} onOpenChange={(a) => !a && onFechar()}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
+      <SheetContent className="w-full overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-3xl">
         {video && <FormVideo key={video.video} conta={conta} video={video} />}
       </SheetContent>
     </Sheet>
@@ -78,35 +90,22 @@ function DetalheVideo({ conta, video, onFechar }: { conta: Conta; video: Video |
 }
 
 function FormVideo({ conta, video }: { conta: Conta; video: Video }) {
-  const [titulo, setTitulo] = useState(video.titulo ?? '')
-  const [tags, setTags] = useState(video.tags ?? conta.tags)
-  const salvar = useSalvarLegenda(conta.id)
   return (
     <>
       <SheetHeader>
         <SheetTitle>{video.video}</SheetTitle>
-        <SheetDescription>{video.mb} MB</SheetDescription>
+        <SheetDescription>{video.mb} MB · título, descrição e hashtags do post</SheetDescription>
       </SheetHeader>
-      <div className="space-y-4 px-4 pb-6">
-        <Player9x16 src={urls.video(conta.id, video.video)} />
-        <div className="space-y-1.5">
-          <Label htmlFor="titulo">Título</Label>
-          <Input id="titulo" value={titulo} maxLength={100} onChange={(e) => setTitulo(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="tags">Hashtags</Label>
-          <Textarea id="tags" rows={3} value={tags} onChange={(e) => setTags(e.target.value)} />
-        </div>
-        <div className="flex flex-wrap justify-between gap-2">
+      <div className="grid gap-6 px-4 pb-6 md:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="space-y-3">
+          <Player9x16 src={urls.video(conta.id, video.video)} />
           <DialogoPostar conta={conta} video={video.video}>
-            <Button variant="outline">
+            <Button variant="outline" className="w-full">
               <Send /> Postar agora
             </Button>
           </DialogoPostar>
-          <Button disabled={!titulo.trim() || salvar.isPending} onClick={() => salvar.mutate({ nome: video.video, titulo, tags })}>
-            Salvar legenda
-          </Button>
         </div>
+        <EditorTextos conta={conta} nome={video.video} />
       </div>
     </>
   )
@@ -138,8 +137,9 @@ export function PaginaFila() {
 
   return (
     <>
-      <Cabecalho titulo="Fila de vídeos" descricao={`${videos.length} vídeo(s) na pasta da conta ${conta.nome}. Clique num vídeo para ver e editar a legenda.`}>
+      <Cabecalho titulo="Fila de vídeos" descricao={`${videos.length} vídeo(s) na pasta da conta ${conta.nome}. Clique num vídeo para editar título, descrição e hashtags.`}>
         {conta.padrao && <BaixarPack />}
+        <HashtagsEmLote conta={conta} />
         <DialogoPostar conta={conta}>
           <Button>
             <Send /> Postar próximo agora
@@ -174,7 +174,7 @@ export function PaginaFila() {
                   <TableCell className="max-w-72">
                     <button type="button" className="text-left hover:underline" onClick={() => setAberto(v)}>
                       <div className="font-medium">{v.video}</div>
-                      <div className="truncate text-xs text-muted-foreground">{v.titulo ?? 'sem legenda (.txt)'}</div>
+                      <div className="truncate text-xs text-muted-foreground">{v.titulo ?? 'sem título'}</div>
                     </button>
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground tabular-nums">{v.mb}</TableCell>
@@ -189,7 +189,14 @@ export function PaginaFila() {
                               <div className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">{fmtDataHora(e.para)}</div>
                             )}
                           </div>
-                          <MenuPost post={postPor.get(`${v.video}|${p}`)} link={e.link} />
+                          <MenuPost
+                            conta={conta}
+                            video={v.video}
+                            plataforma={p}
+                            status={e.status}
+                            post={postPor.get(`${v.video}|${p}`)}
+                            link={e.link}
+                          />
                         </div>
                       </TableCell>
                     )

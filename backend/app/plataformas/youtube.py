@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ..servicos.agenda import data_yt
-from .comum import LimiteDiario, NaoLogado, log, passo, textos
+from .comum import LimiteDiario, NaoLogado, log, passo, textos_rede
 
 NOME = "youtube"
 LOGIN_URL = "https://studio.youtube.com"
@@ -74,7 +74,7 @@ def postar(page, video: Path, revisar=False, quando: datetime | None = None, pro
 
 
 def _postar(page, video: Path, revisar=False, quando: datetime | None = None, progresso=None) -> dict:
-    titulo, tags = textos(video)
+    yt = textos_rede(video, NOME)
     passo(progresso, "abrindo YouTube Studio")
     page.goto(STUDIO_URL, wait_until="domcontentloaded")
     # networkidle nao serve: o Studio fica fazendo requisicoes sem parar. Espera o botao de upload (ou o login).
@@ -107,9 +107,8 @@ def _postar(page, video: Path, revisar=False, quando: datetime | None = None, pr
     page.wait_for_timeout(1500)
 
     passo(progresso, "titulo e descricao")
-    titulo_yt = f"{titulo} #gta6 #shorts"
-    _digitar(page, caixas.nth(0), titulo_yt if len(titulo_yt) <= 99 else titulo[:99])
-    _digitar(page, caixas.nth(1), f"{titulo} {tags}")
+    _digitar(page, caixas.nth(0), yt["titulo"])
+    _digitar(page, caixas.nth(1), yt["descricao"])
 
     kids = "VIDEO_MADE_FOR_KIDS_MFK" if FEITO_PARA_CRIANCAS else "VIDEO_MADE_FOR_KIDS_NOT_MFK"
     radio = dlg.locator(f"tp-yt-paper-radio-button[name={kids}]")

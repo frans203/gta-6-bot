@@ -77,8 +77,13 @@ do streamer, senão o padrão. A prévia (`POST /api/previa`) usa o mesmo filtro
 
 - `dados/jason.db` — fonte da verdade do histórico (tabela `posts`, antigo `postados.json`, que foi importado
   em 14/11/2026 e renomeado para `postados.importado.json`; backups em `logs/`). Status: `publicado`,
-  `agendado` (nativo), `agendado_pc` (Windows), `pulado_reivindicacao`, `erro`, `nao_logado`, `limite_diario`.
-  Os 4 primeiros contam como **feito** (`agenda.FEITO`). Correção manual: tela Fila (menu do status) ou
+  `agendado` (nativo), `agendado_pc` (Windows), `pulado_reivindicacao`, `removido` ("não postar nesta rede", menu
+  da Fila ou `PUT /api/contas/{c}/videos/{v}/redes/{rede}`), `erro`, `nao_logado`, `limite_diario`.
+  Os 5 primeiros contam como **feito** (`agenda.FEITO`). Obs.: erros de envio não são gravados (o vídeo fica pendente).
+- **Textos do post**: `<video>.txt` (título + hashtags; o pack e os cortes só escrevem ele) + `<video>.meta.json`
+  (descrição e texto próprio por rede: youtube {titulo, descricao}, tiktok/instagram {legenda}). As plataformas usam
+  `comum.textos_rede(video, rede)` (numa linha só: Enter fecharia sugestões). Tela Fila → gaveta do vídeo;
+  `GET/PUT /api/contas/{c}/videos/{v}/textos`; hashtags em lote: `POST /api/contas/{c}/videos/hashtags`. Correção manual: tela Fila (menu do status) ou
   `PATCH /api/posts/{id}`; `python jason.py exportar` gera um JSON de backup.
 - Conta padrão `gta6`: pasta `limpos/`, perfil `perfil-chrome/`, trava `logs/perfil-chrome.lock`, tarefas do
   Windows `instagram_gta6_NNN`. Contas novas: `JASON_MIDIA/contas/<id>/{videos,perfil-chrome}`,

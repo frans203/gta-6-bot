@@ -3,7 +3,7 @@ import random
 from datetime import datetime
 from pathlib import Path
 
-from .comum import LOGS, NaoLogado, passo, textos
+from .comum import LOGS, NaoLogado, passo, textos_rede
 
 NOME = "instagram"
 AGENDA_NATIVA = False
@@ -23,7 +23,7 @@ def _avancar(page):
 
 def postar(page, video: Path, revisar=False, quando: datetime | None = None, progresso=None) -> dict:
     """Instagram web nao agenda: `quando` e ignorado aqui (o agendamento e feito pelo Agendador do Windows)."""
-    titulo, tags = textos(video)
+    legenda = textos_rede(video, NOME)["legenda"]
     passo(progresso, "abrindo Instagram")
     page.goto(HOME_URL, wait_until="domcontentloaded")
     page.wait_for_timeout(3000)
@@ -65,7 +65,7 @@ def postar(page, video: Path, revisar=False, quando: datetime | None = None, pro
     legenda.wait_for(timeout=30_000)
     passo(progresso, "escrevendo legenda")
     legenda.click()
-    page.keyboard.type(f"{titulo} {tags}", delay=random.randint(20, 45))
+    page.keyboard.type(legenda, delay=random.randint(20, 45))
     page.keyboard.type(" ")  # fecha sugestoes de hashtag (Escape fecharia o modal!)
     page.wait_for_timeout(800)
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from playwright.sync_api import TimeoutError as PWTimeout
 
-from .comum import NaoLogado, passo, textos
+from .comum import NaoLogado, passo, textos_rede
 
 NOME = "tiktok"
 LOGIN_URL = "https://www.tiktok.com/login"
@@ -71,7 +71,7 @@ def _agendar(page, quando: datetime):
 
 
 def postar(page, video: Path, revisar=False, quando: datetime | None = None, progresso=None) -> dict:
-    titulo, tags = textos(video)
+    legenda = textos_rede(video, NOME)["legenda"]
     passo(progresso, "abrindo TikTok Studio")
     page.goto(UPLOAD_URL, wait_until="domcontentloaded")
     if "login" in page.url:
@@ -87,7 +87,7 @@ def postar(page, video: Path, revisar=False, quando: datetime | None = None, pro
     page.locator(".public-DraftEditor-content").click()
     page.keyboard.press("ControlOrMeta+A")
     page.keyboard.press("Backspace")
-    page.keyboard.type(f"{titulo} {tags} ", delay=random.randint(25, 60))
+    page.keyboard.type(f"{legenda} ", delay=random.randint(25, 60))
     page.wait_for_timeout(800)
     page.keyboard.press("Escape")
     _fechar_popups(page)

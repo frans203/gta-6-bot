@@ -35,6 +35,11 @@
       posição e tamanho do jogo e do streamer (arrastando na prévia; predefinições), recorte do original, fundo,
       cortar (S), apagar, reordenar e aparar trechos (com 10 s de folga baixada), sincronia streamer/jogo com
       atraso opcional, desfazer/refazer, rascunho automático, "Conferir no render"; render com trechos + layout livre
+- [x] (18/11/2026) Textos do post por vídeo: título, descrição, hashtags (chips) e texto próprio por rede, com
+      prévia e limites de cada rede; hashtags em lote; "não postar nesta rede" (status removido). Corrigida a trava
+      do perfil do Chrome no Windows (recursão infinita ao liberar). gta6_001/003/004 removidos do Instagram
+- [ ] YouTube: preencher o campo "Tags" (palavras-chave) do Studio — precisa mapear o fluxo antes
+- [ ] Gravar erros de envio no histórico (hoje só sucesso é gravado; o card "Últimos erros" fica vazio)
 - [ ] Editor: "salvar como modelo" (reaproveitar fonte/cores/posições em outros cortes)
 - [ ] Tradução: o modelo grátis puxa para PT de Portugal ("O que raio..."); avaliar trocar o par en→pt
 - [ ] **Usuário**: criar app grátis na Twitch (dev.twitch.tv) e pôr `JASON_TWITCH_CLIENT_ID/SECRET` no `.env`
