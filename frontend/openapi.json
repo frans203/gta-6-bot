@@ -1817,6 +1817,7 @@
      "cortador"
     ],
     "summary": "Listar Fontes",
+    "description": "`com_cortes=candidato&com_cortes=enquadrar...` = só os vídeos com algum corte nesses status.",
     "operationId": "listar_fontes_api_fontes_get",
     "parameters": [
      {
@@ -1833,6 +1834,25 @@
         }
        ],
        "title": "Streamer Id"
+      }
+     },
+     {
+      "name": "com_cortes",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "array",
+         "items": {
+          "type": "string"
+         }
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Com Cortes"
       }
      }
     ],
@@ -2266,6 +2286,42 @@
     ],
     "summary": "Arquivo Corte",
     "operationId": "arquivo_corte_api_cortes__corte_id__arquivo_get",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}/miniatura": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Miniatura Corte",
+    "description": "JPEG de um quadro do vídeo pronto (para a grade da Biblioteca). Gerado uma vez e refeito se o mp4 mudar.",
+    "operationId": "miniatura_corte_api_cortes__corte_id__miniatura_get",
     "parameters": [
      {
       "name": "corte_id",
@@ -3284,10 +3340,37 @@
       "format": "date-time",
       "title": "Atualizado Em"
      },
+     "n_na_fonte": {
+      "type": "integer",
+      "title": "N Na Fonte",
+      "default": 0
+     },
      "fonte_url": {
       "type": "string",
       "title": "Fonte Url",
       "default": ""
+     },
+     "fonte_miniatura": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fonte Miniatura"
+     },
+     "fonte_publicado_em": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fonte Publicado Em"
      },
      "fonte_titulo": {
       "type": "string",
@@ -3739,6 +3822,24 @@
       "type": "integer",
       "title": "Total Cortes",
       "default": 0
+     },
+     "cortes_status": {
+      "additionalProperties": {
+       "type": "integer"
+      },
+      "type": "object",
+      "title": "Cortes Status",
+      "default": {}
+     },
+     "streamer_nome": {
+      "type": "string",
+      "title": "Streamer Nome",
+      "default": ""
+     },
+     "plataforma": {
+      "type": "string",
+      "title": "Plataforma",
+      "default": ""
      }
     },
     "type": "object",

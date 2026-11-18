@@ -596,7 +596,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar Fontes */
+        /**
+         * Listar Fontes
+         * @description `com_cortes=candidato&com_cortes=enquadrar...` = só os vídeos com algum corte nesses status.
+         */
         get: operations["listar_fontes_api_fontes_get"];
         put?: never;
         /**
@@ -734,6 +737,26 @@ export interface paths {
         };
         /** Arquivo Corte */
         get: operations["arquivo_corte_api_cortes__corte_id__arquivo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cortes/{corte_id}/miniatura": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Miniatura Corte
+         * @description JPEG de um quadro do vídeo pronto (para a grade da Biblioteca). Gerado uma vez e refeito se o mp4 mudar.
+         */
+        get: operations["miniatura_corte_api_cortes__corte_id__miniatura_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1122,10 +1145,19 @@ export interface components {
              */
             atualizado_em: string;
             /**
+             * N Na Fonte
+             * @default 0
+             */
+            n_na_fonte: number;
+            /**
              * Fonte Url
              * @default
              */
             fonte_url: string;
+            /** Fonte Miniatura */
+            fonte_miniatura?: string | null;
+            /** Fonte Publicado Em */
+            fonte_publicado_em?: string | null;
             /**
              * Fonte Titulo
              * @default
@@ -1267,6 +1299,23 @@ export interface components {
              * @default 0
              */
             total_cortes: number;
+            /**
+             * Cortes Status
+             * @default {}
+             */
+            cortes_status: {
+                [key: string]: number;
+            };
+            /**
+             * Streamer Nome
+             * @default
+             */
+            streamer_nome: string;
+            /**
+             * Plataforma
+             * @default
+             */
+            plataforma: string;
         };
         /** FundoOut */
         FundoOut: {
@@ -3072,6 +3121,7 @@ export interface operations {
         parameters: {
             query?: {
                 streamer_id?: number | null;
+                com_cortes?: string[] | null;
             };
             header?: never;
             path?: never;
@@ -3358,6 +3408,35 @@ export interface operations {
         };
     };
     arquivo_corte_api_cortes__corte_id__arquivo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                corte_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    miniatura_corte_api_cortes__corte_id__miniatura_get: {
         parameters: {
             query?: never;
             header?: never;

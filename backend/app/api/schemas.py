@@ -256,6 +256,9 @@ class FonteOut(Saida):
     status: str
     criado_em: datetime
     total_cortes: int = 0
+    cortes_status: dict[str, int] = {}
+    streamer_nome: str = ""
+    plataforma: str = ""
 
 
 class FonteIn(BaseModel):
@@ -287,8 +290,11 @@ class CorteOut(Saida):
     erro: str | None
     criado_em: datetime
     atualizado_em: datetime
+    n_na_fonte: int = 0  # posição do corte dentro do vídeo original (1 = o trecho mais cedo)
     # dados da fonte/streamer para a tela não precisar de N requisições
     fonte_url: str = ""
+    fonte_miniatura: str | None = None
+    fonte_publicado_em: str | None = None
     fonte_titulo: str = ""
     fonte_tipo: str = ""
     streamer_id: int = 0

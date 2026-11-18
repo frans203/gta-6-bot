@@ -63,3 +63,35 @@ def test_api_fundos_e_aplicar(banco):
         assert all(c["idioma_legenda"] == "pt" and c["fundo"] == nome for c in r.json())
         assert cli.post(f"/api/fontes/{fid}/aplicar", json={"fundo": "nao_existe.png"}).status_code == 400
         assert cli.get(f"/api/fontes/{fid}").json()["total_cortes"] == 2
+
+
+def test_api_biblioteca(banco, tmp_path):
+    """Biblioteca: vídeos com cortes a revisar, número do corte no vídeo e re-render ao mudar a webcam."""
+    from app.api.main import create_app
+    from app.cortes import servico
+    st = servico.criar_streamer(nome="C", plataforma="twitch", canal="c")
+    fid = servico.salvar_fontes(st.id, [{"url": "https://www.twitch.tv/videos/5", "tipo": "vod", "titulo": "live"}])[0]
+    outra = servico.salvar_fontes(st.id, [{"url": "https://www.twitch.tv/videos/6", "tipo": "vod", "titulo": "x"}])[0]
+    servico.substituir_candidatos(fid, [{"inicio": 120.0, "fim": 150.0, "score": 2, "sinais": {}},
+                                        {"inicio": 10.0, "fim": 40.0, "score": 1, "sinais": {}}])
+    servico.substituir_candidatos(outra, [{"inicio": 0.0, "fim": 30.0, "score": 1, "sinais": {}}])
+    cortes = {c["inicio"]: c for c in servico.listar_cortes(fonte_id=fid)}
+    cedo, tarde = cortes[10.0], cortes[120.0]
+    assert (cedo["n_na_fonte"], tarde["n_na_fonte"]) == (1, 2)
+    mp4 = tmp_path / "x.mp4"
+    mp4.write_bytes(b"fake")
+    servico.atualizar_corte(tarde["id"], status="pronto", arquivo=str(mp4))
+    servico.atualizar_corte(servico.listar_cortes(fonte_id=outra)[0]["id"], status="descartado")
+    with TestClient(create_app()) as cli:
+        fontes = cli.get("/api/fontes", params={"com_cortes": ["candidato", "enquadrar"]}).json()
+        assert [f["id"] for f in fontes] == [fid]
+        assert fontes[0]["cortes_status"] == {"candidato": 1, "pronto": 1} and fontes[0]["streamer_nome"] == "C"
+        assert cli.get(f"/api/fontes/{fid}").json()["total_cortes"] == 2
+        assert cli.get(f"/api/cortes/{cedo['id']}/miniatura").status_code == 404   # ainda não renderizado
+        # região nova num corte pronto: gera de novo sozinho
+        c = cli.patch(f"/api/cortes/{tarde['id']}", json={"webcam": {"x": 0.7, "y": 0.6, "w": 0.3, "h": 0.4}}).json()
+        assert c["status"] == "aprovado" and c["n_na_fonte"] == 2
+        jobs = cli.get("/api/jobs", params={"tipo": "renderizar_corte"}).json()
+        assert [j["params"]["corte_id"] for j in jobs] == [tarde["id"]]
+        # num candidato, só salva
+        assert cli.patch(f"/api/cortes/{cedo['id']}", json={"sem_webcam": True}).json()["status"] == "candidato"

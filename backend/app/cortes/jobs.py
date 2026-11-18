@@ -124,11 +124,17 @@ def detectar_webcam(ctx, p):
 @tarefa("enquadrar_corte", recurso=lambda p: "rede:busca")
 def enquadrar_corte(ctx, p):
     """Baixa o trecho, salva o quadro e procura a webcam, sem renderizar (para conferir o enquadramento)."""
+    antes = servico.obter_corte(p["corte_id"])["status"]
     try:
-        return render.preparar_enquadramento(p["corte_id"], progresso=ctx.progresso, log=ctx.log)
+        r = render.preparar_enquadramento(p["corte_id"], progresso=ctx.progresso, log=ctx.log)
     except Exception as e:
         servico.atualizar_corte(p["corte_id"], erro=str(e)[:1000])
         raise
+    if antes == "pronto" and r.get("situacao") in ("ok", "nenhuma"):
+        servico.rerenderizar(p["corte_id"], "Atualizar")
+        ctx.log("região do streamer atualizada: gerando o vídeo de novo")
+        r["rerenderizando"] = True
+    return r
 
 
 @tarefa("renderizar_corte", recurso="gpu")

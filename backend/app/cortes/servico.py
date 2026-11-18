@@ -167,16 +167,30 @@ def remover_streamer(id: int):
 
 # ------------------------------------------------------------------ fontes
 
-def listar_fontes(streamer_id: int | None = None, limite: int = 200) -> list[dict]:
+def listar_fontes(streamer_id: int | None = None, limite: int = 200, com_cortes: list[str] | None = None) -> list[dict]:
+    """Fontes (mais novas primeiro) com a contagem de cortes por status. `com_cortes` = só as que têm algum
+    corte num desses status (a Biblioteca usa para "Para revisar")."""
     with sessao() as s:
-        q = select(Fonte).order_by(Fonte.id.desc()).limit(limite)
+        q = select(Fonte, Streamer).join(Streamer).order_by(Fonte.id.desc()).limit(limite)
         if streamer_id:
             q = q.where(Fonte.streamer_id == streamer_id)
-        fontes = list(s.scalars(q))
-        n = dict(s.execute(select(Corte.fonte_id, func.count()).where(Corte.fonte_id.in_([f.id for f in fontes]))
-                           .group_by(Corte.fonte_id)).all())
-        return [{**{c.name: getattr(f, c.name) for c in Fonte.__table__.columns}, "total_cortes": n.get(f.id, 0)}
-                for f in fontes]
+        if com_cortes:
+            q = q.where(Fonte.id.in_(select(Corte.fonte_id).where(Corte.status.in_(com_cortes))))
+        linhas = s.execute(q).all()
+        por_status: dict[int, dict[str, int]] = {}
+        ids = [f.id for f, _ in linhas]
+        for fid, st, n in s.execute(select(Corte.fonte_id, Corte.status, func.count()).where(Corte.fonte_id.in_(ids))
+                                    .group_by(Corte.fonte_id, Corte.status)):
+            por_status.setdefault(fid, {})[st] = n
+        return [{**{c.name: getattr(f, c.name) for c in Fonte.__table__.columns},
+                 "total_cortes": sum(por_status.get(f.id, {}).values()), "cortes_status": por_status.get(f.id, {}),
+                 "streamer_nome": st.nome, "plataforma": st.plataforma}
+                for f, st in linhas]
+
+
+def obter_fonte_dict(id: int) -> dict:
+    streamer_id = obter_fonte(id).streamer_id
+    return next(x for x in listar_fontes(streamer_id, limite=10_000) if x["id"] == id)
 
 
 def salvar_fontes(streamer_id: int, itens: list[dict]) -> list[int]:
@@ -226,14 +240,39 @@ def atualizar_fonte(id: int, **campos):
 
 # ------------------------------------------------------------------ cortes
 
+def rerenderizar(corte_id: int, motivo: str = "Renderizar"):
+    """Marca o corte como aprovado e enfileira o render (o vídeo pronto é trocado quando terminar)."""
+    from ..jobs.fila import enfileirar  # import tardio: jobs.registro importa este módulo
+    c = obter_corte(corte_id)
+    atualizar_corte(corte_id, status="aprovado", erro=None)
+    return enfileirar("renderizar_corte", {"corte_id": corte_id}, f"{motivo} corte #{corte_id} · {c['streamer_nome']}")
+
+
 def caminho_quadro_corte(corte_id: int) -> Path:
     """Quadro do trecho do corte (fundo do editor de enquadramento e da prévia)."""
     return config.midia / "quadros" / f"corte_{corte_id}.jpg"
 
 
-def corte_dict(c: Corte, f: Fonte, st: Streamer) -> dict:
+def caminho_miniatura_corte(corte_id: int) -> Path:
+    """Miniatura do vídeo pronto (gerada do mp4 na 1ª vez que alguém pede)."""
+    return config.midia / "quadros" / f"pronto_{corte_id}.jpg"
+
+
+def _numeros_na_fonte(s, fonte_ids) -> dict[int, int]:
+    """id do corte -> posição dele dentro do vídeo original (1 = o trecho mais cedo)."""
+    num, atual, n = {}, None, 0
+    for cid, fid in s.execute(select(Corte.id, Corte.fonte_id).where(Corte.fonte_id.in_(set(fonte_ids)))
+                              .order_by(Corte.fonte_id, Corte.inicio, Corte.id)):
+        n = n + 1 if fid == atual else 1
+        atual = fid
+        num[cid] = n
+    return num
+
+
+def corte_dict(c: Corte, f: Fonte, st: Streamer, n_na_fonte: int = 0) -> dict:
     d = {col.name: getattr(c, col.name) for col in Corte.__table__.columns}
-    return {**d, "fonte_url": f.url, "fonte_titulo": f.titulo, "fonte_tipo": f.tipo, "streamer_id": st.id,
+    return {**d, "n_na_fonte": n_na_fonte, "fonte_url": f.url, "fonte_miniatura": f.miniatura,
+            "fonte_publicado_em": f.publicado_em, "fonte_titulo": f.titulo, "fonte_tipo": f.tipo, "streamer_id": st.id,
             "streamer_nome": st.nome, "plataforma": st.plataforma, "conta_id": st.conta_id,
             "streamer_modelo_id": st.modelo_id, "streamer_webcam": st.webcam,
             "fonte_idioma": (f.extra or {}).get("idioma"),
@@ -251,7 +290,9 @@ def listar_cortes(status: list[str] | None = None, streamer_id: int | None = Non
         if fonte_id:
             q = q.where(Corte.fonte_id == fonte_id)
         q = q.order_by(Corte.score.desc() if fonte_id else Corte.atualizado_em.desc()).limit(limite)
-        return [corte_dict(c, f, st) for c, f, st in s.execute(q).all()]
+        linhas = s.execute(q).all()
+        num = _numeros_na_fonte(s, [f.id for _, f, _ in linhas])
+        return [corte_dict(c, f, st, num.get(c.id, 0)) for c, f, st in linhas]
 
 
 def obter_corte(id: int) -> dict:
@@ -259,7 +300,7 @@ def obter_corte(id: int) -> dict:
         c = s.get(Corte, id)
         if c is None:
             raise KeyError(f"corte {id} não existe")
-        return corte_dict(c, c.fonte, c.fonte.streamer)
+        return corte_dict(c, c.fonte, c.fonte.streamer, _numeros_na_fonte(s, [c.fonte_id]).get(c.id, 0))
 
 
 def atualizar_corte(id: int, **campos) -> dict:

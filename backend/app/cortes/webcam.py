@@ -103,14 +103,18 @@ def _amostras(video: Path, n: int):
     cap.release()
 
 
-def detectar(video: Path, salvar_quadro: Path | None = None, n_amostras: int = 36) -> dict | None:
+def detectar(video: Path, salvar_quadro: Path | None = None, n_amostras: int = 36, ao_progresso=None) -> dict | None:
     """Rosto fixo mais frequente como webcam {x, y, w, h, confianca, amostras} em frações do quadro (0..1), ou
-    None se não há nenhum rosto repetido no mesmo lugar. Use classificar() para decidir o que fazer."""
+    None se não há nenhum rosto repetido no mesmo lugar. Use classificar() para decidir o que fazer.
+    `ao_progresso(fração, mensagem)` é chamado a cada quadro analisado e na etapa da moldura."""
     detector = _Detector()
     rostos, quadros, alt, larg = [], [], 0, 0
     for q in _amostras(video, n_amostras):
         alt, larg = q.shape[:2]
         quadros.append(q)
+        if ao_progresso:
+            ao_progresso(min(0.85, len(quadros) / n_amostras * 0.85),
+                         f"procurando o rosto do streamer ({len(quadros)}/{n_amostras} quadros)")
         # um rosto por quadro e posição (detectores podem achar o mesmo rosto duas vezes)
         vistos = []
         for (x, y, w, h) in detector.rostos(q):
@@ -149,6 +153,8 @@ def detectar(video: Path, salvar_quadro: Path | None = None, n_amostras: int = 3
         y0 = 0.0
     if alt - (y0 + ch) < alt * margem:
         y0 = alt - ch
+    if ao_progresso:
+        ao_progresso(0.9, "ajustando a borda da webcam")
     x0, y0, x1, y1 = _moldura(quadros, cx, cy, fw, fh, (x0, y0, x0 + cw, y0 + ch))
     x0, y0 = (0.0 if x0 < larg * margem else x0), (0.0 if y0 < alt * margem else y0)
     x1, y1 = (larg if larg - x1 < larg * margem else x1), (alt if alt - y1 < alt * margem else y1)

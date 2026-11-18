@@ -151,6 +151,16 @@ def _salvar_quadro(bruto: Path, destino: Path, t: float):
                    creationflags=midia.SEM_JANELA)
 
 
+def salvar_miniatura(mp4: Path, destino: Path, largura: int = 540):
+    """Um quadro do vídeo vertical pronto (1,5 s, depois do gancho entrar), reduzido para a grade."""
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    novo = destino.with_suffix(".novo.jpg")
+    subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-ss", "1.5", "-i", str(mp4), "-frames:v", "1",
+                    "-vf", f"scale={largura}:-2", "-q:v", "4", str(novo)], check=True, capture_output=True,
+                   creationflags=midia.SEM_JANELA)
+    novo.replace(destino)
+
+
 def analisar_trecho(c: dict, bruto: Path, tmp: Path, ini_rel: float, dur: float, progresso, log) -> dict:
     """Barras pretas (vira a área do jogo, se ninguém marcou) e idioma falado (uma vez por fonte).
     Guarda em corte.extra e devolve o extra atualizado."""
@@ -192,7 +202,7 @@ def enquadrar(c: dict, bruto: Path, ini_rel: float, dur: float, progresso, log) 
             _salvar_quadro(bruto, quadro, ini_rel + dur / 2)
         return ("ok", cam) if webcam_confirmada(cam) else ("nenhuma", None)
     progresso(0.34, "procurando a webcam do streamer")
-    det = webcam.detectar(bruto, salvar_quadro=quadro)
+    det = webcam.detectar(bruto, salvar_quadro=quadro, ao_progresso=lambda f, m: progresso(0.34 + f * 0.63, m))
     if not quadro.exists():
         _salvar_quadro(bruto, quadro, ini_rel + dur / 2)
     situacao = webcam.classificar(det)
@@ -232,7 +242,7 @@ def preparar_enquadramento(corte_id: int, progresso=lambda f, m=None: None, log=
         cam = c["webcam"] if webcam_confirmada(c["webcam"]) else None
         if cam is None:
             progresso(0.4, "procurando a webcam do streamer")
-            det = webcam.detectar(bruto, salvar_quadro=quadro)
+            det = webcam.detectar(bruto, salvar_quadro=quadro, ao_progresso=lambda f, m: progresso(0.4 + f * 0.57, m))
             if webcam.classificar(det) == "auto":
                 cam = {**det, "origem": "auto"}
                 servico.atualizar_corte(corte_id, webcam=cam)

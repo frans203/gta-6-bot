@@ -174,8 +174,9 @@ def quadro(streamer_id: int):
 # ------------------------------------------------------------------ fontes
 
 @router.get("/fontes", response_model=list[S.FonteOut])
-def listar_fontes(streamer_id: int | None = None):
-    return servico.listar_fontes(streamer_id)
+def listar_fontes(streamer_id: int | None = None, com_cortes: list[str] | None = Query(None)):
+    """`com_cortes=candidato&com_cortes=enquadrar...` = só os vídeos com algum corte nesses status."""
+    return servico.listar_fontes(streamer_id, com_cortes=com_cortes)
 
 
 @router.post("/fontes", response_model=S.FonteOut, status_code=201)
@@ -227,11 +228,16 @@ def editar_corte(corte_id: int, dados: S.CortePatch):
     if campos.get("status") == "descartado":  # libera o trecho baixado para o enquadramento
         shutil.rmtree(render.pasta_tmp(f"corte_{corte_id}"), ignore_errors=True)
     try:
-        return servico.atualizar_corte(corte_id, **campos)
+        novo = servico.atualizar_corte(corte_id, **campos)
     except KeyError:
         raise HTTPException(404) from None
     except ValueError as e:
         raise HTTPException(400, str(e)) from None
+    # mudou a região do streamer de um corte já gerado: atualiza o vídeo sozinho
+    if (sem or campos.get("webcam")) and atual["status"] == "pronto":
+        servico.rerenderizar(corte_id, "Atualizar")
+        novo = servico.obter_corte(corte_id)
+    return novo
 
 
 @router.post("/cortes/{corte_id}/enquadrar", response_model=S.JobOut, status_code=202)
@@ -253,10 +259,8 @@ def quadro_corte(corte_id: int):
 @router.post("/cortes/{corte_id}/renderizar", response_model=S.JobOut, status_code=202)
 def renderizar(corte_id: int):
     """Baixa o trecho, transcreve, monta o vertical com legenda e salva o mp4 (job, usa a GPU)."""
-    c = _404(servico.obter_corte, corte_id)
-    servico.atualizar_corte(corte_id, status="aprovado", erro=None)
-    return enfileirar("renderizar_corte", {"corte_id": corte_id},
-                      f"Renderizar corte #{corte_id} · {c['streamer_nome']}")
+    _404(servico.obter_corte, corte_id)
+    return servico.rerenderizar(corte_id)
 
 
 @router.get("/cortes/{corte_id}/arquivo", response_class=FileResponse)
@@ -265,6 +269,21 @@ def arquivo_corte(corte_id: int):
     if not c["arquivo"] or not Path(c["arquivo"]).exists():
         raise HTTPException(404, "corte ainda não renderizado")
     return FileResponse(c["arquivo"], media_type="video/mp4")
+
+
+@router.get("/cortes/{corte_id}/miniatura", response_class=FileResponse)
+def miniatura_corte(corte_id: int):
+    """JPEG de um quadro do vídeo pronto (para a grade da Biblioteca). Gerado uma vez e refeito se o mp4 mudar."""
+    c = _404(servico.obter_corte, corte_id)
+    if not c["arquivo"] or not Path(c["arquivo"]).exists():
+        raise HTTPException(404, "corte ainda não renderizado")
+    mp4, jpg = Path(c["arquivo"]), servico.caminho_miniatura_corte(corte_id)
+    if not jpg.exists() or jpg.stat().st_mtime < mp4.stat().st_mtime:
+        try:
+            render.salvar_miniatura(mp4, jpg)
+        except Exception as e:
+            raise HTTPException(500, f"não consegui gerar a miniatura: {e}") from None
+    return FileResponse(jpg, media_type="image/jpeg")
 
 
 @router.post("/cortes/{corte_id}/publicar", response_model=S.CorteOut)
@@ -326,8 +345,7 @@ async def cortar_video(dados: S.CortarVideoIn):
 
 @router.get("/fontes/{fonte_id}", response_model=S.FonteOut)
 def obter_fonte(fonte_id: int):
-    f = _404(servico.obter_fonte, fonte_id)
-    return next(x for x in servico.listar_fontes(f.streamer_id) if x["id"] == fonte_id)
+    return _404(servico.obter_fonte_dict, fonte_id)
 
 
 @router.post("/fontes/{fonte_id}/aplicar", response_model=list[S.CorteOut])
