@@ -32,3 +32,6 @@ postados.importado.json
 # 🌐 Front
 frontend/node_modules/
 frontend/dist/
+
+# 📄 PDFs gerados dos tutoriais (python scripts/tutorial_pdf.py)
+pdf/

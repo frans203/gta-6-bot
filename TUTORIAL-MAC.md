@@ -157,7 +157,7 @@ legenda `.txt` de cada um em `limpos/`.
 > ```
 > Quer marcar quem baixou? Rode `export JASON_OPERADOR=seunome` antes.
 
-> ✍️ Quer mudar o título de um vídeo? `open -e limpos/gta6_XXX.txt` e edite antes de agendar.
+> ✍️ Quer mudar título, descrição ou hashtags? Use a tela **Fila** da interface web (veja a Missão 4).
 
 ### 📋 2. Ver a fila
 ```bash
@@ -279,9 +279,30 @@ Abra **http://127.0.0.1:8765** no navegador: **Painel**, **Cortar vídeo**, **Bi
 **Modelos de corte**, **Contas**, **Jobs** e **Logs**. Tarefas longas viram **jobs** em segundo plano (dá pra acompanhar e cancelar).
 Para fechar: `Ctrl + C` no Terminal (é **Ctrl** mesmo, não ⌘). Se um envio estiver no meio, espere terminar.
 
+### ✍️ Título, descrição e hashtags de cada vídeo (tela Fila)
+
+Clique no nome do vídeo. Abre uma gaveta com o vídeo de um lado e os textos do outro:
+
+- **Título**, **Descrição** (opcional) e **Hashtags** (digite com ou sem `#` e aperte Enter; o × tira uma).
+- **Como sai em cada rede**: abas TikTok / YouTube / Instagram mostram o texto **exato** que o robô vai digitar,
+  com o limite de cada rede. Ligue **Texto próprio nesta rede** para escrever algo diferente só naquela rede.
+- **Hashtags em lote** (botão no topo da Fila): acrescenta ou troca hashtags em todos os vídeos ainda não postados.
+- **Postar este vídeo agora**: escolha as redes. **Só revisar** preenche tudo e **não** publica.
+- No menu **⋯** de cada rede: **Não postar nesta rede**, **Marcar como publicado** ou **Voltar para pendente**.
+- Se um envio der erro, a célula da rede mostra `erro` (o print da tela fica em `logs/`).
+
 ## ✂️ MISSÃO 5 — O CORTADOR
 
-Funciona igual ao Windows (passo a passo no [TUTORIAL.md](TUTORIAL.md#️-missão-5--o-cortador-cortes-de-lives)).
+Funciona igual ao Windows (passo a passo completo no [TUTORIAL.md](TUTORIAL.md#️-missão-5--o-cortador-cortes-de-lives)).
+Resumo:
+
+1. **Cortar vídeo**: cole o link da live/VOD, diga quantos cortes e clique em **Fazer os cortes**.
+2. **Biblioteca → Para revisar**: abra o vídeo, confira os cortes (selo amarelo = marcar onde está a webcam),
+   escolha legenda/fundo e **Renderizar todos**.
+3. **Biblioteca → Prontos**: abra o corte e **Mandar para a fila** de uma conta. Daí ele é agendado como os outros.
+4. **Editar vídeo** (no modal do corte): mude fonte, cores, posição do jogo e do streamer, corte trechos (**S**),
+   mude a ordem e confira com **Conferir no render** antes de **Salvar e gerar vídeo**.
+
 O que muda no Mac:
 
 - 🎞️ **Render rápido:** em Mac com chip Apple (M1/M2/M3/M4), o vídeo é codificado pelo próprio chip
