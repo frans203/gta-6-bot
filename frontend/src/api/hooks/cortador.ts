@@ -90,6 +90,14 @@ export function useFontes(streamerId?: number) {
   })
 }
 
+/** Vídeos originais com algum corte num destes status (Biblioteca → "Para revisar"). */
+export function useFontesComCortes(status: string[]) {
+  return useQuery({
+    queryKey: [...chaves.fontesTodas, 'com', status],
+    queryFn: () => dados(api.GET('/api/fontes', { params: { query: { com_cortes: status } } })),
+  })
+}
+
 export function useAdicionarFonte() {
   return useAcao(
     (body: { streamer_id: number; url: string }) => dados(api.POST('/api/fontes', { body })),
@@ -120,18 +128,27 @@ export function useCortes(filtros: FiltrosCortes) {
   })
 }
 
+export function useCorte(id: number | null) {
+  return useQuery({
+    queryKey: [...chaves.cortesTodos, 'um', id],
+    enabled: id != null,
+    queryFn: () => dados(api.GET('/api/cortes/{corte_id}', { params: { path: { corte_id: id! } } })),
+  })
+}
+
 export function useEditarCorte() {
   return useAcao(
     ({ id, body }: { id: number; body: CortePatch }) =>
       dados(api.PATCH('/api/cortes/{corte_id}', { params: { path: { corte_id: id } }, body })),
-    { invalidar: [chaves.cortesTodos] },
+    // mudar a webcam de um corte pronto enfileira um render: recarrega os jobs também
+    { invalidar: [chaves.cortesTodos, chaves.fontesTodas, chaves.jobsTodos] },
   )
 }
 
 export function useRenderizar() {
   return useAcao(
     (id: number) => dados(api.POST('/api/cortes/{corte_id}/renderizar', { params: { path: { corte_id: id } } })),
-    { sucesso: msgJob, invalidar: [chaves.jobsTodos, chaves.cortesTodos] },
+    { sucesso: msgJob, invalidar: [chaves.jobsTodos, chaves.cortesTodos, chaves.fontesTodas] },
   )
 }
 
@@ -242,7 +259,7 @@ export function useRenderizarTodos(fonteId: number) {
     () => dados(api.POST('/api/fontes/{fonte_id}/renderizar', { params: { path: { fonte_id: fonteId } } })),
     {
       sucesso: (jobs) => (jobs.length ? `${jobs.length} corte(s) na fila de renderização` : 'Nenhum corte pronto para renderizar'),
-      invalidar: [chaves.jobsTodos, chaves.cortesTodos],
+      invalidar: [chaves.jobsTodos, chaves.cortesTodos, chaves.fontesTodas],
     },
   )
 }

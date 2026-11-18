@@ -47,4 +47,7 @@ export const urls = {
   fundo: (nome: string) => `/api/fundos/${encodeURIComponent(nome)}`,
   quadroCorte: (corteId: number, versao?: string) =>
     `/api/cortes/${corteId}/quadro${versao ? `?v=${encodeURIComponent(versao)}` : ''}`,
+  /** quadro do vídeo pronto (grade da Biblioteca) */
+  miniaturaCorte: (corteId: number, versao?: string) =>
+    `/api/cortes/${corteId}/miniatura${versao ? `?v=${encodeURIComponent(versao)}` : ''}`,
 }

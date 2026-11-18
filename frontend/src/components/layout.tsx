@@ -1,4 +1,4 @@
-import { CalendarClock, Clapperboard, Cog, LayoutDashboard, LayoutTemplate, Link2, ListVideo, Menu, Scissors, ScrollText, Users } from 'lucide-react'
+import { Cog, LayoutDashboard, LayoutTemplate, Library, ListVideo, Menu, Scissors, ScrollText, Users } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router'
 
@@ -12,15 +12,13 @@ import { cn } from '@/lib/utils'
 
 const MENU = [
   { para: '/', rotulo: 'Painel', Icone: LayoutDashboard },
+  { para: '/cortador/novo', rotulo: 'Cortar vídeo', Icone: Scissors },
+  { para: '/biblioteca', rotulo: 'Biblioteca', Icone: Library },
   { para: '/fila', rotulo: 'Fila', Icone: ListVideo },
-  { para: '/agenda', rotulo: 'Agenda', Icone: CalendarClock },
-  { para: '/cortador/novo', rotulo: 'Cortar vídeo', Icone: Link2 },
-  { para: '/cortador', rotulo: 'Streamers', Icone: Scissors, fim: true },
-  { para: '/cortador/cortes', rotulo: 'Revisar cortes', Icone: Clapperboard },
   { para: '/cortador/modelos', rotulo: 'Modelos de corte', Icone: LayoutTemplate },
+  { para: '/contas', rotulo: 'Contas', Icone: Users },
   { para: '/jobs', rotulo: 'Jobs', Icone: Cog },
   { para: '/logs', rotulo: 'Logs', Icone: ScrollText },
-  { para: '/contas', rotulo: 'Contas', Icone: Users },
 ]
 
 function Logo() {
@@ -74,11 +72,11 @@ function Indicadores() {
 function Navegacao({ onNavegar }: { onNavegar?: () => void }) {
   return (
     <nav className="flex flex-col gap-0.5">
-      {MENU.map(({ para, rotulo, Icone, fim }) => (
+      {MENU.map(({ para, rotulo, Icone }) => (
         <NavLink
           key={para}
           to={para}
-          end={para === '/' || fim}
+          end={para === '/'}
           onClick={onNavegar}
           className={({ isActive }) =>
             cn(

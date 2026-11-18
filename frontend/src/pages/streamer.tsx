@@ -165,7 +165,7 @@ function CartaoFonte({ fonte }: { fonte: Fonte }) {
           <DialogoAnalisar fonte={fonte} />
           {fonte.total_cortes > 0 && (
             <Button size="sm" variant="ghost" asChild>
-              <Link to={`/cortador/cortes?fonte=${fonte.id}`}>
+              <Link to={`/biblioteca?fonte=${fonte.id}`}>
                 <Clapperboard /> {fonte.total_cortes} corte(s)
               </Link>
             </Button>
@@ -271,8 +271,8 @@ export function PaginaStreamer() {
 
   return (
     <>
-      <Link to="/cortador" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" /> Cortador
+      <Link to="/biblioteca" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-4" /> Biblioteca
       </Link>
       <Cabecalho
         titulo={
@@ -297,7 +297,7 @@ export function PaginaStreamer() {
         {(s.plataforma === 'twitch' || s.plataforma === 'youtube') && <DialogoBuscar streamer={s} tipo="vod" />}
         {s.plataforma === 'twitch' && <DialogoBuscar streamer={s} tipo="clipe" />}
         <Button variant="outline" asChild>
-          <Link to={`/cortador/cortes?streamer=${s.id}`}>
+          <Link to={`/biblioteca?streamer=${s.id}`}>
             <Clapperboard /> Cortes
           </Link>
         </Button>
@@ -344,7 +344,7 @@ export function PaginaStreamer() {
                   descricao="Apaga o streamer, as fontes e os cortes candidatos do banco."
                   confirmar="Remover"
                   perigoso
-                  onConfirmar={() => remover.mutate(s.id, { onSuccess: () => void navegar('/cortador') })}
+                  onConfirmar={() => remover.mutate(s.id, { onSuccess: () => void navegar('/biblioteca') })}
                 >
                   <Button variant="destructive">
                     <Trash2 /> Remover

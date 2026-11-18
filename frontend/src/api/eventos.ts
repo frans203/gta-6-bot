@@ -17,9 +17,9 @@ const INVALIDAR_POR_TIPO: Record<string, QueryKey[]> = {
   info_fonte: [chaves.fontesTodas],
   analisar_fonte: [chaves.fontesTodas, chaves.cortesTodos, chaves.streamers],
   detectar_webcam: [chaves.streamers, ['streamer']],
-  enquadrar_corte: [chaves.cortesTodos],
+  enquadrar_corte: [chaves.cortesTodos, chaves.fontesTodas],
   cortar_video: [chaves.cortesTodos, chaves.fontesTodas, chaves.streamers],
-  renderizar_corte: [chaves.cortesTodos, chaves.streamers],
+  renderizar_corte: [chaves.cortesTodos, chaves.fontesTodas, chaves.streamers],
 }
 
 // ------------------------------------------------------------------ store simples (log ao vivo + conexão)

@@ -1,8 +1,8 @@
 import { AlertTriangle, Cpu, HardDrive, Zap } from 'lucide-react'
-import { useState } from 'react'
 import { Link } from 'react-router'
 
 import { useSistema } from '@/api/hooks/contas'
+import { useFontesComCortes } from '@/api/hooks/cortador'
 import { useJobs } from '@/api/hooks/jobs'
 import { usePosts, useVideos } from '@/api/hooks/postagem'
 import { urls } from '@/api/cliente'
@@ -14,6 +14,7 @@ import { Plataforma } from '@/components/plataforma'
 import { StatusChip } from '@/components/status-chip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ABAS_BIBLIOTECA, urlMiniatura } from '@/lib/biblioteca'
 import { useConta } from '@/lib/conta'
 import { fmtDataHora } from '@/lib/formatos'
 import { cn } from '@/lib/utils'
@@ -113,31 +114,49 @@ function ContagensConta() {
   )
 }
 
-function ProximosAgendamentos() {
-  const { conta } = useConta()
-  const [agora] = useState(() => new Date().toISOString().slice(0, 16))
-  const { data: posts = [] } = usePosts({ conta_id: conta?.id, status: 'agendado,agendado_pc', de: agora }, !!conta)
-  const proximos = [...posts].sort((a, b) => (a.para ?? '').localeCompare(b.para ?? '')).slice(0, 8)
+function ParaRevisar() {
+  const { data: fontes = [], isLoading } = useFontesComCortes([...ABAS_BIBLIOTECA.revisar.status])
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Próximos agendamentos</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          Para revisar
+          <Link to="/biblioteca" className="text-xs font-normal text-rosa hover:underline">
+            abrir a Biblioteca →
+          </Link>
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        {proximos.length ? (
+        {isLoading ? (
+          <Skeleton className="h-24" />
+        ) : fontes.length ? (
           <ul className="space-y-2 text-sm">
-            {proximos.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-2">
-                <span className="w-32 shrink-0 font-medium text-laranja tabular-nums">{fmtDataHora(p.para)}</span>
-                <Plataforma p={p.plataforma} soIcone />
-                <span className="min-w-0 flex-1 truncate">{p.video}</span>
-                <StatusChip status={p.status} />
-              </li>
-            ))}
+            {fontes.slice(0, 6).map((f) => {
+              const n = (f.cortes_status.candidato ?? 0) + (f.cortes_status.enquadrar ?? 0) + (f.cortes_status.erro ?? 0)
+              return (
+                <li key={f.id}>
+                  <Link
+                    to={`/biblioteca?fonte=${f.id}`}
+                    className="flex items-center gap-3 rounded-lg p-1.5 transition-colors hover:bg-white/5"
+                  >
+                    {f.miniatura ? (
+                      <img src={urlMiniatura(f.miniatura, 160) ?? ''} alt="" className="aspect-video w-16 shrink-0 rounded-md object-cover" />
+                    ) : (
+                      <div className="aspect-video w-16 shrink-0 rounded-md bg-gradient-to-br from-roxo/40 to-rosa/30" />
+                    )}
+                    <span className="min-w-0 flex-1 truncate">{f.titulo}</span>
+                    <span className="shrink-0 rounded-full bg-rosa/15 px-2 py-0.5 font-mono text-xs text-rosa">{n}</span>
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Nada agendado. <Link to="/agenda" className="text-ciano hover:underline">Montar um lote →</Link>
+            Nada esperando revisão.{' '}
+            <Link to="/cortador/novo" className="text-rosa hover:underline">
+              Cortar um vídeo →
+            </Link>
           </p>
         )}
       </CardContent>
@@ -184,13 +203,13 @@ function UltimosErros() {
 export function PaginaPainel() {
   return (
     <>
-      <Cabecalho titulo="Painel" descricao="Visão geral do pipeline: sistema, jobs, fila e agenda da conta selecionada." />
+      <Cabecalho titulo="Painel" descricao="Visão geral: sistema, jobs, cortes para revisar e a fila da conta selecionada." />
       <div className="space-y-6">
         <StatusSistema />
         <div className="grid gap-6 xl:grid-cols-2">
           <JobsAtivos />
           <ContagensConta />
-          <ProximosAgendamentos />
+          <ParaRevisar />
           <UltimosErros />
         </div>
       </div>

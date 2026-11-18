@@ -4,7 +4,7 @@ import { urls } from '@/api/cliente'
 import { useEditarCorte, useEnquadrar, useModelos, usePlugins } from '@/api/hooks/cortador'
 import type { Corte, Job, Regiao } from '@/api/tipos'
 import { EditorRegioes, type RegiaoEditavel } from '@/components/editor-regioes'
-import { BarraJob } from '@/components/job-progresso'
+import { ProgressoJob } from '@/components/job-progresso'
 import { Previa } from '@/components/previa'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -107,14 +107,15 @@ export function Enquadramento({ corte, modeloId, estilo, gancho, rascunho, onCha
       )}
 
       {job && (
-        <div className="space-y-1">
-          <BarraJob job={job} />
-          <p className="text-xs text-muted-foreground">{job.mensagem}</p>
+        <div className="flex items-center gap-3 rounded-xl border border-roxo/40 bg-roxo/10 p-3">
+          <ScanFace className="size-5 shrink-0 animate-pulse text-rosa" />
+          <ProgressoJob job={job} className="flex-1" />
         </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px]">
         <div className="space-y-3">
+          <div className={job ? 'pointer-events-none opacity-50 transition-opacity' : 'transition-opacity'}>
           <EditorRegioes
             quadro={corte.tem_quadro ? urls.quadroCorte(corte.id, corte.atualizado_em) : null}
             regioes={editavel && corte.tem_quadro ? regioes : []}
@@ -128,6 +129,7 @@ export function Enquadramento({ corte, modeloId, estilo, gancho, rascunho, onCha
               </div>
             }
           />
+          </div>
           {editavel && corte.tem_quadro && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {usaJogo && (
@@ -148,8 +150,8 @@ export function Enquadramento({ corte, modeloId, estilo, gancho, rascunho, onCha
                     <Check /> A posição está certa
                   </Button>
                 )}
-                {precisaWebcam && (
-                  <Button size="sm" variant="ghost" disabled={enquadrar.isPending || editar.isPending || !!job} onClick={detectarDeNovo}>
+                {precisaWebcam && !job && (
+                  <Button size="sm" variant="outline" disabled={enquadrar.isPending || editar.isPending} onClick={detectarDeNovo}>
                     <ScanFace /> Detectar de novo
                   </Button>
                 )}

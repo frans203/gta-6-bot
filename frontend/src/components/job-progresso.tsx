@@ -21,6 +21,20 @@ export function BarraJob({ job, className }: { job: Pick<Job, 'status' | 'progre
   return <Progress value={(job.progresso ?? (job.status === 'ok' ? 1 : 0)) * 100} className={cn('h-1.5', className)} />
 }
 
+/** Bloco de progresso compacto: mensagem atual + porcentagem + barra (dentro de modais e cards). */
+export function ProgressoJob({ job, className }: { job: Pick<Job, 'status' | 'progresso' | 'mensagem'>; className?: string }) {
+  const pct = job.progresso != null ? Math.round(job.progresso * 100) : null
+  return (
+    <div className={cn('space-y-1.5', className)}>
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="min-w-0 truncate text-muted-foreground">{job.status === 'fila' ? 'na fila…' : job.mensagem || 'trabalhando…'}</span>
+        {pct != null && job.status !== 'fila' && <span className="shrink-0 font-mono text-rosa tabular-nums">{pct}%</span>}
+      </div>
+      <BarraJob job={job} />
+    </div>
+  )
+}
+
 /** Linha de job: título, status, mensagem atual, progresso e botão de cancelar. */
 export function JobProgresso({ job, onAbrir }: { job: Job; onAbrir?: (id: number) => void }) {
   const cancelar = useCancelarJob()
