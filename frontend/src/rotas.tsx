@@ -16,6 +16,7 @@ export const router = createBrowserRouter([
       { path: '/fila', lazy: pagina(async () => (await import('@/pages/fila')).PaginaFila) },
       { path: '/cortador/novo', lazy: pagina(async () => (await import('@/pages/cortar-video')).PaginaCortarVideo) },
       { path: '/biblioteca', lazy: pagina(async () => (await import('@/pages/biblioteca')).PaginaBiblioteca) },
+      { path: '/editor/:id', lazy: pagina(async () => (await import('@/pages/editor')).PaginaEditor) },
       // streamer: fora do menu (é cadastrado sozinho no "Cortar vídeo"); aberto pelo link no modal do corte
       { path: '/cortador/streamers/:id', lazy: pagina(async () => (await import('@/pages/streamer')).PaginaStreamer) },
       { path: '/cortador/modelos', lazy: pagina(async () => (await import('@/pages/modelos')).PaginaModelos) },

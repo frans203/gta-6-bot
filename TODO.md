@@ -31,6 +31,11 @@
 - [x] (18/11/2026) Visual novo: preto + roxo/rosa, fonte Bricolage Grotesque, componentes do cult-ui
       (GradientHeading, BgAnimateButton, RollingNumber, abas no estilo Direction Aware Tabs), animações
       com `motion` (respeitam "reduzir movimento"); tarefas antigas `instagram_gta6_*` do Windows removidas
+- [x] (18/11/2026) Editor de vídeo simples (`/editor/:id`): fonte/cor/tamanho/posição da legenda e do gancho,
+      posição e tamanho do jogo e do streamer (arrastando na prévia; predefinições), recorte do original, fundo,
+      cortar (S), apagar, reordenar e aparar trechos (com 10 s de folga baixada), sincronia streamer/jogo com
+      atraso opcional, desfazer/refazer, rascunho automático, "Conferir no render"; render com trechos + layout livre
+- [ ] Editor: "salvar como modelo" (reaproveitar fonte/cores/posições em outros cortes)
 - [ ] Tradução: o modelo grátis puxa para PT de Portugal ("O que raio..."); avaliar trocar o par en→pt
 - [ ] **Usuário**: criar app grátis na Twitch (dev.twitch.tv) e pôr `JASON_TWITCH_CLIENT_ID/SECRET` no `.env`
 - [ ] **Usuário**: criar a conta gamer em inglês nas 3 redes, `python jason.py --conta gamer_en login`

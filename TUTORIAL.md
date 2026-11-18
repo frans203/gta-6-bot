@@ -286,6 +286,27 @@ Feche com `Ctrl+C` no terminal. Se um envio estiver no meio, espere ele terminar
   igual aos outros vídeos). Mudou a região do streamer de um corte pronto? Ele **gera o vídeo de novo sozinho**.
 - **Na fila** e **Descartados**: os que já foram para a fila e os que você descartou (dá para restaurar).
 
+### 🎬 Editor de vídeo
+
+No modal de qualquer corte, **Editar vídeo**. Na 1ª vez ele prepara o corte: baixa o trecho com 10 s de folga
+de cada lado e transcreve a fala (leva até ~1 minuto). Depois:
+
+- **Prévia** (esquerda): arraste as caixas **JOGO** e **STREAMER** para mover e puxe os cantos para o tamanho
+  (**Shift** mantém a proporção, **Alt** desliga o ímã das bordas/centro). Arraste a linha **LEGENDA** ou
+  **GANCHO** para subir/descer o texto.
+- **Texto**: fonte, cor do texto e da palavra falada, tamanho, contorno, palavras por vez, CAIXA ALTA; o gancho
+  com cor do texto e da caixa. **↑ fonte** envia um arquivo `.ttf`/`.otf` seu.
+- **Layout**: arrumações prontas (jogo em cima, streamer em cima, streamer no canto, só o jogo), mostrar/esconder
+  o streamer, quem fica na frente, fundo (vídeo desfocado, preto ou sua imagem) e **o que recortar** do vídeo
+  original. Se o streamer não tiver sido confirmado, marque o retângulo (nunca sai com a webcam errada).
+- **Tempo**: **manter streamer e jogo sincronizados** (ligado: os dois vêm do mesmo vídeo, então todo corte vale
+  para os dois). Desligado, aparece um ajuste de atraso para quando a câmera da live vem adiantada/atrasada.
+- **Linha do tempo** (embaixo): **S** corta no cursor, **Delete** apaga o trecho selecionado, arraste um trecho
+  para mudar a ordem e puxe as pontas para aparar (dá para usar a folga baixada). A barra de baixo mostra de onde
+  cada trecho saiu do vídeo original.
+- **Conferir no render** mostra 1 quadro gerado pelo mesmo ffmpeg do vídeo final. **Salvar e gerar vídeo**
+  renderiza. **Ctrl+Z** desfaz; se fechar sem salvar, o rascunho fica guardado neste navegador.
+
 > 🎯 **Por streamer**: no modal, clique no nome do streamer para abrir a página dele (buscar VODs, analisar
 > uma live inteira, modelo e webcam padrão).
 

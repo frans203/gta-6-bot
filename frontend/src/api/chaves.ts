@@ -24,4 +24,5 @@ export const chaves = {
   fontesTodas: ['fontes'] as const,
   cortes: (filtros: object) => ['cortes', filtros] as const,
   cortesTodos: ['cortes'] as const,
+  editor: (corteId: number) => ['editor', corteId] as const,
 }

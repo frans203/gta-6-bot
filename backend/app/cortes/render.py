@@ -370,7 +370,12 @@ def renderizar(corte_id: int, progresso=lambda f, m=None: None, log=print, checa
         log(f"modelo: {modelo['nome']} ({modelo['layout']})" + (" + edição do editor" if edicao else ""))
         cam = None
         precisa = ed.mostra_webcam(edicao) if edicao else LAYOUTS[modelo["layout"]].opcoes.get("precisa_webcam")
-        if precisa:
+        cam_editor = (((edicao or {}).get("layout") or {}).get("webcam") or {}).get("fonte")
+        if precisa and cam_editor:  # marcada à mão no editor: vale como "manual"
+            cam = cam_editor
+            if not servico.caminho_quadro_corte(corte_id).exists():
+                _salvar_quadro(bruto, servico.caminho_quadro_corte(corte_id), ini_rel + dur / 2)
+        elif precisa:
             situacao, cam = enquadrar(c, bruto, ini_rel, dur, progresso, log)
             if situacao == "duvida":
                 manter_tmp = True  # o trecho fica baixado para o render depois do recorte manual

@@ -50,6 +50,18 @@ Agenda nem de Streamers no menu (agendar é pela CLI; `/cortador/streamers/:id` 
 sozinho (`servico.rerenderizar`). Visual: tokens em `src/index.css` (nomes antigos rosa/ciano/laranja/roxo com
 tons novos), fonte Bricolage Grotesque, utilitários `cartao-brilho`/`botao-brilho`/`texto-gradiente`.
 
+**Editor de vídeo** (`/editor/:id`, botão "Editar vídeo" no modal do corte): edição livre salva em `cortes.edicao`
+(schema `Edicao`): `segmentos` em segundos **da live** (na ordem do vídeo), `layout` (jogo/webcam: `fonte` = recorte
+do original, `saida` = caixa no 1080x1920; fundo desfocado/preto/imagem), `legenda`/`gancho` (fonte, cor, tamanho,
+y), `sincronizado`/`atraso_streamer`. O trecho é baixado com `edicao.MARGEM` (10 s) de folga e **não é apagado**
+depois do render (`midia/tmp/corte_<id>/trecho.mp4`, servido em `/api/cortes/{id}/bruto`); a transcrição do arquivo
+inteiro fica em `corte.transcricao.arquivo` (job `preparar_editor`). Render com edição: `edicao.filtro_segmentos`
+(trim+concat) → `edicao.montar_livre` → `.ass` com as palavras remapeadas (`edicao.remapear`). A prévia do editor é
+um canvas que repete as mesmas contas (`frontend/src/lib/editor/`); "Conferir no render" usa `/api/previa` com a
+edição. Webcam marcada no editor (`layout.webcam.fonte`) vale como "manual"; sem ela, vale a regra de sempre.
+Fontes do texto: as do Windows + `.ttf/.otf` enviadas para `JASON_MIDIA/fontes` (copiadas para `tmp/fontes`
+porque o `ass=` não aceita caminho com `E:`).
+
 Tradução da legenda: `cortes/traducao.py` (Argos/OPUS-MT no CTranslate2, grátis e local; `sentencepiece` instalado em
 `E:\jason-midia\libs`; modelos em `JASON_MIDIA/modelos/traducao`). Imagens de fundo: `JASON_MIDIA/fundos`
 (`POST /api/fundos` com os bytes da imagem), usadas pelo layout `fundo_imagem`.

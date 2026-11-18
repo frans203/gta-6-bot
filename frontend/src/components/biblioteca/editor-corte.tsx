@@ -1,7 +1,7 @@
-import { Check, Minus, Plus, RotateCcw, ScanFace, Scissors, Send, Trash2, Wand2, X } from 'lucide-react'
+import { Check, Clapperboard, Minus, Plus, RotateCcw, ScanFace, Scissors, Send, Trash2, Wand2, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { urls } from '@/api/cliente'
 import { useEditarCorte, useModelos, usePlugins, usePublicarCorte, useRenderizar } from '@/api/hooks/cortador'
@@ -135,6 +135,7 @@ function MandarParaFila({ corte }: { corte: Corte }) {
 export function EditorCorte({ corte, jobs }: { corte: Corte; jobs: Job[] }) {
   const [aba, setAba] = useState<'corte' | 'streamer'>(corte.status === 'enquadrar' ? 'streamer' : 'corte')
   const [rascunho, setRascunho] = useState<CortePatch>({})
+  const navegar = useNavigate()
   const editar = useEditarCorte()
   const renderizar = useRenderizar()
   const { data: modelos = [] } = useModelos()
@@ -238,11 +239,18 @@ export function EditorCorte({ corte, jobs }: { corte: Corte; jobs: Job[] }) {
               {fmtTempo(v.fim - v.inicio)}
             </Badge>
           </div>
-          {editavel && !['descartado', 'na_fila'].includes(corte.status) && (
-            <Button size="sm" variant="ghost" onClick={() => editar.mutate({ id: corte.id, body: { status: 'descartado' } })}>
-              <Trash2 /> Descartar
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {corte.status !== 'descartado' && (
+              <Button size="sm" variant="outline" onClick={() => void navegar(`/editor/${corte.id}`)} title="Fonte, cores, posições, cortes e ordem dos trechos">
+                <Clapperboard /> Editar vídeo
+              </Button>
+            )}
+            {editavel && !['descartado', 'na_fila'].includes(corte.status) && (
+              <Button size="sm" variant="ghost" onClick={() => editar.mutate({ id: corte.id, body: { status: 'descartado' } })}>
+                <Trash2 /> Descartar
+              </Button>
+            )}
+          </div>
           {corte.status === 'descartado' && (
             <Button size="sm" variant="ghost" onClick={() => editar.mutate({ id: corte.id, body: { status: 'candidato' } })}>
               <RotateCcw /> Restaurar
