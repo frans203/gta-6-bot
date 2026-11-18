@@ -133,9 +133,16 @@ def blocos(palavras: list[dict], por_bloco: int, pausa_max: float = 0.7) -> list
 
 
 def gerar_ass(palavras: list[dict], estilo_id: str, legenda_y: int, gancho_y: int, duracao: float,
-              gancho: str | None = None, credito: str | None = None) -> str:
-    e = ESTILOS[estilo_id].opcoes if estilo_id in ESTILOS else ESTILOS["destaque"].opcoes
+              gancho: str | None = None, credito: str | None = None, ajustes: dict | None = None,
+              gancho_ajustes: dict | None = None) -> str:
+    """`ajustes` (editor de vídeo) sobrescreve o estilo: fonte, tamanho, cor, destaque, contorno, maiusculas,
+    por_bloco, mostrar. `gancho_ajustes`: fonte, tamanho, cor (texto) e fundo (caixa)."""
+    e = dict(ESTILOS[estilo_id].opcoes if estilo_id in ESTILOS else ESTILOS["destaque"].opcoes)
+    if ajustes:
+        e.update({k: v for k, v in ajustes.items() if k not in ("y", "mostrar")})
+        e["nenhuma"] = not ajustes.get("mostrar", True)
     fonte, tam = e.get("fonte", "Arial Black"), e.get("tamanho", 74)
+    g = {"fonte": "Arial Black", "tamanho": 64, "cor": "000000", "fundo": "FFFFFF", **(gancho_ajustes or {})}
     linhas = [
         "[Script Info]", "ScriptType: v4.00+", "PlayResX: 1080", "PlayResY: 1920", "WrapStyle: 0",
         "ScaledBorderAndShadow: yes", "",
@@ -145,8 +152,8 @@ def gerar_ass(palavras: list[dict], estilo_id: str, legenda_y: int, gancho_y: in
         "MarginR, MarginV, Encoding",
         f"Style: Legenda,{fonte},{tam},{_cor(e.get('cor', 'FFFFFF'))},&H000000FF&,&H00000000&,&H80000000&,-1,0,0,0,"
         f"100,100,0,0,1,{e.get('contorno', 6)},2,5,60,60,0,1",
-        "Style: Gancho,Arial Black,64,&H00000000&,&H000000FF&,&H00FFFFFF&,&H00FFFFFF&,-1,0,0,0,100,100,0,0,3,18,0,8,"
-        "70,70,0,1",
+        f"Style: Gancho,{g['fonte']},{g['tamanho']},{_cor(g['cor'])},&H000000FF&,{_cor(g['fundo'])},{_cor(g['fundo'])},"
+        "-1,0,0,0,100,100,0,0,3,18,0,8,70,70,0,1",
         "Style: Credito,Arial,34,&H00FFFFFF&,&H000000FF&,&H00000000&,&H00000000&,-1,0,0,0,100,100,0,0,1,2,0,2,40,40,0,1",
         "", "[Events]", "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
     ]

@@ -137,6 +137,12 @@ def enquadrar_corte(ctx, p):
     return r
 
 
+@tarefa("preparar_editor", recurso="gpu")
+def preparar_editor(ctx, p):
+    """Baixa o trecho com folga e transcreve o arquivo inteiro (o editor de vídeo precisa dos dois)."""
+    return render.preparar_editor(p["corte_id"], progresso=ctx.progresso, log=ctx.log)
+
+
 @tarefa("renderizar_corte", recurso="gpu")
 def renderizar_corte(ctx, p):
     servico.atualizar_corte(p["corte_id"], status="renderizando")

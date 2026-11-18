@@ -131,6 +131,8 @@ class Corte(Base):
     gancho: Mapped[str | None] = mapped_column(String(120))            # texto no topo nos 1os segundos
     arquivo: Mapped[str | None] = mapped_column(String(500))           # mp4 renderizado
     transcricao: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
+    # editor de vídeo: trechos (tempos da live), layout livre e estilo do texto. None = só o modelo de corte
+    edicao: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     erro: Mapped[str | None] = mapped_column(Text)
     criado_em: Mapped[datetime] = mapped_column(DateTime, default=agora)
     atualizado_em: Mapped[datetime] = mapped_column(DateTime, default=agora, onupdate=agora)

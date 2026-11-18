@@ -2350,6 +2350,237 @@
     }
    }
   },
+  "/api/cortes/{corte_id}/editor": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Editor",
+    "description": "Tudo que o editor precisa: tamanho e posição do trecho baixado, legenda (em segundos do arquivo), a edição\nsalva e a edição \"padrão\" (como o modelo de corte deixaria). `pronto=false`: rode POST .../editor/preparar.",
+    "operationId": "editor_api_cortes__corte_id__editor_get",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/EditorOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}/editor/preparar": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Preparar Editor",
+    "description": "Baixa o trecho (com folga) e transcreve, para abrir no editor (job).",
+    "operationId": "preparar_editor_api_cortes__corte_id__editor_preparar_post",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/cortes/{corte_id}/bruto": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Bruto",
+    "description": "O trecho baixado (com a folga), para o editor tocar. Aceita Range (dá para pular no vídeo).",
+    "operationId": "bruto_api_cortes__corte_id__bruto_get",
+    "parameters": [
+     {
+      "name": "corte_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Corte Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/fontes-texto": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Listar Fontes Texto",
+    "operationId": "listar_fontes_texto_api_fontes_texto_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/FonteTexto"
+         },
+         "title": "Response Listar Fontes Texto Api Fontes Texto Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Enviar Fonte Texto",
+    "description": "Envia uma fonte (.ttf ou .otf) para usar na legenda e no gancho.",
+    "operationId": "enviar_fonte_texto_api_fontes_texto_post",
+    "parameters": [
+     {
+      "name": "nome",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "description": "nome do arquivo .ttf/.otf",
+       "title": "Nome"
+      },
+      "description": "nome do arquivo .ttf/.otf"
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FonteTexto"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "content": {
+      "application/octet-stream": {}
+     }
+    }
+   }
+  },
+  "/api/fontes-texto/{arquivo}": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Arquivo Fonte Texto",
+    "description": "Arquivo de uma fonte enviada por você (o editor carrega com @font-face).",
+    "operationId": "arquivo_fonte_texto_api_fontes_texto__arquivo__get",
+    "parameters": [
+     {
+      "name": "arquivo",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Arquivo"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/cortes/{corte_id}/publicar": {
    "post": {
     "tags": [
@@ -2983,6 +3214,43 @@
     "type": "object",
     "title": "BuscarFontesIn"
    },
+   "Caixa": {
+    "properties": {
+     "x": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": -1.0,
+      "title": "X"
+     },
+     "y": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": -1.0,
+      "title": "Y"
+     },
+     "w": {
+      "type": "number",
+      "maximum": 2.0,
+      "exclusiveMinimum": 0.02,
+      "title": "W"
+     },
+     "h": {
+      "type": "number",
+      "maximum": 2.0,
+      "exclusiveMinimum": 0.02,
+      "title": "H"
+     }
+    },
+    "type": "object",
+    "required": [
+     "x",
+     "y",
+     "w",
+     "h"
+    ],
+    "title": "Caixa",
+    "description": "Retângulo no vídeo final 1080x1920, em frações (pode sair um pouco da tela)."
+   },
    "ContaIn": {
     "properties": {
      "id": {
@@ -3472,6 +3740,16 @@
        }
       ],
       "title": "Fonte Idioma"
+     },
+     "edicao": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Edicao"
+       },
+       {
+        "type": "null"
+       }
+      ]
      }
     },
     "type": "object",
@@ -3640,10 +3918,178 @@
        }
       ],
       "title": "Status"
+     },
+     "edicao": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Edicao"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "editor de vídeo; null volta para o modelo de corte"
      }
     },
     "type": "object",
     "title": "CortePatch"
+   },
+   "Edicao": {
+    "properties": {
+     "segmentos": {
+      "items": {
+       "$ref": "#/components/schemas/TrechoEd"
+      },
+      "type": "array",
+      "maxItems": 60,
+      "minItems": 1,
+      "title": "Segmentos",
+      "description": "na ordem em que entram no vídeo"
+     },
+     "sincronizado": {
+      "type": "boolean",
+      "title": "Sincronizado",
+      "description": "streamer e jogo sempre juntos (os cortes valem para os dois)",
+      "default": true
+     },
+     "atraso_streamer": {
+      "type": "number",
+      "maximum": 3.0,
+      "minimum": -3.0,
+      "title": "Atraso Streamer",
+      "description": "só sem sincronia: + = streamer aparece depois",
+      "default": 0.0
+     },
+     "legenda": {
+      "$ref": "#/components/schemas/LegendaEd",
+      "default": {
+       "fonte": "Arial Black",
+       "tamanho": 74,
+       "cor": "FFFFFF",
+       "destaque": "FFE400",
+       "contorno": 7,
+       "maiusculas": true,
+       "por_bloco": 3,
+       "y": 0.55,
+       "mostrar": true
+      }
+     },
+     "gancho": {
+      "$ref": "#/components/schemas/GanchoEd",
+      "default": {
+       "fonte": "Arial Black",
+       "tamanho": 64,
+       "cor": "000000",
+       "fundo": "FFFFFF",
+       "y": 0.05
+      }
+     },
+     "layout": {
+      "$ref": "#/components/schemas/LayoutEd"
+     }
+    },
+    "type": "object",
+    "required": [
+     "segmentos",
+     "layout"
+    ],
+    "title": "Edicao",
+    "description": "Edição livre de um corte (editor de vídeo). Substitui as posições do modelo de corte."
+   },
+   "EditorOut": {
+    "properties": {
+     "pronto": {
+      "type": "boolean",
+      "title": "Pronto",
+      "description": "trecho baixado e transcrito: dá para editar"
+     },
+     "largura": {
+      "type": "integer",
+      "title": "Largura",
+      "default": 0
+     },
+     "altura": {
+      "type": "integer",
+      "title": "Altura",
+      "default": 0
+     },
+     "duracao": {
+      "type": "number",
+      "title": "Duracao",
+      "default": 0.0
+     },
+     "base": {
+      "type": "number",
+      "title": "Base",
+      "description": "segundo da live em que o arquivo do trecho começa",
+      "default": 0.0
+     },
+     "palavras": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Palavras",
+      "description": "legenda {p, i, f} em segundos do arquivo do trecho",
+      "default": []
+     },
+     "edicao": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Edicao"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "padrao": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Edicao"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "como o modelo de corte deixaria (ponto de partida)"
+     },
+     "fontes": {
+      "items": {
+       "$ref": "#/components/schemas/FonteTexto"
+      },
+      "type": "array",
+      "title": "Fontes",
+      "default": []
+     },
+     "credito": {
+      "type": "string",
+      "title": "Credito",
+      "default": ""
+     },
+     "barra": {
+      "type": "boolean",
+      "title": "Barra",
+      "default": true
+     },
+     "fundo_imagem": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fundo Imagem"
+     }
+    },
+    "type": "object",
+    "required": [
+     "pronto"
+    ],
+    "title": "EditorOut"
    },
    "EnviarIn": {
     "properties": {
@@ -3858,6 +4304,31 @@
     ],
     "title": "FonteOut"
    },
+   "FonteTexto": {
+    "properties": {
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "arquivo": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Arquivo",
+      "description": "fonte enviada por você (midia/fontes); None = do sistema"
+     }
+    },
+    "type": "object",
+    "required": [
+     "nome"
+    ],
+    "title": "FonteTexto"
+   },
    "FundoOut": {
     "properties": {
      "nome": {
@@ -3875,6 +4346,46 @@
      "kb"
     ],
     "title": "FundoOut"
+   },
+   "GanchoEd": {
+    "properties": {
+     "fonte": {
+      "type": "string",
+      "maxLength": 80,
+      "title": "Fonte",
+      "default": "Arial Black"
+     },
+     "tamanho": {
+      "type": "integer",
+      "maximum": 200.0,
+      "minimum": 20.0,
+      "title": "Tamanho",
+      "default": 64
+     },
+     "cor": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{6}$",
+      "title": "Cor",
+      "default": "000000"
+     },
+     "fundo": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{6}$",
+      "title": "Fundo",
+      "description": "cor da caixa atrás do texto",
+      "default": "FFFFFF"
+     },
+     "y": {
+      "type": "number",
+      "maximum": 0.9,
+      "minimum": 0.0,
+      "title": "Y",
+      "description": "topo do texto (fração da altura)",
+      "default": 0.05
+     }
+    },
+    "type": "object",
+    "title": "GanchoEd"
    },
    "Grade": {
     "properties": {
@@ -4367,6 +4878,109 @@
      "atualizado_em"
     ],
     "title": "JobOut"
+   },
+   "LayoutEd": {
+    "properties": {
+     "jogo": {
+      "$ref": "#/components/schemas/ZonaEd"
+     },
+     "webcam": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ZonaEd"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "None = sem o streamer"
+     },
+     "fundo": {
+      "type": "string",
+      "enum": [
+       "desfocado",
+       "preto",
+       "imagem"
+      ],
+      "title": "Fundo",
+      "default": "desfocado"
+     },
+     "webcam_na_frente": {
+      "type": "boolean",
+      "title": "Webcam Na Frente",
+      "default": true
+     }
+    },
+    "type": "object",
+    "required": [
+     "jogo"
+    ],
+    "title": "LayoutEd"
+   },
+   "LegendaEd": {
+    "properties": {
+     "fonte": {
+      "type": "string",
+      "maxLength": 80,
+      "title": "Fonte",
+      "default": "Arial Black"
+     },
+     "tamanho": {
+      "type": "integer",
+      "maximum": 220.0,
+      "minimum": 20.0,
+      "title": "Tamanho",
+      "default": 74
+     },
+     "cor": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{6}$",
+      "title": "Cor",
+      "default": "FFFFFF"
+     },
+     "destaque": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{6}$",
+      "title": "Destaque",
+      "description": "cor da palavra que está sendo falada",
+      "default": "FFE400"
+     },
+     "contorno": {
+      "type": "integer",
+      "maximum": 24.0,
+      "minimum": 0.0,
+      "title": "Contorno",
+      "default": 7
+     },
+     "maiusculas": {
+      "type": "boolean",
+      "title": "Maiusculas",
+      "default": true
+     },
+     "por_bloco": {
+      "type": "integer",
+      "maximum": 8.0,
+      "minimum": 1.0,
+      "title": "Por Bloco",
+      "description": "palavras na tela por vez",
+      "default": 3
+     },
+     "y": {
+      "type": "number",
+      "maximum": 0.97,
+      "minimum": 0.03,
+      "title": "Y",
+      "description": "centro da legenda (fração da altura)",
+      "default": 0.55
+     },
+     "mostrar": {
+      "type": "boolean",
+      "title": "Mostrar",
+      "default": true
+     }
+    },
+    "type": "object",
+    "title": "LegendaEd"
    },
    "LegendaIn": {
     "properties": {
@@ -5015,6 +5629,17 @@
       ],
       "title": "Fundo",
       "description": "imagem de fundo (nome em midia/fundos)"
+     },
+     "edicao": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Edicao"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "prévia com a edição do editor de vídeo"
      }
     },
     "type": "object",
@@ -5466,6 +6091,27 @@
     ],
     "title": "TarefaWindowsOut"
    },
+   "TrechoEd": {
+    "properties": {
+     "i": {
+      "type": "number",
+      "minimum": 0.0,
+      "title": "I"
+     },
+     "f": {
+      "type": "number",
+      "exclusiveMinimum": 0.0,
+      "title": "F"
+     }
+    },
+    "type": "object",
+    "required": [
+     "i",
+     "f"
+    ],
+    "title": "TrechoEd",
+    "description": "Um pedaço do vídeo, em segundos da live/vídeo original (como corte.inicio/fim)."
+   },
    "ValidationError": {
     "properties": {
      "loc": {
@@ -5620,6 +6266,30 @@
      "h"
     ],
     "title": "Webcam"
+   },
+   "ZonaEd": {
+    "properties": {
+     "saida": {
+      "$ref": "#/components/schemas/Caixa",
+      "description": "onde fica no vídeo final"
+     },
+     "fonte": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Regiao"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "o que recortar do vídeo original (None = do corte)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "saida"
+    ],
+    "title": "ZonaEd"
    }
   }
  }

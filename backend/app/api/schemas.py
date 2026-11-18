@@ -143,6 +143,87 @@ class Webcam(Regiao):
         None, description="auto = detectada com segurança; manual = marcada por você; sugerida = precisa conferir")
 
 
+# ------------------------------------------------------------------ editor de vídeo
+
+COR = r"^[0-9A-Fa-f]{6}$"
+
+
+class TrechoEd(BaseModel):
+    """Um pedaço do vídeo, em segundos da live/vídeo original (como corte.inicio/fim)."""
+    i: float = Field(ge=0)
+    f: float = Field(gt=0)
+
+
+class LegendaEd(BaseModel):
+    fonte: str = Field("Arial Black", max_length=80)
+    tamanho: int = Field(74, ge=20, le=220)
+    cor: str = Field("FFFFFF", pattern=COR)
+    destaque: str = Field("FFE400", pattern=COR, description="cor da palavra que está sendo falada")
+    contorno: int = Field(7, ge=0, le=24)
+    maiusculas: bool = True
+    por_bloco: int = Field(3, ge=1, le=8, description="palavras na tela por vez")
+    y: float = Field(0.55, ge=0.03, le=0.97, description="centro da legenda (fração da altura)")
+    mostrar: bool = True
+
+
+class GanchoEd(BaseModel):
+    fonte: str = Field("Arial Black", max_length=80)
+    tamanho: int = Field(64, ge=20, le=200)
+    cor: str = Field("000000", pattern=COR)
+    fundo: str = Field("FFFFFF", pattern=COR, description="cor da caixa atrás do texto")
+    y: float = Field(0.05, ge=0.0, le=0.9, description="topo do texto (fração da altura)")
+
+
+class Caixa(BaseModel):
+    """Retângulo no vídeo final 1080x1920, em frações (pode sair um pouco da tela)."""
+    x: float = Field(ge=-1, le=1)
+    y: float = Field(ge=-1, le=1)
+    w: float = Field(gt=0.02, le=2)
+    h: float = Field(gt=0.02, le=2)
+
+
+class ZonaEd(BaseModel):
+    saida: Caixa = Field(description="onde fica no vídeo final")
+    fonte: Regiao | None = Field(None, description="o que recortar do vídeo original (None = do corte)")
+
+
+class LayoutEd(BaseModel):
+    jogo: ZonaEd
+    webcam: ZonaEd | None = Field(None, description="None = sem o streamer")
+    fundo: Literal["desfocado", "preto", "imagem"] = "desfocado"
+    webcam_na_frente: bool = True
+
+
+class Edicao(BaseModel):
+    """Edição livre de um corte (editor de vídeo). Substitui as posições do modelo de corte."""
+    segmentos: list[TrechoEd] = Field(min_length=1, max_length=60, description="na ordem em que entram no vídeo")
+    sincronizado: bool = Field(True, description="streamer e jogo sempre juntos (os cortes valem para os dois)")
+    atraso_streamer: float = Field(0.0, ge=-3, le=3, description="só sem sincronia: + = streamer aparece depois")
+    legenda: LegendaEd = LegendaEd()
+    gancho: GanchoEd = GanchoEd()
+    layout: LayoutEd
+
+
+class FonteTexto(BaseModel):
+    nome: str
+    arquivo: str | None = Field(None, description="fonte enviada por você (midia/fontes); None = do sistema")
+
+
+class EditorOut(BaseModel):
+    pronto: bool = Field(description="trecho baixado e transcrito: dá para editar")
+    largura: int = 0
+    altura: int = 0
+    duracao: float = 0.0
+    base: float = Field(0.0, description="segundo da live em que o arquivo do trecho começa")
+    palavras: list[dict[str, Any]] = Field([], description="legenda {p, i, f} em segundos do arquivo do trecho")
+    edicao: Edicao | None = None
+    padrao: Edicao | None = Field(None, description="como o modelo de corte deixaria (ponto de partida)")
+    fontes: list[FonteTexto] = []
+    credito: str = ""
+    barra: bool = True
+    fundo_imagem: str | None = None
+
+
 class ModeloParams(BaseModel):
     """Posições do modelo de corte, em frações da altura do vídeo final (0 = topo, 1 = base)."""
     model_config = ConfigDict(extra="allow")
@@ -192,6 +273,7 @@ class PreviaIn(BaseModel):
     jogo: Regiao | None = None
     gancho: str | None = None
     fundo: str | None = Field(None, description="imagem de fundo (nome em midia/fundos)")
+    edicao: Edicao | None = Field(None, description="prévia com a edição do editor de vídeo")
 
 
 PlataformaVideo = Literal["twitch", "youtube", "kick", "outro"]
@@ -308,6 +390,7 @@ class CorteOut(Saida):
     fundo: str | None = None
     extra: dict[str, Any] = {}
     fonte_idioma: str | None = None
+    edicao: Edicao | None = None
 
 
 class CortePatch(BaseModel):
@@ -323,6 +406,7 @@ class CortePatch(BaseModel):
     fundo: str | None = None
     sem_webcam: bool | None = Field(None, description="true = este corte não tem o streamer (sai sem a webcam)")
     status: Literal["candidato", "descartado"] | None = None
+    edicao: Edicao | None = Field(None, description="editor de vídeo; null volta para o modelo de corte")
 
 
 class AplicarCortesIn(BaseModel):

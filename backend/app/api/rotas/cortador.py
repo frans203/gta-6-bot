@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, Response
 
+from ...cortes import edicao as ed
 from ...cortes import fontes, plugins, render, servico
 from ...jobs import enfileirar
 from ...plataformas import PLATAFORMAS
@@ -111,7 +112,8 @@ async def previa(dados: S.PreviaIn):
     jogo = dados.jogo.model_dump() if dados.jogo else jogo
     try:
         jpg = await run_in_threadpool(render.previa, modelo, quadro, cam, jogo, None, gancho, credito, fundo,
-                                      exemplo or bool(dados.webcam))
+                                      exemplo or bool(dados.webcam),
+                                      dados.edicao.model_dump() if dados.edicao else None)
     except RuntimeError as e:
         raise HTTPException(500, str(e)) from None
     return Response(jpg, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
@@ -213,6 +215,10 @@ def obter_corte(corte_id: int):
 def editar_corte(corte_id: int, dados: S.CortePatch):
     campos = dados.model_dump(exclude_unset=True)
     atual = _404(servico.obter_corte, corte_id)
+    if campos.get("edicao"):
+        for s in campos["edicao"]["segmentos"]:
+            if s["f"] - s["i"] < 0.2:
+                raise HTTPException(400, "cada trecho precisa ter pelo menos 0,2 s")
     extra = dict(atual["extra"] or {})
     sem = campos.pop("sem_webcam", None)
     if sem:  # "não tem streamer neste corte"
@@ -284,6 +290,80 @@ def miniatura_corte(corte_id: int):
         except Exception as e:
             raise HTTPException(500, f"não consegui gerar a miniatura: {e}") from None
     return FileResponse(jpg, media_type="image/jpeg")
+
+
+# ------------------------------------------------------------------ editor de vídeo
+
+@router.get("/cortes/{corte_id}/editor", response_model=S.EditorOut)
+def editor(corte_id: int):
+    """Tudo que o editor precisa: tamanho e posição do trecho baixado, legenda (em segundos do arquivo), a edição
+    salva e a edição "padrão" (como o modelo de corte deixaria). `pronto=false`: rode POST .../editor/preparar."""
+    c = _404(servico.obter_corte, corte_id)
+    st = servico.obter_streamer(c["streamer_id"])
+    modelo = render.modelo_do_corte(c)
+    base = {"fontes": ed.fontes_texto(), "credito": render.credito(st),
+            "barra": (modelo.get("params") or {}).get("barra", True),
+            "fundo_imagem": c["fundo"] or (modelo.get("params") or {}).get("fundo")}
+    tem_audio = True
+    if render.trecho_pronto(c):
+        tem_audio = render.midia.ffprobe(render.caminho_trecho(corte_id))["tem_audio"]
+    if not render.trecho_pronto(c) or (tem_audio and not render.transcricao_vale(c)):
+        return {"pronto": False, **base}
+    info = render.midia.ffprobe(render.caminho_trecho(corte_id))
+    cam = c["webcam"] if c["webcam"] and not render.sem_webcam(c) else None
+    fundo = render.caminho_fundo(base["fundo_imagem"])
+    montagem = render.montar(info["largura"], info["altura"], modelo, cam, c["jogo"], c["fundo"])
+    padrao = ed.edicao_padrao(c, modelo, montagem, info["largura"], info["altura"], cam, bool(fundo))
+    arq = (c.get("transcricao") or {}).get("arquivo") or {}
+    return {"pronto": True, "largura": info["largura"], "altura": info["altura"], "duracao": info["duracao"],
+            "base": render.base_do_trecho(c), "palavras": arq.get("palavras", []), "edicao": c.get("edicao"),
+            "padrao": padrao, **base}
+
+
+@router.post("/cortes/{corte_id}/editor/preparar", response_model=S.JobOut, status_code=202)
+def preparar_editor(corte_id: int):
+    """Baixa o trecho (com folga) e transcreve, para abrir no editor (job)."""
+    c = _404(servico.obter_corte, corte_id)
+    return enfileirar("preparar_editor", {"corte_id": corte_id}, f"Preparar editor · corte #{corte_id} · "
+                                                                 f"{c['streamer_nome']}")
+
+
+@router.get("/cortes/{corte_id}/bruto", response_class=FileResponse)
+def bruto(corte_id: int):
+    """O trecho baixado (com a folga), para o editor tocar. Aceita Range (dá para pular no vídeo)."""
+    p = render.caminho_trecho(corte_id)
+    if not p.exists():
+        raise HTTPException(404, "trecho ainda não baixado: prepare o editor")
+    return FileResponse(p, media_type="video/mp4")
+
+
+@router.get("/fontes-texto", response_model=list[S.FonteTexto])
+def listar_fontes_texto():
+    return ed.fontes_texto()
+
+
+@router.get("/fontes-texto/{arquivo}", response_class=FileResponse)
+def arquivo_fonte_texto(arquivo: str):
+    """Arquivo de uma fonte enviada por você (o editor carrega com @font-face)."""
+    p = ed.pasta_fontes() / Path(arquivo).name
+    if not p.exists() or p.suffix.lower() not in ed.EXTENSOES_FONTE:
+        raise HTTPException(404)
+    return FileResponse(p, media_type="font/otf" if p.suffix.lower() == ".otf" else "font/ttf")
+
+
+@router.post("/fontes-texto", response_model=S.FonteTexto, status_code=201,
+             openapi_extra={"requestBody": {"content": {"application/octet-stream": {}}}})
+async def enviar_fonte_texto(request: Request, nome: str = Query(..., description="nome do arquivo .ttf/.otf")):
+    """Envia uma fonte (.ttf ou .otf) para usar na legenda e no gancho."""
+    ext = Path(nome).suffix.lower()
+    if ext not in ed.EXTENSOES_FONTE:
+        raise HTTPException(415, "envie um arquivo .ttf ou .otf")
+    dados = await request.body()
+    if not dados or len(dados) > 15_000_000:
+        raise HTTPException(400, "arquivo vazio ou grande demais (máx. 15 MB)")
+    destino = ed.pasta_fontes() / (servico.slug(Path(nome).stem) + ext)
+    destino.write_bytes(dados)
+    return next(f for f in ed.fontes_usuario() if f["arquivo"] == destino.name)
 
 
 @router.post("/cortes/{corte_id}/publicar", response_model=S.CorteOut)

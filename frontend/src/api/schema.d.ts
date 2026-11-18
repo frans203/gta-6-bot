@@ -765,6 +765,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cortes/{corte_id}/editor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Editor
+         * @description Tudo que o editor precisa: tamanho e posição do trecho baixado, legenda (em segundos do arquivo), a edição
+         *     salva e a edição "padrão" (como o modelo de corte deixaria). `pronto=false`: rode POST .../editor/preparar.
+         */
+        get: operations["editor_api_cortes__corte_id__editor_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cortes/{corte_id}/editor/preparar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preparar Editor
+         * @description Baixa o trecho (com folga) e transcreve, para abrir no editor (job).
+         */
+        post: operations["preparar_editor_api_cortes__corte_id__editor_preparar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cortes/{corte_id}/bruto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bruto
+         * @description O trecho baixado (com a folga), para o editor tocar. Aceita Range (dá para pular no vídeo).
+         */
+        get: operations["bruto_api_cortes__corte_id__bruto_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fontes-texto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Fontes Texto */
+        get: operations["listar_fontes_texto_api_fontes_texto_get"];
+        put?: never;
+        /**
+         * Enviar Fonte Texto
+         * @description Envia uma fonte (.ttf ou .otf) para usar na legenda e no gancho.
+         */
+        post: operations["enviar_fonte_texto_api_fontes_texto_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fontes-texto/{arquivo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Arquivo Fonte Texto
+         * @description Arquivo de uma fonte enviada por você (o editor carrega com @font-face).
+         */
+        get: operations["arquivo_fonte_texto_api_fontes_texto__arquivo__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cortes/{corte_id}/publicar": {
         parameters: {
             query?: never;
@@ -1021,6 +1123,20 @@ export interface components {
              */
             periodo_dias: number;
         };
+        /**
+         * Caixa
+         * @description Retângulo no vídeo final 1080x1920, em frações (pode sair um pouco da tela).
+         */
+        Caixa: {
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+            /** W */
+            w: number;
+            /** H */
+            h: number;
+        };
         /** ContaIn */
         ContaIn: {
             /** Id */
@@ -1206,6 +1322,7 @@ export interface components {
             };
             /** Fonte Idioma */
             fonte_idioma?: string | null;
+            edicao?: components["schemas"]["Edicao"] | null;
         };
         /** CortePatch */
         CortePatch: {
@@ -1235,6 +1352,113 @@ export interface components {
             sem_webcam?: boolean | null;
             /** Status */
             status?: ("candidato" | "descartado") | null;
+            /** @description editor de vídeo; null volta para o modelo de corte */
+            edicao?: components["schemas"]["Edicao"] | null;
+        };
+        /**
+         * Edicao
+         * @description Edição livre de um corte (editor de vídeo). Substitui as posições do modelo de corte.
+         */
+        Edicao: {
+            /**
+             * Segmentos
+             * @description na ordem em que entram no vídeo
+             */
+            segmentos: components["schemas"]["TrechoEd"][];
+            /**
+             * Sincronizado
+             * @description streamer e jogo sempre juntos (os cortes valem para os dois)
+             * @default true
+             */
+            sincronizado: boolean;
+            /**
+             * Atraso Streamer
+             * @description só sem sincronia: + = streamer aparece depois
+             * @default 0
+             */
+            atraso_streamer: number;
+            /**
+             * @default {
+             *       "fonte": "Arial Black",
+             *       "tamanho": 74,
+             *       "cor": "FFFFFF",
+             *       "destaque": "FFE400",
+             *       "contorno": 7,
+             *       "maiusculas": true,
+             *       "por_bloco": 3,
+             *       "y": 0.55,
+             *       "mostrar": true
+             *     }
+             */
+            legenda: components["schemas"]["LegendaEd"];
+            /**
+             * @default {
+             *       "fonte": "Arial Black",
+             *       "tamanho": 64,
+             *       "cor": "000000",
+             *       "fundo": "FFFFFF",
+             *       "y": 0.05
+             *     }
+             */
+            gancho: components["schemas"]["GanchoEd"];
+            layout: components["schemas"]["LayoutEd"];
+        };
+        /** EditorOut */
+        EditorOut: {
+            /**
+             * Pronto
+             * @description trecho baixado e transcrito: dá para editar
+             */
+            pronto: boolean;
+            /**
+             * Largura
+             * @default 0
+             */
+            largura: number;
+            /**
+             * Altura
+             * @default 0
+             */
+            altura: number;
+            /**
+             * Duracao
+             * @default 0
+             */
+            duracao: number;
+            /**
+             * Base
+             * @description segundo da live em que o arquivo do trecho começa
+             * @default 0
+             */
+            base: number;
+            /**
+             * Palavras
+             * @description legenda {p, i, f} em segundos do arquivo do trecho
+             * @default []
+             */
+            palavras: {
+                [key: string]: unknown;
+            }[];
+            edicao?: components["schemas"]["Edicao"] | null;
+            /** @description como o modelo de corte deixaria (ponto de partida) */
+            padrao?: components["schemas"]["Edicao"] | null;
+            /**
+             * Fontes
+             * @default []
+             */
+            fontes: components["schemas"]["FonteTexto"][];
+            /**
+             * Credito
+             * @default
+             */
+            credito: string;
+            /**
+             * Barra
+             * @default true
+             */
+            barra: boolean;
+            /** Fundo Imagem */
+            fundo_imagem?: string | null;
         };
         /** EnviarIn */
         EnviarIn: {
@@ -1317,12 +1541,52 @@ export interface components {
              */
             plataforma: string;
         };
+        /** FonteTexto */
+        FonteTexto: {
+            /** Nome */
+            nome: string;
+            /**
+             * Arquivo
+             * @description fonte enviada por você (midia/fontes); None = do sistema
+             */
+            arquivo?: string | null;
+        };
         /** FundoOut */
         FundoOut: {
             /** Nome */
             nome: string;
             /** Kb */
             kb: number;
+        };
+        /** GanchoEd */
+        GanchoEd: {
+            /**
+             * Fonte
+             * @default Arial Black
+             */
+            fonte: string;
+            /**
+             * Tamanho
+             * @default 64
+             */
+            tamanho: number;
+            /**
+             * Cor
+             * @default 000000
+             */
+            cor: string;
+            /**
+             * Fundo
+             * @description cor da caixa atrás do texto
+             * @default FFFFFF
+             */
+            fundo: string;
+            /**
+             * Y
+             * @description topo do texto (fração da altura)
+             * @default 0.05
+             */
+            y: number;
         };
         /** Grade */
         Grade: {
@@ -1478,6 +1742,74 @@ export interface components {
              * Format: date-time
              */
             atualizado_em: string;
+        };
+        /** LayoutEd */
+        LayoutEd: {
+            jogo: components["schemas"]["ZonaEd"];
+            /** @description None = sem o streamer */
+            webcam?: components["schemas"]["ZonaEd"] | null;
+            /**
+             * Fundo
+             * @default desfocado
+             * @enum {string}
+             */
+            fundo: "desfocado" | "preto" | "imagem";
+            /**
+             * Webcam Na Frente
+             * @default true
+             */
+            webcam_na_frente: boolean;
+        };
+        /** LegendaEd */
+        LegendaEd: {
+            /**
+             * Fonte
+             * @default Arial Black
+             */
+            fonte: string;
+            /**
+             * Tamanho
+             * @default 74
+             */
+            tamanho: number;
+            /**
+             * Cor
+             * @default FFFFFF
+             */
+            cor: string;
+            /**
+             * Destaque
+             * @description cor da palavra que está sendo falada
+             * @default FFE400
+             */
+            destaque: string;
+            /**
+             * Contorno
+             * @default 7
+             */
+            contorno: number;
+            /**
+             * Maiusculas
+             * @default true
+             */
+            maiusculas: boolean;
+            /**
+             * Por Bloco
+             * @description palavras na tela por vez
+             * @default 3
+             */
+            por_bloco: number;
+            /**
+             * Y
+             * @description centro da legenda (fração da altura)
+             * @default 0.55
+             */
+            y: number;
+            /**
+             * Mostrar
+             * @default true
+             */
+            mostrar: boolean;
         };
         /** LegendaIn */
         LegendaIn: {
@@ -1699,6 +2031,8 @@ export interface components {
              * @description imagem de fundo (nome em midia/fundos)
              */
             fundo?: string | null;
+            /** @description prévia com a edição do editor de vídeo */
+            edicao?: components["schemas"]["Edicao"] | null;
         };
         /** PublicarCorteIn */
         PublicarCorteIn: {
@@ -1840,6 +2174,16 @@ export interface components {
             /** Estado */
             estado: string;
         };
+        /**
+         * TrechoEd
+         * @description Um pedaço do vídeo, em segundos da live/vídeo original (como corte.inicio/fim).
+         */
+        TrechoEd: {
+            /** I */
+            i: number;
+            /** F */
+            f: number;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -1888,6 +2232,13 @@ export interface components {
              * @description auto = detectada com segurança; manual = marcada por você; sugerida = precisa conferir
              */
             origem?: ("auto" | "manual" | "sugerida") | null;
+        };
+        /** ZonaEd */
+        ZonaEd: {
+            /** @description onde fica no vídeo final */
+            saida: components["schemas"]["Caixa"];
+            /** @description o que recortar do vídeo original (None = do corte) */
+            fonte?: components["schemas"]["Regiao"] | null;
         };
     };
     responses: never;
@@ -3442,6 +3793,182 @@ export interface operations {
             header?: never;
             path: {
                 corte_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    editor_api_cortes__corte_id__editor_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                corte_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preparar_editor_api_cortes__corte_id__editor_preparar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                corte_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bruto_api_cortes__corte_id__bruto_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                corte_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_fontes_texto_api_fontes_texto_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FonteTexto"][];
+                };
+            };
+        };
+    };
+    enviar_fonte_texto_api_fontes_texto_post: {
+        parameters: {
+            query: {
+                /** @description nome do arquivo .ttf/.otf */
+                nome: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/octet-stream": unknown;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FonteTexto"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    arquivo_fonte_texto_api_fontes_texto__arquivo__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                arquivo: string;
             };
             cookie?: never;
         };
