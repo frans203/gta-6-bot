@@ -123,6 +123,43 @@
   h1, h2, h3 {
     letter-spacing: -0.02em;
   }
+  /* tudo que dá para clicar mostra a mãozinha (o Tailwind 4 tirou o padrão dos botões) */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='tab'],
+  [role='menuitem'],
+  [role='menuitemradio'],
+  [role='menuitemcheckbox'],
+  [role='option'],
+  [role='checkbox'],
+  [role='switch'],
+  [role='radio'],
+  [role='combobox'],
+  [role='slider'],
+  a[href],
+  label[for],
+  summary,
+  select,
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='range'],
+  input[type='file'],
+  input[type='color'] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [aria-disabled='true'],
+  [data-disabled] {
+    cursor: not-allowed;
+  }
+  /* rótulos e ícones dentro de botões não trocam para o cursor de texto */
+  button *,
+  a[href] *,
+  [role='button'] *,
+  [role='tab'] *,
+  [role='option'] * {
+    cursor: inherit;
+  }
   ::selection {
     background: color-mix(in oklab, var(--vc-rosa) 45%, transparent);
   }
