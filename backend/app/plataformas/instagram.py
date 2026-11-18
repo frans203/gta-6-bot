@@ -61,10 +61,10 @@ def postar(page, video: Path, revisar=False, quando: datetime | None = None, pro
     _avancar(page)
 
     # Legenda
-    legenda = page.locator("[role=dialog] [contenteditable=true][aria-label^='Adicione uma legenda']")
-    legenda.wait_for(timeout=30_000)
+    campo = page.locator("[role=dialog] [contenteditable=true][aria-label^='Adicione uma legenda']")
+    campo.wait_for(timeout=30_000)
     passo(progresso, "escrevendo legenda")
-    legenda.click()
+    campo.click()
     page.keyboard.type(legenda, delay=random.randint(20, 45))
     page.keyboard.type(" ")  # fecha sugestoes de hashtag (Escape fecharia o modal!)
     page.wait_for_timeout(800)

@@ -153,11 +153,15 @@ def _postar(page, video: Path, revisar=False, quando: datetime | None = None, pr
     page.wait_for_timeout(1000)
     texto = page.locator("body").inner_text()
     link = re.search(r"https://(?:www\.)?youtube\.com/shorts/[\w-]+|https://youtu\.be/[\w-]+", texto)
-    fechar = page.get_by_role("button", name=re.compile(r"^(Fechar|Close)$"))
-    for i in range(fechar.count()):
-        if fechar.nth(i).is_visible():
-            fechar.nth(i).click()
-            break
+    # o vídeo já foi enviado: fechar o diálogo é só para limpar a tela (se falhar, segue como sucesso)
+    try:
+        fechar = page.get_by_role("button", name=re.compile(r"^(Fechar|Close)$"))
+        for i in range(fechar.count()):
+            if fechar.nth(i).is_visible():
+                fechar.nth(i).click(timeout=5000)
+                break
+    except Exception as e:
+        log(f"não consegui fechar o diálogo final (o envio já deu certo): {str(e).splitlines()[0][:120]}", NOME)
     r = {"link": link.group(0) if link else None, "reivindicado": reivindicado}
     if quando:
         return {"status": "agendado", "para": quando.isoformat(timespec="minutes"), **r}

@@ -90,6 +90,16 @@ def trava_perfil(conta, espera_max_min=55):
         f.close()
 
 
+FALHAS = ("erro", "nao_logado", "limite_diario")
+
+
+def _registrar_falha(conta, video, plataforma, r: dict):
+    """Grava erro/sem login/limite na Fila, mas só se o vídeo não tinha um status bom nessa rede
+    (um reenvio que falha não pode apagar um 'agendado' ou 'publicado')."""
+    if historico.status_de(conta.id, video, plataforma) in (None, *FALHAS):
+        historico.registrar(conta.id, video, plataforma, r)
+
+
 def executar(conta, tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fim=None, cancelado=None):
     """tarefas: [{plataforma, video: Path, quando: datetime|None}]. Navegador so abre se precisar.
     cancelado(): se devolver True, para entre um envio e outro (nunca no meio de um)."""
@@ -110,6 +120,7 @@ def executar(conta, tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fi
             historico.registrar(conta.id, t["video"], t["plataforma"], r)
         except Exception as e:
             r = {"status": "erro", "erro": str(e)[:300]}
+            _registrar_falha(conta, t["video"], t["plataforma"], r)
         log(f"{t['video'].name}: {r['status']} {r.get('para', '')}", t["plataforma"])
         resultados.append({"plataforma": t["plataforma"], "video": t["video"].name, **r})
         if ao_fim: ao_fim(t, r)
@@ -153,8 +164,10 @@ def executar(conta, tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fi
                     if ao_inicio: ao_inicio(t)
                     if nome in sem_login:
                         r = {"status": "nao_logado", "erro": "pulado: plataforma sem login"}
+                        _registrar_falha(conta, video, nome, r)
                     elif nome in bloqueadas:
                         r = {"status": bloqueadas[nome], "erro": "pulado: limite diario da plataforma"}
+                        _registrar_falha(conta, video, nome, r)
                     else:
                         quando_txt = "agendar " + t["quando"].isoformat(timespec="minutes") if t.get("quando") else "agora"
                         log(f"[{conta.id}] {video.name} {quando_txt}", nome)
@@ -166,9 +179,11 @@ def executar(conta, tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fi
                         except NaoLogado as e:
                             sem_login.add(nome)
                             r = {"status": "nao_logado", "erro": str(e)}
+                            _registrar_falha(conta, video, nome, r)
                         except LimiteDiario as e:
                             bloqueadas[nome] = "limite_diario"
                             r = {"status": "limite_diario", "erro": str(e)}
+                            _registrar_falha(conta, video, nome, r)
                             try:  # descarta o envio recusado para nao travar a proxima plataforma
                                 page.keyboard.press("Escape")
                             except Exception:
@@ -180,6 +195,7 @@ def executar(conta, tarefas, revisar=False, ao_passo=None, ao_inicio=None, ao_fi
                             except Exception:
                                 pass
                             r = {"status": "erro", "erro": str(e).splitlines()[0][:300], "print": shot.name}
+                            _registrar_falha(conta, video, nome, r)
                     log(f"{video.name}: {r['status']} {r.get('para') or r.get('link') or r.get('erro') or ''}", nome)
                     resultados.append({"plataforma": nome, "video": video.name, **r})
                     if ao_fim: ao_fim(t, r)

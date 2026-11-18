@@ -39,7 +39,7 @@
       prévia e limites de cada rede; hashtags em lote; "não postar nesta rede" (status removido). Corrigida a trava
       do perfil do Chrome no Windows (recursão infinita ao liberar). gta6_001/003/004 removidos do Instagram
 - [ ] YouTube: preencher o campo "Tags" (palavras-chave) do Studio — precisa mapear o fluxo antes
-- [ ] Gravar erros de envio no histórico (hoje só sucesso é gravado; o card "Últimos erros" fica vazio)
+- [x] (18/11/2026) Erros de envio gravados no histórico (aparecem na Fila e no card "Últimos erros")
 - [ ] Editor: "salvar como modelo" (reaproveitar fonte/cores/posições em outros cortes)
 - [ ] Tradução: o modelo grátis puxa para PT de Portugal ("O que raio..."); avaliar trocar o par en→pt
 - [ ] **Usuário**: criar app grátis na Twitch (dev.twitch.tv) e pôr `JASON_TWITCH_CLIENT_ID/SECRET` no `.env`

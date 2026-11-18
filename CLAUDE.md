@@ -79,7 +79,9 @@ do streamer, senão o padrão. A prévia (`POST /api/previa`) usa o mesmo filtro
   em 14/11/2026 e renomeado para `postados.importado.json`; backups em `logs/`). Status: `publicado`,
   `agendado` (nativo), `agendado_pc` (Windows), `pulado_reivindicacao`, `removido` ("não postar nesta rede", menu
   da Fila ou `PUT /api/contas/{c}/videos/{v}/redes/{rede}`), `erro`, `nao_logado`, `limite_diario`.
-  Os 5 primeiros contam como **feito** (`agenda.FEITO`). Obs.: erros de envio não são gravados (o vídeo fica pendente).
+  Os 5 primeiros contam como **feito** (`agenda.FEITO`). Falhas (`erro`, `nao_logado`, `limite_diario`) são
+  gravadas só se o vídeo não tinha status bom naquela rede (`postagem._registrar_falha`); continuam pendentes.
+  `tests/test_plataformas.py` roda os 3 fluxos numa página falsa: rode antes de mexer em `plataformas/*.py`.
 - **Textos do post**: `<video>.txt` (título + hashtags; o pack e os cortes só escrevem ele) + `<video>.meta.json`
   (descrição e texto próprio por rede: youtube {titulo, descricao}, tiktok/instagram {legenda}). As plataformas usam
   `comum.textos_rede(video, rede)` (numa linha só: Enter fecharia sugestões). Tela Fila → gaveta do vídeo;
