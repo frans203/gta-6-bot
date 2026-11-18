@@ -82,7 +82,7 @@ function MenuPost({ conta, video, plataforma, status, post, link }: {
 function DetalheVideo({ conta, video, onFechar }: { conta: Conta; video: Video | null; onFechar: () => void }) {
   return (
     <Sheet open={!!video} onOpenChange={(a) => !a && onFechar()}>
-      <SheetContent className="w-full overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-3xl">
+      <SheetContent className="w-full overflow-y-auto data-[side=right]:w-[min(1180px,94vw)] data-[side=right]:max-w-none data-[side=right]:sm:max-w-none">
         {video && <FormVideo key={video.video} conta={conta} video={video} />}
       </SheetContent>
     </Sheet>
@@ -96,12 +96,20 @@ function FormVideo({ conta, video }: { conta: Conta; video: Video }) {
         <SheetTitle>{video.video}</SheetTitle>
         <SheetDescription>{video.mb} MB · título, descrição e hashtags do post</SheetDescription>
       </SheetHeader>
-      <div className="grid gap-6 px-4 pb-6 md:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="space-y-3">
-          <Player9x16 src={urls.video(conta.id, video.video)} />
+      <div className="grid gap-8 px-6 pb-8 md:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
+        <div className="space-y-3 md:sticky md:top-0 md:self-start">
+          <Player9x16 src={urls.video(conta.id, video.video)} className="max-w-none" />
+          <div className="grid grid-cols-3 gap-1.5 text-center text-[11px]">
+            {conta.plataformas.map((p) => (
+              <div key={p} className="space-y-1 rounded-lg border bg-white/[0.02] p-1.5">
+                <Plataforma p={p} soIcone className="justify-center" />
+                <StatusChip status={video.plataformas[p]?.status ?? 'pendente'} />
+              </div>
+            ))}
+          </div>
           <DialogoPostar conta={conta} video={video.video}>
-            <Button variant="outline" className="w-full">
-              <Send /> Postar agora
+            <Button size="lg" className="botao-brilho w-full">
+              <Send /> Postar este vídeo agora
             </Button>
           </DialogoPostar>
         </div>

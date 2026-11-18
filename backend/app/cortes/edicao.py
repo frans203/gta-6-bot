@@ -23,12 +23,17 @@ MARGEM = 10.0
 
 QUADRO = {"x": 0.0, "y": 0.0, "w": 1.0, "h": 1.0}
 
-# fontes que costumam existir no Windows (nome da família, arquivo em C:\Windows\Fonts)
+# fontes do sistema que o editor oferece: (família, arquivo no Windows, arquivo no macOS)
 FONTES_SISTEMA = [
-    ("Arial Black", "ariblk.ttf"), ("Impact", "impact.ttf"), ("Arial", "arialbd.ttf"),
-    ("Segoe UI Black", "seguibl.ttf"), ("Bahnschrift", "bahnschrift.ttf"), ("Verdana", "verdanab.ttf"),
-    ("Trebuchet MS", "trebucbd.ttf"), ("Comic Sans MS", "comicbd.ttf"), ("Georgia", "georgiab.ttf"),
+    ("Arial Black", "ariblk.ttf", "Arial Black.ttf"), ("Impact", "impact.ttf", "Impact.ttf"),
+    ("Arial", "arialbd.ttf", "Arial Bold.ttf"), ("Segoe UI Black", "seguibl.ttf", None),
+    ("Bahnschrift", "bahnschrift.ttf", None), ("Verdana", "verdanab.ttf", "Verdana Bold.ttf"),
+    ("Trebuchet MS", "trebucbd.ttf", "Trebuchet MS Bold.ttf"), ("Comic Sans MS", "comicbd.ttf", "Comic Sans MS Bold.ttf"),
+    ("Georgia", "georgiab.ttf", "Georgia Bold.ttf"),
 ]
+PASTAS_FONTES = {"win32": [Path("C:/Windows/Fonts")],
+                 "darwin": [Path("/System/Library/Fonts/Supplemental"), Path("/Library/Fonts"),
+                            Path.home() / "Library" / "Fonts"]}
 EXTENSOES_FONTE = (".ttf", ".otf")
 
 
@@ -62,9 +67,10 @@ def fontes_usuario() -> list[dict]:
 def fontes_texto() -> list[dict]:
     """Fontes que o editor oferece: as suas (midia/fontes) primeiro, depois as do sistema que existem aqui."""
     sistema = []
-    pasta_win = Path("C:/Windows/Fonts")
-    for nome, arq in FONTES_SISTEMA:
-        if sys.platform != "win32" or (pasta_win / arq).exists():
+    pastas = PASTAS_FONTES.get(sys.platform)
+    for nome, arq_win, arq_mac in FONTES_SISTEMA:
+        arq = arq_win if sys.platform == "win32" else arq_mac
+        if pastas is None or (arq and any((p / arq).exists() for p in pastas)):
             sistema.append({"nome": nome, "arquivo": None})
     usuario = fontes_usuario()
     vistos = {f["nome"] for f in usuario}
