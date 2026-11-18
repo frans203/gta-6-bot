@@ -370,5 +370,7 @@ def publicar_na_fila(corte_id: int, conta_id: str | None = None) -> Path:
     st = obter_streamer(c["streamer_id"])
     tag_streamer = "#" + slug(st.nome).replace("_", "")
     escrever_txt(destino, titulo, f"{tag_streamer} {tags}".strip())
-    atualizar_corte(corte_id, status="na_fila")
+    # onde ele foi parar (o botão "Agendar" da Biblioteca abre a Fila nesse vídeo)
+    extra = {**(c.get("extra") or {}), "fila": {"conta": conta.id, "video": destino.name}}
+    atualizar_corte(corte_id, status="na_fila", extra=extra)
     return destino

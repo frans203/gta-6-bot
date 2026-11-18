@@ -102,6 +102,8 @@ Menu da interface: **Painel · Cortar vídeo · Biblioteca · Fila · Modelos ·
   - A gaveta do vídeo tem player, **título, descrição e legenda próprios por rede**, hashtags e envio imediato.
   - Também dá para **editar hashtags em lote**.
   - O menu do status corrige o status à mão ou marca **"não postar nesta rede"**.
+- **Agendar um vídeo** (Fila → aba Agendar, ou "Mandar e agendar" na Biblioteca): melhores horários de cada rede
+  (grade do `horarios.json`, ★ pico), um horário diferente por rede para o mesmo vídeo, ou horário livre.
 - **Agendamento**: o TikTok e o YouTube agendam no próprio site.
   - O Instagram não tem agenda no site, então o post vira uma tarefa do SO: o **Agendador de Tarefas** no Windows,
     o **launchd** no Mac (`~/Library/LaunchAgents/app.jason.*.plist`).

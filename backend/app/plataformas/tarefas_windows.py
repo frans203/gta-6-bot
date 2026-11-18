@@ -36,6 +36,11 @@ def criar(conta, plataforma: str, video: Path, quando: datetime) -> str:
     return nome
 
 
+def remover(nome: str) -> None:
+    """Apaga a tarefa (se existir): o post agendado no PC não sai mais."""
+    _ps(f"Unregister-ScheduledTask -TaskName '{nome}' -TaskPath '{PASTA}' -Confirm:$false -ErrorAction SilentlyContinue")
+
+
 def listar() -> list[dict]:
     out = _ps(
         f"Get-ScheduledTask -TaskPath '{PASTA}' -ErrorAction SilentlyContinue | ForEach-Object {{"

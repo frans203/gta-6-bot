@@ -9,6 +9,8 @@ export const chaves = {
   posts: (filtros: object) => ['posts', filtros] as const,
   postsTodos: ['posts'] as const,
   horarios: ['horarios'] as const,
+  sugeridos: (conta: string) => ['horarios-sugeridos', conta] as const,
+  sugeridosTodos: ['horarios-sugeridos'] as const,
   tarefasWindows: ['tarefas-windows'] as const,
   jobs: (filtros: object = {}) => ['jobs', filtros] as const,
   jobsTodos: ['jobs'] as const,

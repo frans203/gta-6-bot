@@ -712,6 +712,123 @@
     }
    }
   },
+  "/api/contas/{conta_id}/horarios-sugeridos": {
+   "get": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Horarios Sugeridos",
+    "description": "Melhores horários (grade do horarios.json) dos próximos dias, por rede, marcando os já ocupados.",
+    "operationId": "horarios_sugeridos_api_contas__conta_id__horarios_sugeridos_get",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "dias",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 7,
+       "minimum": 1,
+       "default": 3,
+       "title": "Dias"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HorariosSugeridosOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/contas/{conta_id}/videos/{nome}/agendar": {
+   "post": {
+    "tags": [
+     "postagem"
+    ],
+    "summary": "Agendar Video",
+    "description": "Agenda UM vídeo, com um horário próprio em cada rede.",
+    "operationId": "agendar_video_api_contas__conta_id__videos__nome__agendar_post",
+    "parameters": [
+     {
+      "name": "conta_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Conta Id"
+      }
+     },
+     {
+      "name": "nome",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Nome"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AgendarVideoIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/contas/{conta_id}/enviar": {
    "post": {
     "tags": [
@@ -3487,6 +3604,48 @@
     "type": "object",
     "title": "AgendarIn"
    },
+   "AgendarItem": {
+    "properties": {
+     "plataforma": {
+      "type": "string",
+      "enum": [
+       "tiktok",
+       "youtube",
+       "instagram"
+      ],
+      "title": "Plataforma"
+     },
+     "quando": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Quando"
+     }
+    },
+    "type": "object",
+    "required": [
+     "plataforma",
+     "quando"
+    ],
+    "title": "AgendarItem"
+   },
+   "AgendarVideoIn": {
+    "properties": {
+     "itens": {
+      "items": {
+       "$ref": "#/components/schemas/AgendarItem"
+      },
+      "type": "array",
+      "maxItems": 3,
+      "minItems": 1,
+      "title": "Itens"
+     }
+    },
+    "type": "object",
+    "required": [
+     "itens"
+    ],
+    "title": "AgendarVideoIn"
+   },
    "AnalisarIn": {
     "properties": {
      "max_cortes": {
@@ -4873,6 +5032,70 @@
      "tags"
     ],
     "title": "HashtagsLoteIn"
+   },
+   "HorarioSugerido": {
+    "properties": {
+     "quando": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Quando"
+     },
+     "destaque": {
+      "type": "boolean",
+      "title": "Destaque",
+      "default": false
+     },
+     "ocupado_por": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ocupado Por"
+     },
+     "disponivel": {
+      "type": "boolean",
+      "title": "Disponivel",
+      "default": true
+     }
+    },
+    "type": "object",
+    "required": [
+     "quando"
+    ],
+    "title": "HorarioSugerido"
+   },
+   "HorariosSugeridosOut": {
+    "properties": {
+     "antecedencia_min": {
+      "type": "integer",
+      "title": "Antecedencia Min"
+     },
+     "sistema_local": {
+      "type": "string",
+      "title": "Sistema Local"
+     },
+     "redes": {
+      "additionalProperties": {
+       "items": {
+        "$ref": "#/components/schemas/HorarioSugerido"
+       },
+       "type": "array"
+      },
+      "type": "object",
+      "title": "Redes"
+     }
+    },
+    "type": "object",
+    "required": [
+     "antecedencia_min",
+     "sistema_local",
+     "redes"
+    ],
+    "title": "HorariosSugeridosOut"
    },
    "IdentificarIn": {
     "properties": {

@@ -137,7 +137,7 @@ export function useCorrigirPost() {
 export function useApagarPost() {
   return useAcao((id: number) => dados(api.DELETE('/api/posts/{post_id}', { params: { path: { post_id: id } } })), {
     sucesso: 'Voltou para pendente',
-    invalidar: [chaves.postsTodos, chaves.videosTodos],
+    invalidar: [chaves.postsTodos, chaves.videosTodos, chaves.sugeridosTodos],
   })
 }
 
@@ -150,6 +150,32 @@ export function useSalvarHorarios() {
     sucesso: 'Grade de horários salva',
     invalidar: [chaves.horarios, chaves.planoTodos],
   })
+}
+
+/** Melhores horários dos próximos dias, por rede (grade do horarios.json), com os já ocupados marcados. */
+export function useHorariosSugeridos(conta: string, dias = 3) {
+  return useQuery({
+    queryKey: [...chaves.sugeridos(conta), dias],
+    queryFn: () =>
+      dados(api.GET('/api/contas/{conta_id}/horarios-sugeridos', { params: { path: { conta_id: conta }, query: { dias } } })),
+    refetchInterval: 60_000,
+  })
+}
+
+export type ItemAgendar = components['schemas']['AgendarItem']
+
+/** Agenda UM vídeo com um horário próprio em cada rede (job enviar_agendado). */
+export function useAgendarVideo(conta: string, nome: string) {
+  return useAcao(
+    (itens: ItemAgendar[]) =>
+      dados(
+        api.POST('/api/contas/{conta_id}/videos/{nome}/agendar', {
+          params: { path: { conta_id: conta, nome } },
+          body: { itens },
+        }),
+      ),
+    { sucesso: (j) => `Agendando: ${j.titulo}`, invalidar: [chaves.jobsTodos] },
+  )
 }
 
 export function useTarefasWindows() {

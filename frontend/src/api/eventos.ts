@@ -9,9 +9,9 @@ const TERMINAIS = ['ok', 'erro', 'cancelado']
 
 /** O que recarregar quando um job de cada tipo termina. Tipo novo de job? Acrescente aqui. */
 const INVALIDAR_POR_TIPO: Record<string, QueryKey[]> = {
-  enviar: [chaves.videosTodos, chaves.postsTodos, chaves.tarefasWindows, chaves.planoTodos],
-  agendar: [chaves.videosTodos, chaves.postsTodos, chaves.tarefasWindows, chaves.planoTodos],
-  enviar_agendado: [chaves.videosTodos, chaves.postsTodos, chaves.tarefasWindows, chaves.planoTodos],
+  enviar: [chaves.videosTodos, chaves.postsTodos, chaves.tarefasWindows, chaves.planoTodos, chaves.sugeridosTodos],
+  agendar: [chaves.videosTodos, chaves.postsTodos, chaves.tarefasWindows, chaves.planoTodos, chaves.sugeridosTodos],
+  enviar_agendado: [chaves.videosTodos, chaves.postsTodos, chaves.tarefasWindows, chaves.planoTodos, chaves.sugeridosTodos],
   baixar_pack: [chaves.videosTodos, chaves.planoTodos],
   buscar_fontes: [chaves.fontesTodas, chaves.streamers],
   info_fonte: [chaves.fontesTodas],

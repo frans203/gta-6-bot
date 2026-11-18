@@ -4,11 +4,11 @@ Windows: Agendador de Tarefas (tarefas_windows). macOS: launchd (tarefas_mac). O
 import sys
 
 if sys.platform == "win32":
-    from .tarefas_windows import criar, listar, nome_tarefa
+    from .tarefas_windows import criar, listar, nome_tarefa, remover
 
     NOME_SISTEMA = "Agendador do Windows"
 elif sys.platform == "darwin":
-    from .tarefas_mac import criar, listar, nome_tarefa
+    from .tarefas_mac import criar, listar, nome_tarefa, remover
 
     NOME_SISTEMA = "launchd do macOS"
 else:
@@ -22,4 +22,7 @@ else:
     def listar() -> list[dict]:
         return []
 
-__all__ = ["NOME_SISTEMA", "criar", "listar", "nome_tarefa"]
+    def remover(nome: str) -> None:
+        pass
+
+__all__ = ["NOME_SISTEMA", "criar", "listar", "nome_tarefa", "remover"]

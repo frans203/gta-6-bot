@@ -291,6 +291,18 @@ Clique no nome do vídeo. Abre uma gaveta com o vídeo de um lado e os textos do
 - No menu **⋯** de cada rede: **Não postar nesta rede**, **Marcar como publicado** ou **Voltar para pendente**.
 - Se um envio der erro, a célula da rede mostra `erro` (o print da tela fica em `logs/`).
 
+### 🗓️ Agendar um vídeo (horário diferente em cada rede)
+
+Na **Fila**, clique no ícone de calendário do vídeo (ou abra o vídeo → aba **Agendar**). Na **Biblioteca**, o corte
+pronto tem **Mandar e agendar** (manda para a fila e já abre aqui) e o que já está na fila tem **Agendar**.
+
+- Uma coluna por rede (**TikTok**, **YouTube Shorts**, **Instagram Reels**) com os **melhores horários** dos
+  próximos 3 dias (vêm do `horarios.json`). ★ = horário de pico; **ocupado** = outro vídeo já está nesse horário.
+- Escolha **um horário em cada rede** (podem ser diferentes), digite **outro horário** ou marque **Não agendar nesta rede**.
+- **Agendar** abre o Chrome do script e agenda em cada rede. Mínimo de 30 min de antecedência; minutos de 5 em 5.
+- Instagram: quem posta no horário é o computador (precisa estar ligado). Para desistir, use **Desmarcar**.
+  TikTok/YouTube já agendados só mudam no próprio site.
+
 ## ✂️ MISSÃO 5 — O CORTADOR
 
 Funciona igual ao Windows (passo a passo completo no [TUTORIAL.md](TUTORIAL.md#️-missão-5--o-cortador-cortes-de-lives)).

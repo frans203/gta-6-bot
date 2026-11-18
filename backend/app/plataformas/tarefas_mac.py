@@ -49,6 +49,13 @@ def criar(conta, plataforma: str, video: Path, quando: datetime) -> str:
     return nome
 
 
+def remover(nome: str) -> None:
+    """Descarrega e apaga o LaunchAgent (se existir): o post agendado no Mac não sai mais."""
+    rotulo = PREFIXO + nome
+    subprocess.run(["launchctl", "bootout", f"{_dominio()}/{rotulo}"], capture_output=True)
+    (PASTA / f"{rotulo}.plist").unlink(missing_ok=True)
+
+
 def listar() -> list[dict]:
     tarefas = []
     agora = datetime.now()

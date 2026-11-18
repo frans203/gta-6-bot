@@ -1,5 +1,6 @@
 import { Cog, RefreshCw, Square } from 'lucide-react'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 import { useCancelarJob, useJob, useJobs, useRepetirJob } from '@/api/hooks/jobs'
 import { JOB_ATIVO } from '@/api/tipos'
@@ -84,7 +85,8 @@ const FILTROS: Record<string, string | undefined> = {
 
 export function PaginaJobs() {
   const [filtro, setFiltro] = useState('todos')
-  const [aberto, setAberto] = useState<number | null>(null)
+  const [busca] = useSearchParams()
+  const [aberto, setAberto] = useState<number | null>(() => Number(busca.get('job')) || null) // ?job=ID abre direto
   const { data: jobs = [], isLoading } = useJobs({ status: FILTROS[filtro], limite: 200 })
 
   return (

@@ -1,4 +1,4 @@
-import { Check, Clapperboard, Minus, Plus, Radar, RotateCcw, ScanFace, Scissors, Send, Trash2, Wand2, X } from 'lucide-react'
+import { CalendarClock, Check, Clapperboard,Minus, Plus, Radar, RotateCcw, ScanFace, Scissors, Send, Trash2, Wand2, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
@@ -99,10 +99,29 @@ function CampoTempo({ id, rotulo, valor, onChange, desativado }: {
   )
 }
 
+/** Onde o corte foi parar na fila (servico.publicar_na_fila grava em extra.fila). */
+const destinoFila = (c: Corte) => (c.extra as { fila?: { conta: string; video: string } } | null)?.fila
+
+const urlAgendar = (d: { conta: string; video: string }) =>
+  `/fila?${new URLSearchParams({ conta: d.conta, video: d.video, aba: 'agendar' })}`
+
+/** Corte já na fila: abre a Fila na aba Agendar desse vídeo. */
+function IrParaAgendar({ corte }: { corte: Corte }) {
+  const d = destinoFila(corte)
+  return (
+    <Button asChild className="botao-brilho">
+      <Link to={d ? urlAgendar(d) : '/fila'}>
+        <CalendarClock /> Agendar
+      </Link>
+    </Button>
+  )
+}
+
 function MandarParaFila({ corte }: { corte: Corte }) {
   const { contas } = useConta()
   const [conta, setConta] = useState(corte.conta_id ?? contas.find((c) => c.padrao)?.id ?? '')
   const publicar = usePublicarCorte()
+  const navegar = useNavigate()
   return (
     <div className="flex flex-wrap items-end gap-2 rounded-xl border border-rosa/30 bg-rosa/5 p-3">
       <div className="min-w-40 flex-1 space-y-1.5">
@@ -120,8 +139,20 @@ function MandarParaFila({ corte }: { corte: Corte }) {
           </SelectContent>
         </Select>
       </div>
-      <Button disabled={!conta || publicar.isPending} onClick={() => publicar.mutate({ id: corte.id, conta })}>
+      <Button variant="outline" disabled={!conta || publicar.isPending} onClick={() => publicar.mutate({ id: corte.id, conta })}>
         <Send /> Mandar para a fila
+      </Button>
+      <Button
+        className="botao-brilho"
+        disabled={!conta || publicar.isPending}
+        onClick={() =>
+          publicar.mutate(
+            { id: corte.id, conta },
+            { onSuccess: (c) => navegar(urlAgendar(destinoFila(c) ?? { conta, video: corte.arquivo?.split(/[\\/]/).pop() ?? '' })) },
+          )
+        }
+      >
+        <CalendarClock /> Mandar e agendar
       </Button>
     </div>
   )
@@ -368,10 +399,13 @@ export function EditorCorte({ corte, jobs }: { corte: Corte; jobs: Job[] }) {
               {barraAcoes}
               {corte.status === 'pronto' && <MandarParaFila corte={corte} />}
               {corte.status === 'na_fila' && (
-                <p className="text-xs text-muted-foreground">
-                  Já está na fila de postagem. Mudou algo? Renderize de novo e mande para a fila outra vez (troca o vídeo, se ainda não foi
-                  postado).
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rosa/30 bg-rosa/5 p-3">
+                  <p className="min-w-0 flex-1 text-xs text-muted-foreground">
+                    Já está na fila de postagem. Mudou algo? Renderize de novo e mande para a fila outra vez (troca o vídeo, se ainda não
+                    foi postado).
+                  </p>
+                  <IrParaAgendar corte={corte} />
+                </div>
               )}
             </div>
           ) : (

@@ -28,6 +28,10 @@
       legenda/fundo/modelo para todos, renderizar todos), prontos em grade vertical que toca no hover, editor
       com abas Corte / Cara do streamer; "Detectar de novo" com progresso; mudar a webcam de um corte pronto
       gera o vídeo de novo sozinho. Saíram do menu: Agenda (CLI continua) e Streamers (página acessível pelo modal)
+- [x] (18/11/2026) Agendar pela interface: aba "Agendar" na gaveta do vídeo (Fila) com os melhores horários de cada
+      rede (grade do `horarios.json`, ★ pico, ocupados marcados), um horário diferente por rede para o mesmo vídeo,
+      horário livre e "não agendar"; botões "Mandar e agendar" / "Agendar" no corte da Biblioteca; desmarcar
+      Instagram agendado no PC apaga a tarefa. Falta: remarcar TikTok/YouTube já agendados (hoje só no site)
 - [x] (18/11/2026) Visual novo: preto + roxo/rosa, fonte Bricolage Grotesque, componentes do cult-ui
       (GradientHeading, BgAnimateButton, RollingNumber, abas no estilo Direction Aware Tabs), animações
       com `motion` (respeitam "reduzir movimento"); tarefas antigas `instagram_gta6_*` do Windows removidas

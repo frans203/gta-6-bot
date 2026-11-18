@@ -1,9 +1,12 @@
-import { Ban, Download, ExternalLink, MoreHorizontal, Send, Undo2, CheckCircle2, ListVideo } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Ban, CalendarClock, Download, ExternalLink, MoreHorizontal, PenLine, Send, Undo2, CheckCircle2, ListVideo } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router'
 
 import { urls } from '@/api/cliente'
 import { useApagarPost, useBaixarPack, useCorrigirPost, useEstadoRede, usePosts, useVideos } from '@/api/hooks/postagem'
 import type { Conta, Post, Video } from '@/api/tipos'
+import { AbasAnimadas } from '@/components/abas-animadas'
+import { AgendarVideo } from '@/components/agendar-video'
 import { Cabecalho, Vazio } from '@/components/cabecalho'
 import { DialogoPostar } from '@/components/dialogo-postar'
 import { EditorTextos, HashtagsEmLote } from '@/components/editor-textos'
@@ -79,22 +82,33 @@ function MenuPost({ conta, video, plataforma, status, post, link }: {
 }
 
 /** Gaveta com preview do vídeo e edição de título/tags (.txt ao lado do mp4). */
-function DetalheVideo({ conta, video, onFechar }: { conta: Conta; video: Video | null; onFechar: () => void }) {
+type AbaVideo = 'textos' | 'agendar'
+
+interface PropsDetalhe {
+  conta: Conta
+  video: Video | null
+  aba: AbaVideo
+  onAba: (a: AbaVideo) => void
+  onFechar: () => void
+  postDe: (video: string, rede: string) => Post | undefined
+}
+
+function DetalheVideo({ video, onFechar, ...resto }: PropsDetalhe) {
   return (
     <Sheet open={!!video} onOpenChange={(a) => !a && onFechar()}>
       <SheetContent className="w-full overflow-y-auto data-[side=right]:w-[min(1180px,94vw)] data-[side=right]:max-w-none data-[side=right]:sm:max-w-none">
-        {video && <FormVideo key={video.video} conta={conta} video={video} />}
+        {video && <FormVideo key={video.video} video={video} {...resto} />}
       </SheetContent>
     </Sheet>
   )
 }
 
-function FormVideo({ conta, video }: { conta: Conta; video: Video }) {
+function FormVideo({ conta, video, aba, onAba, postDe }: Omit<PropsDetalhe, 'video' | 'onFechar'> & { video: Video }) {
   return (
     <>
       <SheetHeader>
         <SheetTitle>{video.video}</SheetTitle>
-        <SheetDescription>{video.mb} MB · título, descrição e hashtags do post</SheetDescription>
+        <SheetDescription>{video.mb} MB · textos do post e agendamento por rede</SheetDescription>
       </SheetHeader>
       <div className="grid gap-8 px-6 pb-8 md:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
         <div className="space-y-3 md:sticky md:top-0 md:self-start">
@@ -112,8 +126,26 @@ function FormVideo({ conta, video }: { conta: Conta; video: Video }) {
               <Send /> Postar este vídeo agora
             </Button>
           </DialogoPostar>
+          {aba !== 'agendar' && (
+            <Button size="lg" variant="outline" className="w-full" onClick={() => onAba('agendar')}>
+              <CalendarClock /> Agendar
+            </Button>
+          )}
         </div>
-        <EditorTextos conta={conta} nome={video.video} />
+        <AbasAnimadas<AbaVideo>
+          abas={[
+            { id: 'textos', rotulo: 'Textos', Icone: PenLine },
+            { id: 'agendar', rotulo: 'Agendar', Icone: CalendarClock },
+          ]}
+          valor={aba}
+          onChange={onAba}
+        >
+          {aba === 'textos' ? (
+            <EditorTextos conta={conta} nome={video.video} />
+          ) : (
+            <AgendarVideo conta={conta} video={video} postDe={(r) => postDe(video.video, r)} />
+          )}
+        </AbasAnimadas>
       </div>
     </>
   )
@@ -133,10 +165,20 @@ function BaixarPack() {
 }
 
 export function PaginaFila() {
-  const { conta } = useConta()
+  const { conta, setContaId } = useConta()
   const { data: videos = [], isLoading } = useVideos(conta?.id)
   const { data: posts = [] } = usePosts({ conta_id: conta?.id, limite: 5000 }, !!conta)
-  const [aberto, setAberto] = useState<Video | null>(null)
+  // gaveta aberta na URL: ?video=X&aba=agendar (a Biblioteca abre direto aqui; ?conta= troca a conta)
+  const [busca, setBusca] = useSearchParams()
+  const nomeAberto = busca.get('video')
+  const aba: AbaVideo = busca.get('aba') === 'agendar' ? 'agendar' : 'textos'
+  const aberto = videos.find((v) => v.video === nomeAberto) ?? null
+  const abrir = (v: Video | null, a: AbaVideo = 'textos') =>
+    setBusca(v ? { video: v.video, ...(a === 'agendar' ? { aba: a } : {}) } : {}, { replace: !!nomeAberto })
+  const contaUrl = busca.get('conta')
+  useEffect(() => {
+    if (contaUrl && contaUrl !== conta?.id) setContaId(contaUrl)
+  }, [contaUrl, conta?.id, setContaId])
 
   const postPor = useMemo(() => new Map(posts.map((p) => [`${p.video}|${p.plataforma}`, p])), [posts])
 
@@ -180,7 +222,7 @@ export function PaginaFila() {
               {videos.map((v) => (
                 <TableRow key={v.video}>
                   <TableCell className="max-w-72">
-                    <button type="button" className="text-left hover:underline" onClick={() => setAberto(v)}>
+                    <button type="button" className="text-left hover:underline" onClick={() => abrir(v)}>
                       <div className="font-medium">{v.video}</div>
                       <div className="truncate text-xs text-muted-foreground">{v.titulo ?? 'sem título'}</div>
                     </button>
@@ -210,11 +252,16 @@ export function PaginaFila() {
                     )
                   })}
                   <TableCell>
-                    <DialogoPostar conta={conta} video={v.video}>
-                      <Button size="icon-sm" variant="ghost" title="Postar este vídeo agora">
-                        <Send />
+                    <div className="flex">
+                      <Button size="icon-sm" variant="ghost" title="Agendar este vídeo" onClick={() => abrir(v, 'agendar')}>
+                        <CalendarClock />
                       </Button>
-                    </DialogoPostar>
+                      <DialogoPostar conta={conta} video={v.video}>
+                        <Button size="icon-sm" variant="ghost" title="Postar este vídeo agora">
+                          <Send />
+                        </Button>
+                      </DialogoPostar>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -222,7 +269,14 @@ export function PaginaFila() {
           </Table>
         </div>
       )}
-      <DetalheVideo conta={conta} video={aberto} onFechar={() => setAberto(null)} />
+      <DetalheVideo
+        conta={conta}
+        video={aberto}
+        aba={aba}
+        onAba={(a) => aberto && abrir(aberto, a)}
+        onFechar={() => abrir(null)}
+        postDe={(video, rede) => postPor.get(`${video}|${rede}`)}
+      />
     </>
   )
 }

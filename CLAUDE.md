@@ -43,7 +43,13 @@ twitch|youtube|kick|outro) → `POST /api/cortar` (cadastra streamer/fonte se no
 (idioma_legenda, fundo, modelo para todos) → `POST /api/fontes/{id}/renderizar`.
 
 **Interface (menu)**: Painel, Cortar vídeo, Biblioteca, Fila, Modelos, Contas, Jobs, Logs. Não há tela de
-Agenda nem de Streamers no menu (agendar é pela CLI; `/cortador/streamers/:id` abre pelo modal). **Biblioteca**
+Agenda nem de Streamers no menu (`/cortador/streamers/:id` abre pelo modal). **Agendar um vídeo**: Fila → gaveta do
+vídeo (`?video=X&aba=agendar`, `?conta=` troca a conta) → `components/agendar-video.tsx`: um horário por rede, sugeridos
+por `GET /api/contas/{c}/horarios-sugeridos` (`agenda.sugestoes`: grade do `horarios.json`, ★ = `_destaques`,
+ocupados marcados) → `POST /api/contas/{c}/videos/{v}/agendar` (`agenda.validar_itens`: ≥ 30 min, minuto múltiplo de 5,
+rede ainda não feita) → job `enviar_agendado`. Biblioteca: "Mandar e agendar" / "Agendar" usam `corte.extra.fila`
+({conta, video}, gravado por `publicar_na_fila`). "Voltar para pendente" num `agendado_pc` apaga a tarefa do
+Agendador/launchd (`agendador.remover`); TikTok/YouTube agendados só se mudam no próprio site. **Biblioteca**
 (`pages/biblioteca.tsx`, estado na URL `?aba=&fonte=&corte=`): "Para revisar" = `GET /api/fontes?com_cortes=...`
 (um card por vídeo original, modal com os cortes); Prontos/Na fila/Descartados = cortes (miniatura em
 `GET /api/cortes/{id}/miniatura`). Mudar a webcam (PATCH ou `enquadrar_corte`) de um corte `pronto` re-renderiza

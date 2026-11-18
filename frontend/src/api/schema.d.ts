@@ -205,6 +205,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/contas/{conta_id}/horarios-sugeridos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Horarios Sugeridos
+         * @description Melhores horários (grade do horarios.json) dos próximos dias, por rede, marcando os já ocupados.
+         */
+        get: operations["horarios_sugeridos_api_contas__conta_id__horarios_sugeridos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/contas/{conta_id}/videos/{nome}/agendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agendar Video
+         * @description Agenda UM vídeo, com um horário próprio em cada rede.
+         */
+        post: operations["agendar_video_api_contas__conta_id__videos__nome__agendar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/contas/{conta_id}/enviar": {
         parameters: {
             query?: never;
@@ -1196,6 +1236,24 @@ export interface components {
             /** Ate */
             ate?: string | null;
         };
+        /** AgendarItem */
+        AgendarItem: {
+            /**
+             * Plataforma
+             * @enum {string}
+             */
+            plataforma: "tiktok" | "youtube" | "instagram";
+            /**
+             * Quando
+             * Format: date-time
+             */
+            quando: string;
+        };
+        /** AgendarVideoIn */
+        AgendarVideoIn: {
+            /** Itens */
+            itens: components["schemas"]["AgendarItem"][];
+        };
         /** AnalisarIn */
         AnalisarIn: {
             /**
@@ -1746,6 +1804,37 @@ export interface components {
              * @description None = todos os vídeos ainda não postados em nenhuma rede
              */
             videos?: string[] | null;
+        };
+        /** HorarioSugerido */
+        HorarioSugerido: {
+            /**
+             * Quando
+             * Format: date-time
+             */
+            quando: string;
+            /**
+             * Destaque
+             * @default false
+             */
+            destaque: boolean;
+            /** Ocupado Por */
+            ocupado_por?: string | null;
+            /**
+             * Disponivel
+             * @default true
+             */
+            disponivel: boolean;
+        };
+        /** HorariosSugeridosOut */
+        HorariosSugeridosOut: {
+            /** Antecedencia Min */
+            antecedencia_min: number;
+            /** Sistema Local */
+            sistema_local: string;
+            /** Redes */
+            redes: {
+                [key: string]: components["schemas"]["HorarioSugerido"][];
+            };
         };
         /** IdentificarIn */
         IdentificarIn: {
@@ -3002,6 +3091,75 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AgendarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    horarios_sugeridos_api_contas__conta_id__horarios_sugeridos_get: {
+        parameters: {
+            query?: {
+                dias?: number;
+            };
+            header?: never;
+            path: {
+                conta_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HorariosSugeridosOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    agendar_video_api_contas__conta_id__videos__nome__agendar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conta_id: string;
+                nome: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgendarVideoIn"];
             };
         };
         responses: {

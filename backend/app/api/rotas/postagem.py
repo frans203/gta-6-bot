@@ -155,6 +155,31 @@ def agendar(conta_id: str, dados: S.AgendarIn):
     return enfileirar("agendar", {"conta": c.id, **dados.model_dump()}, f"Agendar pendentes · {c.nome}{lote}")
 
 
+@router.get("/contas/{conta_id}/horarios-sugeridos", response_model=S.HorariosSugeridosOut)
+def horarios_sugeridos(conta_id: str, dias: int = Query(3, ge=1, le=7)):
+    """Melhores horários (grade do horarios.json) dos próximos dias, por rede, marcando os já ocupados."""
+    c = _conta(conta_id)
+    return {"antecedencia_min": agenda.ANTECEDENCIA_MIN, "sistema_local": agendador.NOME_SISTEMA,
+            "redes": agenda.sugestoes(historico.carregar_hist(c.id), c.plataformas, dias)}
+
+
+@router.post("/contas/{conta_id}/videos/{nome}/agendar", response_model=S.JobOut, status_code=202)
+def agendar_video(conta_id: str, nome: str, dados: S.AgendarVideoIn):
+    """Agenda UM vídeo, com um horário próprio em cada rede."""
+    c = _conta(conta_id)
+    video = _arquivo_video(c, nome)
+    itens = [{"plataforma": i.plataforma, "quando": i.quando.replace(tzinfo=None)} for i in dados.itens]
+    fora = [i["plataforma"] for i in itens if i["plataforma"] not in c.plataformas]
+    erros = [f"{p}: a conta não posta nessa rede" for p in fora]
+    erros += agenda.validar_itens(itens, historico.carregar_hist(c.id).get(video.name, {}))
+    if erros:
+        raise HTTPException(400, "; ".join(erros))
+    tarefas = [{"plataforma": i["plataforma"], "video": video.name, "quando": i["quando"].isoformat(timespec="minutes")}
+               for i in sorted(itens, key=lambda i: i["quando"])]
+    resumo = ", ".join(f"{i['plataforma']} {i['quando']:%d/%m %H:%M}" for i in itens)
+    return enfileirar("enviar_agendado", {"conta": c.id, "tarefas": tarefas}, f"Agendar {video.name} · {resumo}")
+
+
 @router.post("/contas/{conta_id}/enviar", response_model=S.JobOut, status_code=202)
 def enviar(conta_id: str, dados: S.EnviarIn):
     c = _conta(conta_id)
@@ -201,6 +226,8 @@ def apagar_post(post_id: int):
     with sessao() as s:
         p = s.get(Post, post_id)
         if p:
+            if p.status == "agendado_pc" and p.tarefa:
+                agendador.remover(p.tarefa)  # senão o PC postaria mesmo assim no horário
             s.delete(p)
 
 

@@ -132,3 +132,32 @@ def test_textos_por_rede_e_removido(banco, tmp_path):
         cli.put(f"{base}/b.mp4/redes/instagram", json={"status": "pendente"})
         assert "instagram" not in historico.carregar_hist(conta.id).get("b.mp4", {})
         assert cli.put(f"{base}/b.mp4/redes/orkut", json={"status": "removido"}).status_code == 404
+
+
+def test_agendar_um_video_horario_por_rede(banco, tmp_path):
+    """Sugestões por rede + agendar UM vídeo com horário próprio em cada rede (só enfileira; nada é postado)."""
+    from datetime import datetime, timedelta
+
+    from app.api.main import create_app
+    from app.jobs import fila
+    from app.models import Job
+    from app.servicos import contas
+    conta = contas.criar("teste_ag", "Teste", pasta=str(tmp_path))
+    (tmp_path / "a.mp4").write_bytes(b"x")
+    amanha = (datetime.now() + timedelta(days=1)).replace(hour=20, minute=30, second=0, microsecond=0)
+    with TestClient(create_app()) as cli:
+        s = cli.get(f"/api/contas/{conta.id}/horarios-sugeridos?dias=2").json()
+        assert set(s["redes"]) == set(conta.plataformas) and s["antecedencia_min"] == 30
+        assert all(h["quando"] for h in s["redes"]["tiktok"])
+        base = f"/api/contas/{conta.id}/videos/a.mp4/agendar"
+        itens = [{"plataforma": "tiktok", "quando": amanha.isoformat()},
+                 {"plataforma": "youtube", "quando": (amanha - timedelta(hours=2)).isoformat()}]
+        r = cli.post(base, json={"itens": itens})
+        assert r.status_code == 202, r.text
+        with fila.sessao() as ses:
+            job = ses.get(Job, r.json()["id"])
+            assert job.tipo == "enviar_agendado"
+            assert [t["plataforma"] for t in job.params["tarefas"]] == ["youtube", "tiktok"]  # em ordem de horário
+        r = cli.post(base, json={"itens": [{"plataforma": "tiktok", "quando": amanha.replace(minute=33).isoformat()}]})
+        assert r.status_code == 400 and "múltiplo de 5" in r.json()["detail"]
+        assert cli.post(f"/api/contas/{conta.id}/videos/x.mp4/agendar", json={"itens": itens}).status_code == 404

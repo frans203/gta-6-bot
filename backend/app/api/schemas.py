@@ -568,6 +568,28 @@ class TarefaWindowsOut(BaseModel):
     estado: str
 
 
+class HorarioSugerido(BaseModel):
+    quando: datetime
+    destaque: bool = False          # horário de pico (horarios.json: _destaques)
+    ocupado_por: str | None = None  # outro vídeo já agendado nesse horário, nessa rede
+    disponivel: bool = True         # False = perto demais de agora (antecedência mínima)
+
+
+class HorariosSugeridosOut(BaseModel):
+    antecedencia_min: int
+    sistema_local: str              # quem posta o Instagram no horário (Agendador do Windows / launchd)
+    redes: dict[str, list[HorarioSugerido]]
+
+
+class AgendarItem(BaseModel):
+    plataforma: Plataforma
+    quando: datetime
+
+
+class AgendarVideoIn(BaseModel):
+    itens: list[AgendarItem] = Field(min_length=1, max_length=3)
+
+
 class Grade(BaseModel):
     semana: list[str]
     fimdesemana: list[str]

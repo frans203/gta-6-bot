@@ -101,3 +101,58 @@ def plano(conta, plataformas, agora: datetime | None = None, por_hora: int | Non
 
 def data_yt(d: datetime) -> str:
     return f"{d.day} de {MESES_PT[d.month - 1]} de {d.year}"
+
+
+# ------------------------------------------------------------------ agendar um vídeo pela interface
+
+def _ocupados_por(plataforma, hist, agora: datetime) -> dict[datetime, str]:
+    """{horário: vídeo} já agendados nessa rede (para avisar conflito)."""
+    out = {}
+    for video, redes in hist.items():
+        p = redes.get(plataforma, {})
+        if p.get("status") in ("agendado", "agendado_pc") and p.get("para") and feito(p, agora):
+            out[datetime.fromisoformat(p["para"])] = video
+    return out
+
+
+def sugestoes(hist: dict, plataformas, dias: int = 3, agora: datetime | None = None, g: dict | None = None) -> dict:
+    """Melhores horários (grade do horarios.json) dos próximos `dias` dias, por rede.
+    {rede: [{quando, destaque, ocupado_por, disponivel}]}. `disponivel` = respeita a antecedência mínima."""
+    agora = agora or datetime.now()
+    g = g or grade()
+    destaques = g.get("_destaques", {})
+    minimo = agora + timedelta(minutes=ANTECEDENCIA_MIN)
+    out = {}
+    for p in plataformas:
+        oc = _ocupados_por(p, hist, agora)
+        lista = []
+        for d in range(dias):
+            dia = (agora + timedelta(days=d)).date()
+            tipo = "fimdesemana" if dia.weekday() >= 5 else "semana"
+            for hhmm in g[p][tipo]:
+                h, m = map(int, hhmm.split(":"))
+                quando = datetime(dia.year, dia.month, dia.day, h, m)
+                if quando < agora:
+                    continue
+                lista.append({"quando": quando, "destaque": hhmm in destaques.get(p, []),
+                              "ocupado_por": oc.get(quando), "disponivel": quando >= minimo})
+        out[p] = lista
+    return out
+
+
+def validar_itens(itens: list[dict], estado_video: dict, agora: datetime | None = None) -> list[str]:
+    """Erros de um agendamento [{plataforma, quando}] de UM vídeo. Lista vazia = pode agendar."""
+    agora = agora or datetime.now()
+    erros, vistas = [], set()
+    for it in itens:
+        p, q = it["plataforma"], it["quando"]
+        if p in vistas:
+            erros.append(f"{p}: só um horário por rede")
+        vistas.add(p)
+        if feito(estado_video.get(p, {}), agora):
+            erros.append(f"{p}: este vídeo já está {estado_video[p].get('status')} nessa rede")
+        if q < agora + timedelta(minutes=ANTECEDENCIA_MIN):
+            erros.append(f"{p}: escolha um horário a pelo menos {ANTECEDENCIA_MIN} min de agora")
+        if q.minute % 5 or q.second:
+            erros.append(f"{p}: o minuto precisa ser múltiplo de 5 (exigência do TikTok)")
+    return erros
