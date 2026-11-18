@@ -80,6 +80,8 @@ class Streamer(Base):
     campanha_url: Mapped[str | None] = mapped_column(String(500))
     notas: Mapped[str | None] = mapped_column(Text)
     ativo: Mapped[bool] = mapped_column(Boolean, default=True)
+    # vigia de clipes da Twitch: {config: {...}, estado: {...}} (cortes/vigia.py). None = nunca configurado
+    vigia: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     criado_em: Mapped[datetime] = mapped_column(DateTime, default=agora)
 
     fontes: Mapped[list["Fonte"]] = relationship(back_populates="streamer", cascade="all, delete-orphan")

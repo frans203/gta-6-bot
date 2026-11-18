@@ -4,7 +4,7 @@ import shutil
 
 from ..jobs.fila import tarefa
 from ..models import Fonte
-from . import detectores, fontes, render, servico, webcam
+from . import detectores, fontes, render, servico, vigia, webcam
 from .plugins import DETECTORES, carregar
 
 
@@ -135,6 +135,14 @@ def enquadrar_corte(ctx, p):
         ctx.log("região do streamer atualizada: gerando o vídeo de novo")
         r["rerenderizando"] = True
     return r
+
+
+@tarefa("vigiar_clipes", recurso=lambda p: f"vigia:{p['streamer_id']}")
+def vigiar_clipes(ctx, p):
+    """Uma olhada nos clipes novos do streamer (cria cortes para revisar; não renderiza nem posta)."""
+    from ..jobs.fila import enfileirar
+    ctx.progresso(None, "olhando os clipes na Twitch")
+    return vigia.ciclo(p["streamer_id"], log=ctx.log, enfileirar=enfileirar)
 
 
 @tarefa("preparar_editor", recurso="gpu")

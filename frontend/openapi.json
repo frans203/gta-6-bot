@@ -2006,6 +2006,168 @@
     }
    }
   },
+  "/api/streamers/{streamer_id}/vigia": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Ler Vigia",
+    "description": "Vigia de clipes da Twitch deste streamer: configuração, últimos clipes vistos e os que estão esperando.",
+    "operationId": "ler_vigia_api_streamers__streamer_id__vigia_get",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VigiaOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Configurar Vigia",
+    "operationId": "configurar_vigia_api_streamers__streamer_id__vigia_put",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/VigiaConfig"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VigiaOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/streamers/{streamer_id}/vigia/agora": {
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Vigiar Agora",
+    "description": "Olha os clipes agora (sem esperar o intervalo).",
+    "operationId": "vigiar_agora_api_streamers__streamer_id__vigia_agora_post",
+    "parameters": [
+     {
+      "name": "streamer_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Streamer Id"
+      }
+     }
+    ],
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/vigia": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Painel Vigia",
+    "description": "Todos os streamers da Twitch com o resumo do vigia (Painel).",
+    "operationId": "painel_vigia_api_vigia_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/VigiaStreamerOut"
+         },
+         "type": "array",
+         "title": "Response Painel Vigia Api Vigia Get"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/streamers/{streamer_id}/quadro": {
    "get": {
     "tags": [
@@ -6654,6 +6816,205 @@
      "plataformas"
     ],
     "title": "VideoOut"
+   },
+   "VigiaConfig": {
+    "properties": {
+     "ativo": {
+      "type": "boolean",
+      "title": "Ativo",
+      "default": false
+     },
+     "intervalo_min": {
+      "type": "integer",
+      "maximum": 120.0,
+      "minimum": 2.0,
+      "title": "Intervalo Min",
+      "description": "de quanto em quanto tempo olha (min)",
+      "default": 5
+     },
+     "min_views": {
+      "type": "integer",
+      "maximum": 100000.0,
+      "minimum": 0.0,
+      "title": "Min Views",
+      "description": "só clipes com pelo menos isso de views",
+      "default": 30
+     },
+     "dur_min": {
+      "type": "integer",
+      "maximum": 60.0,
+      "minimum": 1.0,
+      "title": "Dur Min",
+      "default": 5
+     },
+     "dur_max": {
+      "type": "integer",
+      "maximum": 600.0,
+      "minimum": 5.0,
+      "title": "Dur Max",
+      "default": 90
+     },
+     "antes": {
+      "type": "integer",
+      "maximum": 300.0,
+      "minimum": 0.0,
+      "title": "Antes",
+      "description": "segundos de contexto antes do clipe",
+      "default": 20
+     },
+     "depois": {
+      "type": "integer",
+      "maximum": 300.0,
+      "minimum": 0.0,
+      "title": "Depois",
+      "description": "segundos de contexto depois do clipe",
+      "default": 10
+     },
+     "max_por_dia": {
+      "type": "integer",
+      "maximum": 100.0,
+      "minimum": 1.0,
+      "title": "Max Por Dia",
+      "default": 10
+     },
+     "auto_preparar": {
+      "type": "boolean",
+      "title": "Auto Preparar",
+      "description": "já baixa o trecho e procura a webcam (não renderiza)",
+      "default": true
+     }
+    },
+    "type": "object",
+    "title": "VigiaConfig"
+   },
+   "VigiaOut": {
+    "properties": {
+     "config": {
+      "$ref": "#/components/schemas/VigiaConfig"
+     },
+     "ultima": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ultima"
+     },
+     "proxima": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proxima"
+     },
+     "hoje": {
+      "type": "integer",
+      "title": "Hoje",
+      "default": 0
+     },
+     "recentes": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Recentes",
+      "default": []
+     },
+     "aguardando": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Aguardando",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "config"
+    ],
+    "title": "VigiaOut"
+   },
+   "VigiaStreamerOut": {
+    "properties": {
+     "config": {
+      "$ref": "#/components/schemas/VigiaConfig"
+     },
+     "ultima": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Ultima"
+     },
+     "proxima": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Proxima"
+     },
+     "hoje": {
+      "type": "integer",
+      "title": "Hoje",
+      "default": 0
+     },
+     "recentes": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Recentes",
+      "default": []
+     },
+     "aguardando": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Aguardando",
+      "default": []
+     },
+     "streamer_id": {
+      "type": "integer",
+      "title": "Streamer Id"
+     },
+     "nome": {
+      "type": "string",
+      "title": "Nome"
+     },
+     "canal": {
+      "type": "string",
+      "title": "Canal"
+     }
+    },
+    "type": "object",
+    "required": [
+     "config",
+     "streamer_id",
+     "nome",
+     "canal"
+    ],
+    "title": "VigiaStreamerOut"
    },
    "Webcam": {
     "properties": {

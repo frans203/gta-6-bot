@@ -21,6 +21,7 @@ const INVALIDAR_POR_TIPO: Record<string, QueryKey[]> = {
   cortar_video: [chaves.cortesTodos, chaves.fontesTodas, chaves.streamers],
   renderizar_corte: [chaves.cortesTodos, chaves.fontesTodas, chaves.streamers, ['editor']],
   preparar_editor: [chaves.cortesTodos, ['editor']],
+  vigiar_clipes: [chaves.vigiaTodos, chaves.cortesTodos, chaves.fontesTodas],
 }
 
 // ------------------------------------------------------------------ store simples (log ao vivo + conexão)
@@ -63,37 +64,71 @@ export function useEventos() {
   const qc = useQueryClient()
   useEffect(() => {
     const avisados = new Set<string>()
-    const es = new EventSource('/api/eventos')
-    es.onopen = () => {
-      conectado = true
-      avisar()
-    }
-    es.onerror = () => {
-      conectado = false
-      avisar()
-    }
-    es.addEventListener('job', (ev) => {
-      const job = JSON.parse((ev as MessageEvent).data) as Job
-      aplicarJob(qc, job)
-      const chave = `${job.id}:${job.status}`
-      if (TERMINAIS.includes(job.status) && !avisados.has(chave)) {
-        avisados.add(chave)
-        for (const k of INVALIDAR_POR_TIPO[job.tipo] ?? []) void qc.invalidateQueries({ queryKey: k })
-        void qc.invalidateQueries({ queryKey: chaves.sistema })
-        if (job.status === 'ok') toast.success(`Concluído: ${job.titulo}`)
-        else if (job.status === 'erro') toast.error(`Falhou: ${job.titulo}`, { description: job.erro ?? undefined })
-        else toast(`Cancelado: ${job.titulo}`)
+    let es: EventSource | null = null
+    let timer: ReturnType<typeof setTimeout> | undefined
+
+    // O navegador deixa só ~6 conexões abertas por endereço, somando TODAS as abas. Cada aba do app segura uma
+    // conexão de tempo real: aba escondida por 30 s solta a dela (e reconecta ao voltar, recarregando o que mudou).
+    const abrir = () => {
+      if (es) return
+      es = new EventSource('/api/eventos')
+      es.onopen = () => {
+        conectado = true
+        avisar()
       }
-    })
-    es.addEventListener('log', (ev) => {
-      const linha = JSON.parse((ev as MessageEvent).data) as string
-      linhasLog = [...linhasLog.slice(-(MAX_LINHAS - 1)), linha]
-      avisar()
-    })
-    return () => {
-      es.close()
+      es.onerror = () => {
+        conectado = false
+        avisar()
+      }
+      es.addEventListener('job', (ev) => {
+        const job = JSON.parse((ev as MessageEvent).data) as Job
+        aplicarJob(qc, job)
+        const chave = `${job.id}:${job.status}`
+        if (TERMINAIS.includes(job.status) && !avisados.has(chave)) {
+          avisados.add(chave)
+          for (const k of INVALIDAR_POR_TIPO[job.tipo] ?? []) void qc.invalidateQueries({ queryKey: k })
+          void qc.invalidateQueries({ queryKey: chaves.sistema })
+          const novos = (job.resultado as { novos?: number } | null)?.novos ?? 0
+          if (job.tipo === 'vigiar_clipes') {
+            // o vigia roda a cada poucos minutos: só avisa quando achou algo
+            if (job.status === 'ok' && novos > 0)
+              toast.success(`${novos} clipe(s) novo(s) para revisar`, {
+                description: job.titulo.replace('Vigia de clipes · ', ''),
+                action: { label: 'Abrir', onClick: () => window.location.assign('/biblioteca') },
+              })
+            else if (job.status === 'erro') toast.error(`Falhou: ${job.titulo}`, { description: job.erro ?? undefined })
+          } else if (job.status === 'ok') toast.success(`Concluído: ${job.titulo}`)
+          else if (job.status === 'erro') toast.error(`Falhou: ${job.titulo}`, { description: job.erro ?? undefined })
+          else toast(`Cancelado: ${job.titulo}`)
+        }
+      })
+      es.addEventListener('log', (ev) => {
+        const linha = JSON.parse((ev as MessageEvent).data) as string
+        linhasLog = [...linhasLog.slice(-(MAX_LINHAS - 1)), linha]
+        avisar()
+      })
+    }
+    const fechar = () => {
+      es?.close()
+      es = null
       conectado = false
       avisar()
+    }
+    const visibilidade = () => {
+      clearTimeout(timer)
+      if (document.hidden) {
+        timer = setTimeout(fechar, 30_000)
+      } else if (!es) {
+        abrir()
+        void qc.invalidateQueries() // o que mudou enquanto a aba estava escondida
+      }
+    }
+    abrir()
+    document.addEventListener('visibilitychange', visibilidade)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('visibilitychange', visibilidade)
+      fechar()
     }
   }, [qc])
 }

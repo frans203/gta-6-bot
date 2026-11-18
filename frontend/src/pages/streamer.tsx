@@ -16,6 +16,7 @@ import {
 import { useJobs } from '@/api/hooks/jobs'
 import type { Fonte, Streamer } from '@/api/tipos'
 import { Cabecalho, Vazio } from '@/components/cabecalho'
+import { VigiaClipes } from '@/components/vigia-clipes'
 import { Confirmar } from '@/components/confirmar'
 import { type DadosStreamer, FormStreamer } from '@/components/form-streamer'
 import { JobProgresso } from '@/components/job-progresso'
@@ -305,15 +306,21 @@ export function PaginaStreamer() {
 
       <JobsDoStreamer streamer={s} fontes={fontes.map((f) => f.id)} />
 
-      <Tabs defaultValue="fontes">
+      <Tabs defaultValue={new URLSearchParams(window.location.search).get('aba') ?? 'fontes'}>
         <TabsList className="mb-4">
           <TabsTrigger value="fontes">VODs e clipes</TabsTrigger>
+          {s.plataforma === 'twitch' && <TabsTrigger value="vigia">Vigia de clipes</TabsTrigger>}
           <TabsTrigger value="webcam">Webcam</TabsTrigger>
           <TabsTrigger value="config">Configurações</TabsTrigger>
         </TabsList>
         <TabsContent value="fontes">
           <AbaFontes streamer={s} />
         </TabsContent>
+        {s.plataforma === 'twitch' && (
+          <TabsContent value="vigia">
+            <VigiaClipes streamer={s} />
+          </TabsContent>
+        )}
         <TabsContent value="webcam">
           <AbaWebcam streamer={s} versao={dataUpdatedAt} />
         </TabsContent>

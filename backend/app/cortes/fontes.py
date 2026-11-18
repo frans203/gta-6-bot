@@ -1,6 +1,7 @@
 """Onde os vídeos vêm: listar VODs/clipes de um canal, ler dados de uma URL e baixar trechos.
 Usa o yt-dlp (Twitch e YouTube) e, se configurada, a API oficial da Twitch (Helix) para os clipes."""
 import json
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -58,12 +59,44 @@ class TwitchAPI:
         with urllib.request.urlopen(req, timeout=30) as r:
             return json.load(r)
 
+    _ids: dict[str, str] = {}
+
     @classmethod
     def user_id(cls, login: str) -> str:
+        if login.lower() in cls._ids:
+            return cls._ids[login.lower()]
         d = cls.get("users", login=login)["data"]
         if not d:
             raise ValueError(f"canal da Twitch não encontrado: {login}")
+        cls._ids[login.lower()] = d[0]["id"]
         return d[0]["id"]
+
+    @classmethod
+    def clipes_entre(cls, login: str, inicio: datetime, fim: datetime, limite: int = 100) -> list[dict]:
+        """Clipes criados entre `inicio` e `fim` (UTC), os mais vistos primeiro (o vigia usa)."""
+        params = {"broadcaster_id": cls.user_id(login), "first": min(limite, 100),
+                  "started_at": inicio.strftime("%Y-%m-%dT%H:%M:%SZ"), "ended_at": fim.strftime("%Y-%m-%dT%H:%M:%SZ")}
+        out, cursor = [], None
+        while len(out) < limite:
+            if cursor:
+                params["after"] = cursor
+            r = cls.get("clips", **params)
+            out += r["data"]
+            cursor = r.get("pagination", {}).get("cursor")
+            if not cursor or not r["data"]:
+                break
+        return out[:limite]
+
+    @classmethod
+    def video(cls, video_id: str) -> dict | None:
+        """VOD: {id, titulo, duracao (s), miniatura, criado_em} ou None se não existe/sumiu.
+        Enquanto a live está no ar, a duração cresce (o VOD vai sendo gravado)."""
+        d = cls.get("videos", id=video_id)["data"]
+        if not d:
+            return None
+        v = d[0]
+        return {"id": v["id"], "titulo": v.get("title") or "", "duracao": duracao_twitch(v.get("duration", "0s")),
+                "miniatura": v.get("thumbnail_url"), "criado_em": v.get("created_at"), "url": v.get("url")}
 
     @classmethod
     def clipes(cls, login: str, dias: int = 7, limite: int = 20, video_id: str | None = None) -> list[dict]:
@@ -82,6 +115,14 @@ class TwitchAPI:
             if not cursor or not r["data"]:
                 break
         return out[:limite]
+
+
+def duracao_twitch(texto: str) -> int:
+    """'3h2m10s' -> 10930"""
+    total = 0
+    for n, u in re.findall(r"(\d+)([hms])", texto or ""):
+        total += int(n) * {"h": 3600, "m": 60, "s": 1}[u]
+    return total
 
 
 # ------------------------------------------------------------------ listar canal

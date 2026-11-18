@@ -315,10 +315,21 @@ def atualizar_corte(id: int, **campos) -> dict:
     return obter_corte(id)
 
 
+def criar_corte(fonte_id: int, **campos) -> int:
+    with sessao() as s:
+        c = Corte(fonte_id=fonte_id, **campos)
+        s.add(c)
+        s.flush()
+        return c.id
+
+
 def substituir_candidatos(fonte_id: int, candidatos: list[dict]) -> int:
-    """Troca os candidatos não revisados de uma fonte pelos novos (mantém os já aprovados/renderizados)."""
+    """Troca os candidatos não revisados de uma fonte pelos novos (mantém os já aprovados/renderizados e os que
+    vieram do vigia de clipes)."""
     with sessao() as s:
         for c in s.scalars(select(Corte).where(Corte.fonte_id == fonte_id, Corte.status == "candidato")):
+            if (c.extra or {}).get("origem") == "vigia":
+                continue
             s.delete(c)
         for cand in candidatos:
             s.add(Corte(fonte_id=fonte_id, **cand))

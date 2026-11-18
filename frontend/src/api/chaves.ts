@@ -25,4 +25,6 @@ export const chaves = {
   cortes: (filtros: object) => ['cortes', filtros] as const,
   cortesTodos: ['cortes'] as const,
   editor: (corteId: number) => ['editor', corteId] as const,
+  vigia: (streamerId: number) => ['vigia', streamerId] as const,
+  vigiaTodos: ['vigia'] as const,
 }

@@ -40,9 +40,13 @@
       do perfil do Chrome no Windows (recursão infinita ao liberar). gta6_001/003/004 removidos do Instagram
 - [ ] YouTube: preencher o campo "Tags" (palavras-chave) do Studio — precisa mapear o fluxo antes
 - [x] (18/11/2026) Erros de envio gravados no histórico (aparecem na Fila e no card "Últimos erros")
+- [x] (18/11/2026) Vigia de clipes da Twitch: acha clipes novos que passam do mínimo de views, junta os do mesmo
+      momento, espera a live/VOD cobrir o contexto e cria o corte com +antes/+depois segundos (prepara, não
+      renderiza/posta); "+10 s antes/depois" no corte; ligado para alanzoka e Kai Cenat (30 views, 20 s/10 s)
+- [ ] **Usuário**: gerar um novo client secret da Twitch (o atual foi colado no chat) e trocar no `.env`
 - [ ] Editor: "salvar como modelo" (reaproveitar fonte/cores/posições em outros cortes)
 - [ ] Tradução: o modelo grátis puxa para PT de Portugal ("O que raio..."); avaliar trocar o par en→pt
-- [ ] **Usuário**: criar app grátis na Twitch (dev.twitch.tv) e pôr `JASON_TWITCH_CLIENT_ID/SECRET` no `.env`
+- [x] Credenciais da Twitch no `.env` (18/11/2026)
 - [ ] **Usuário**: criar a conta gamer em inglês nas 3 redes, `python jason.py --conta gamer_en login`
 - [ ] Rodar o MVP: alanzoka + Flow Games (YouTube channel/UCUZfhX79dQrJvAgYefiXCCA; a Twitch deles não tem VODs),
       Kai Cenat, Speed + um streamer em ascensão com campanha de clipping ativa (escolher na Whop)

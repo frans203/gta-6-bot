@@ -8,9 +8,14 @@ export function Cabecalho({ titulo, descricao, children }: { titulo: ReactNode; 
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        <GradientHeading variant="jason" size="sm" weight="black" className="font-heading">
-          {titulo}
-        </GradientHeading>
+        {typeof titulo === 'string' ? (
+          <GradientHeading variant="jason" size="sm" weight="black" className="font-heading">
+            {titulo}
+          </GradientHeading>
+        ) : (
+          // título com ícone/elementos: o texto em gradiente (background-clip) some dentro de filhos com display próprio
+          <h1 className="font-heading text-xl font-black tracking-tight text-[#efe9ff] sm:text-2xl lg:text-3xl">{titulo}</h1>
+        )}
         {descricao && (
           <motion.p
             className="mt-1.5 max-w-2xl text-sm text-muted-foreground"

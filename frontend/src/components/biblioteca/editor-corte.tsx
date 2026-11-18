@@ -1,4 +1,4 @@
-import { Check, Clapperboard, Minus, Plus, RotateCcw, ScanFace, Scissors, Send, Trash2, Wand2, X } from 'lucide-react'
+import { Check, Clapperboard, Minus, Plus, Radar, RotateCcw, ScanFace, Scissors, Send, Trash2, Wand2, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
@@ -123,6 +123,61 @@ function MandarParaFila({ corte }: { corte: Corte }) {
       <Button disabled={!conta || publicar.isPending} onClick={() => publicar.mutate({ id: corte.id, conta })}>
         <Send /> Mandar para a fila
       </Button>
+    </div>
+  )
+}
+
+interface ClipeVigia {
+  id: string
+  url: string
+  views: number
+  titulo?: string | null
+  criador?: string | null
+}
+
+/** Corte que veio do vigia: o clipe original e botões para puxar mais contexto da live. */
+function ContextoDaLive({ corte, inicio, fim, onChange }: {
+  corte: Corte
+  inicio: number
+  fim: number
+  onChange: (c: { inicio?: number; fim?: number }) => void
+}) {
+  const extra = corte.extra as { clipes?: ClipeVigia[]; contexto?: { fonte?: string } }
+  const clipes = extra.clipes ?? []
+  const doVod = extra.contexto?.fonte === 'vod'
+  const t = Math.floor(inicio)
+  const linkLive = `${corte.fonte_url}?t=${Math.floor(t / 3600)}h${Math.floor((t % 3600) / 60)}m${t % 60}s`
+  return (
+    <div className="space-y-2.5 rounded-xl border border-roxo/40 bg-roxo/10 p-3 text-xs">
+      <div className="flex flex-wrap items-center gap-2">
+        <Radar className="size-4 text-rosa" />
+        <b className="text-sm">Clipe da Twitch</b>
+        <span className="text-muted-foreground">
+          {clipes.reduce((s, c) => s + c.views, 0)} views · {clipes.length} clipe(s) deste momento
+        </span>
+        {clipes.map((c, i) => (
+          <a key={c.id} href={c.url} target="_blank" rel="noreferrer" className="text-ciano hover:underline">
+            clipe {i + 1}
+            {c.criador ? ` (${c.criador})` : ''}
+          </a>
+        ))}
+      </div>
+      {doVod ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-muted-foreground">Mais contexto da live:</span>
+          <Button size="xs" variant="outline" onClick={() => onChange({ inicio: Math.max(0, inicio - 10) })}>
+            +10 s antes
+          </Button>
+          <Button size="xs" variant="outline" onClick={() => onChange({ fim: fim + 10 })}>
+            +10 s depois
+          </Button>
+          <a href={linkLive} target="_blank" rel="noreferrer" className="ml-auto text-ciano hover:underline">
+            ver na live →
+          </a>
+        </div>
+      ) : (
+        <p className="text-muted-foreground">Sem VOD da live: este corte é o próprio clipe (sem contexto extra).</p>
+      )}
     </div>
   )
 }
@@ -278,6 +333,9 @@ export function EditorCorte({ corte, jobs }: { corte: Corte; jobs: Job[] }) {
         >
           {aba === 'corte' ? (
             <div className="space-y-4">
+              {(corte.extra as { origem?: string }).origem === 'vigia' && editavel && (
+                <ContextoDaLive corte={corte} inicio={v.inicio} fim={v.fim} onChange={(c) => set(c)} />
+              )}
               <div className="flex flex-wrap gap-4">
                 <CampoTempo id={`ini-${corte.id}`} rotulo="Início" valor={v.inicio} onChange={(s) => set({ inicio: s })} desativado={!editavel} />
                 <CampoTempo id={`fim-${corte.id}`} rotulo="Fim" valor={v.fim} onChange={(s) => set({ fim: s })} desativado={!editavel} />

@@ -62,6 +62,14 @@ edição. Webcam marcada no editor (`layout.webcam.fonte`) vale como "manual"; s
 Fontes do texto: as do Windows + `.ttf/.otf` enviadas para `JASON_MIDIA/fontes` (copiadas para `tmp/fontes`
 porque o `ass=` não aceita caminho com `E:`).
 
+**Vigia de clipes** (`cortes/vigia.py`, aba "Vigia de clipes" na página do streamer da Twitch, card no Painel):
+o worker enfileira `vigiar_clipes` a cada `intervalo_min` por streamer com `streamers.vigia.config.ativo`. Cada
+ciclo pega na Helix os clipes das últimas `OBSERVAR_H` h, espera passarem de `min_views`, junta clipes do mesmo
+momento (mesmo VOD), espera o VOD cobrir clipe + `depois` + folga e cria o corte no VOD (`vod_offset` − `antes` até
+fim + `depois`), com `extra.origem="vigia"`; sem VOD usa o próprio clipe. Só prepara (`enquadrar_corte`): nunca
+renderiza nem posta sozinho. Estado (vistos, recentes, aguardando, momentos) em `streamers.vigia.estado`. Jobs do
+vigia sem resultado somem depois de 2 h. Credenciais da Twitch no `.env`.
+
 Tradução da legenda: `cortes/traducao.py` (Argos/OPUS-MT no CTranslate2, grátis e local; `sentencepiece` instalado em
 `E:\jason-midia\libs`; modelos em `JASON_MIDIA/modelos/traducao`). Imagens de fundo: `JASON_MIDIA/fundos`
 (`POST /api/fundos` com os bytes da imagem), usadas pelo layout `fundo_imagem`.

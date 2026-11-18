@@ -8,7 +8,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, Response
 
 from ...cortes import edicao as ed
-from ...cortes import fontes, plugins, render, servico
+from ...cortes import fontes, plugins, render, servico, vigia
 from ...jobs import enfileirar
 from ...plataformas import PLATAFORMAS
 from .. import schemas as S
@@ -162,6 +162,44 @@ def detectar_webcam(streamer_id: int, fonte_id: int | None = None):
     """Detecta a posição da webcam num trecho de um VOD do streamer (job)."""
     st = _404(servico.obter_streamer, streamer_id)
     return enfileirar("detectar_webcam", {"streamer_id": st.id, "fonte_id": fonte_id}, f"Detectar webcam · {st.nome}")
+
+
+@router.get("/streamers/{streamer_id}/vigia", response_model=S.VigiaOut)
+def ler_vigia(streamer_id: int):
+    """Vigia de clipes da Twitch deste streamer: configuração, últimos clipes vistos e os que estão esperando."""
+    return vigia.resumo(_404(servico.obter_streamer, streamer_id))
+
+
+@router.put("/streamers/{streamer_id}/vigia", response_model=S.VigiaOut)
+def configurar_vigia(streamer_id: int, dados: S.VigiaConfig):
+    _404(servico.obter_streamer, streamer_id)
+    if dados.dur_min > dados.dur_max:
+        raise HTTPException(400, "a duração mínima precisa ser menor que a máxima")
+    try:
+        return vigia.configurar(streamer_id, dados.model_dump())
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from None
+
+
+@router.post("/streamers/{streamer_id}/vigia/agora", response_model=S.JobOut, status_code=202)
+def vigiar_agora(streamer_id: int):
+    """Olha os clipes agora (sem esperar o intervalo)."""
+    st = _404(servico.obter_streamer, streamer_id)
+    if st.plataforma != "twitch":
+        raise HTTPException(400, "o vigia de clipes só funciona com canais da Twitch")
+    return enfileirar("vigiar_clipes", {"streamer_id": st.id}, f"Vigia de clipes · {st.nome}")
+
+
+@router.get("/vigia", response_model=list[S.VigiaStreamerOut])
+def painel_vigia():
+    """Todos os streamers da Twitch com o resumo do vigia (Painel)."""
+    out = []
+    for d in servico.listar_streamers():
+        if d["plataforma"] != "twitch":
+            continue
+        st = servico.obter_streamer(d["id"])
+        out.append({"streamer_id": st.id, "nome": st.nome, "canal": st.canal, **vigia.resumo(st)})
+    return out
 
 
 @router.get("/streamers/{streamer_id}/quadro", response_class=FileResponse)

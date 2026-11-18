@@ -136,7 +136,14 @@ export function CartaoTrecho({ corte, job, onAbrir, capaFonte }: {
       <div className="relative aspect-video overflow-hidden rounded-t-[inherit]">
         <Capa src={capa} className="transition-transform duration-500 group-hover:scale-105" vazio={<Clapperboard className="size-8" />} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-        <span className="absolute top-2 left-2 font-mono text-sm font-bold drop-shadow">#{corte.n_na_fonte}</span>
+        <span className="absolute top-2 left-2 flex items-center gap-1.5 font-mono text-sm font-bold drop-shadow">
+          #{corte.n_na_fonte}
+          {(corte.extra as { origem?: string }).origem === 'vigia' && (
+            <span className="rounded-full bg-roxo/90 px-1.5 py-0.5 font-sans text-[10px] font-semibold">
+              clipe · {String((corte.sinais as { views?: number }).views ?? 0)} views
+            </span>
+          )}
+        </span>
         <div className="absolute top-2 right-2">
           <StatusChip status={corte.status} />
         </div>

@@ -16,7 +16,7 @@ from ..db import preparar, sessao
 from ..models import Job
 from ..plataformas import comum
 from . import registro  # noqa: F401  (registra os tipos de job)
-from .fila import TIPOS, Cancelado, Contexto, reivindicar
+from .fila import TIPOS, Cancelado, Contexto, enfileirar, reivindicar
 
 MAX_PARALELO = 4
 _parar = threading.Event()
@@ -86,10 +86,18 @@ def rodar():
     signal.signal(signal.SIGINT, lambda *_: _parar.set())
     batimento = config.logs / "worker.alive"
     ultimo_batimento = 0.0
+    ultimo_vigia = 0.0
     while not _parar.is_set():
         if time.time() - ultimo_batimento > 5:
             batimento.write_text(str(os.getpid()))
             ultimo_batimento = time.time()
+        if time.time() - ultimo_vigia > 30:  # vigia de clipes: enfileira os streamers cuja hora chegou
+            ultimo_vigia = time.time()
+            try:
+                from ..cortes import vigia
+                vigia.agendar(enfileirar)
+            except Exception as e:  # o vigia nunca derruba o worker
+                comum.log(f"vigia: {e}", "worker")
         with trava:
             livres = MAX_PARALELO - len(ocupados)
             em_uso = {r for r in ocupados.values() if r}

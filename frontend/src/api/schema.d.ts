@@ -630,6 +630,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/streamers/{streamer_id}/vigia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ler Vigia
+         * @description Vigia de clipes da Twitch deste streamer: configuração, últimos clipes vistos e os que estão esperando.
+         */
+        get: operations["ler_vigia_api_streamers__streamer_id__vigia_get"];
+        /** Configurar Vigia */
+        put: operations["configurar_vigia_api_streamers__streamer_id__vigia_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/streamers/{streamer_id}/vigia/agora": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vigiar Agora
+         * @description Olha os clipes agora (sem esperar o intervalo).
+         */
+        post: operations["vigiar_agora_api_streamers__streamer_id__vigia_agora_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/vigia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Painel Vigia
+         * @description Todos os streamers da Twitch com o resumo do vigia (Painel).
+         */
+        get: operations["painel_vigia_api_vigia_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/streamers/{streamer_id}/quadro": {
         parameters: {
             query?: never;
@@ -2384,6 +2445,119 @@ export interface components {
                 [key: string]: components["schemas"]["EstadoPlataforma"];
             };
         };
+        /** VigiaConfig */
+        VigiaConfig: {
+            /**
+             * Ativo
+             * @default false
+             */
+            ativo: boolean;
+            /**
+             * Intervalo Min
+             * @description de quanto em quanto tempo olha (min)
+             * @default 5
+             */
+            intervalo_min: number;
+            /**
+             * Min Views
+             * @description só clipes com pelo menos isso de views
+             * @default 30
+             */
+            min_views: number;
+            /**
+             * Dur Min
+             * @default 5
+             */
+            dur_min: number;
+            /**
+             * Dur Max
+             * @default 90
+             */
+            dur_max: number;
+            /**
+             * Antes
+             * @description segundos de contexto antes do clipe
+             * @default 20
+             */
+            antes: number;
+            /**
+             * Depois
+             * @description segundos de contexto depois do clipe
+             * @default 10
+             */
+            depois: number;
+            /**
+             * Max Por Dia
+             * @default 10
+             */
+            max_por_dia: number;
+            /**
+             * Auto Preparar
+             * @description já baixa o trecho e procura a webcam (não renderiza)
+             * @default true
+             */
+            auto_preparar: boolean;
+        };
+        /** VigiaOut */
+        VigiaOut: {
+            config: components["schemas"]["VigiaConfig"];
+            /** Ultima */
+            ultima?: string | null;
+            /** Proxima */
+            proxima?: string | null;
+            /**
+             * Hoje
+             * @default 0
+             */
+            hoje: number;
+            /**
+             * Recentes
+             * @default []
+             */
+            recentes: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Aguardando
+             * @default []
+             */
+            aguardando: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** VigiaStreamerOut */
+        VigiaStreamerOut: {
+            config: components["schemas"]["VigiaConfig"];
+            /** Ultima */
+            ultima?: string | null;
+            /** Proxima */
+            proxima?: string | null;
+            /**
+             * Hoje
+             * @default 0
+             */
+            hoje: number;
+            /**
+             * Recentes
+             * @default []
+             */
+            recentes: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Aguardando
+             * @default []
+             */
+            aguardando: {
+                [key: string]: unknown;
+            }[];
+            /** Streamer Id */
+            streamer_id: number;
+            /** Nome */
+            nome: string;
+            /** Canal */
+            canal: string;
+        };
         /** Webcam */
         Webcam: {
             /** X */
@@ -3747,6 +3921,123 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ler_vigia_api_streamers__streamer_id__vigia_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                streamer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VigiaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    configurar_vigia_api_streamers__streamer_id__vigia_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                streamer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VigiaConfig"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VigiaOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    vigiar_agora_api_streamers__streamer_id__vigia_agora_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                streamer_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    painel_vigia_api_vigia_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VigiaStreamerOut"][];
                 };
             };
         };

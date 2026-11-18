@@ -1,8 +1,9 @@
-import { AlertTriangle, Cpu, HardDrive, Zap } from 'lucide-react'
+import { AlertTriangle, Cpu, HardDrive, Radar, Scissors, Zap } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { useSistema } from '@/api/hooks/contas'
 import { useFontesComCortes } from '@/api/hooks/cortador'
+import { registros, usePainelVigia } from '@/api/hooks/vigia'
 import { useJobs } from '@/api/hooks/jobs'
 import { usePosts, useVideos } from '@/api/hooks/postagem'
 import { urls } from '@/api/cliente'
@@ -177,6 +178,60 @@ function ParaRevisar() {
   )
 }
 
+function VigiaPainel() {
+  const { data = [] } = usePainelVigia()
+  const ativos = data.filter((v) => v.config.ativo)
+  const recentes = data
+    .flatMap((v) => registros(v.recentes).filter((x) => x.situacao === 'corte').map((x) => ({ ...x, nome: v.nome })))
+    .sort((a, b) => String(b.em).localeCompare(String(a.em)))
+    .slice(0, 5)
+  if (!data.length) return null
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Radar className={cn('size-4', ativos.length ? 'animate-pulse text-verde' : 'text-muted-foreground')} /> Vigia de clipes
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        <div className="flex flex-wrap gap-2">
+          {data.map((v) => (
+            <Link
+              key={v.streamer_id}
+              to={`/cortador/streamers/${v.streamer_id}?aba=vigia`}
+              className={cn(
+                'flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition-colors hover:border-roxo/60',
+                v.config.ativo ? 'border-verde/40 bg-verde/10' : 'text-muted-foreground',
+              )}
+            >
+              <span className={cn('size-1.5 rounded-full', v.config.ativo ? 'bg-verde' : 'bg-muted-foreground')} />
+              {v.nome}
+              {v.config.ativo && <span className="text-muted-foreground">· {v.hoje} hoje{v.aguardando.length ? ` · ${v.aguardando.length} esperando` : ''}</span>}
+            </Link>
+          ))}
+        </div>
+        {recentes.length ? (
+          <ul className="space-y-1.5">
+            {recentes.map((x) => (
+              <li key={x.id}>
+                <Link to={`/biblioteca?corte=${x.corte_id}`} className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-white/5">
+                  <Scissors className="size-3.5 shrink-0 text-rosa" />
+                  <span className="min-w-0 flex-1 truncate">{x.titulo}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{x.nome} · {x.views} views</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            {ativos.length ? 'Nenhum clipe virou corte ainda.' : 'Ligue o vigia na página de um streamer da Twitch (aba “Vigia de clipes”).'}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 function UltimosErros() {
   const { conta } = useConta()
   const { data: posts = [] } = usePosts({ conta_id: conta?.id, status: 'erro,nao_logado,limite_diario', limite: 8 }, !!conta)
@@ -223,6 +278,7 @@ export function PaginaPainel() {
           <JobsAtivos />
           <ContagensConta />
           <ParaRevisar />
+          <VigiaPainel />
           <UltimosErros />
         </div>
       </div>

@@ -303,6 +303,15 @@ Resumo:
 4. **Editar vídeo** (no modal do corte): mude fonte, cores, posição do jogo e do streamer, corte trechos (**S**),
    mude a ordem e confira com **Conferir no render** antes de **Salvar e gerar vídeo**.
 
+### 📡 Vigia de clipes (Twitch)
+
+Na página do streamer da Twitch, aba **Vigia de clipes**: ligue e ele olha os clipes que o público faz a cada
+poucos minutos. Quando um clipe passa do **mínimo de views**, vira um corte **com contexto da live** (por padrão
+20 s antes e 10 s depois, tirados do VOD) e aparece na Biblioteca para você revisar. Vários clipes do mesmo momento
+viram um corte só. Se a live ainda está no ar, ele **espera** o VOD gravar o contexto "depois". No corte, os botões
+**+10 s antes / +10 s depois** puxam mais contexto. Ele **nunca** renderiza nem posta sozinho.
+Precisa da API oficial da Twitch no `.env` (`JASON_TWITCH_CLIENT_ID` e `JASON_TWITCH_CLIENT_SECRET`).
+
 O que muda no Mac:
 
 - 🎞️ **Render rápido:** em Mac com chip Apple (M1/M2/M3/M4), o vídeo é codificado pelo próprio chip

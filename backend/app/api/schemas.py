@@ -267,6 +267,35 @@ class EditorOut(BaseModel):
     fundo_imagem: str | None = None
 
 
+# ------------------------------------------------------------------ vigia de clipes
+
+class VigiaConfig(BaseModel):
+    ativo: bool = False
+    intervalo_min: int = Field(5, ge=2, le=120, description="de quanto em quanto tempo olha (min)")
+    min_views: int = Field(30, ge=0, le=100_000, description="só clipes com pelo menos isso de views")
+    dur_min: int = Field(5, ge=1, le=60)
+    dur_max: int = Field(90, ge=5, le=600)
+    antes: int = Field(20, ge=0, le=300, description="segundos de contexto antes do clipe")
+    depois: int = Field(10, ge=0, le=300, description="segundos de contexto depois do clipe")
+    max_por_dia: int = Field(10, ge=1, le=100)
+    auto_preparar: bool = Field(True, description="já baixa o trecho e procura a webcam (não renderiza)")
+
+
+class VigiaOut(BaseModel):
+    config: VigiaConfig
+    ultima: str | None = None
+    proxima: str | None = None
+    hoje: int = 0
+    recentes: list[dict[str, Any]] = []
+    aguardando: list[dict[str, Any]] = []
+
+
+class VigiaStreamerOut(VigiaOut):
+    streamer_id: int
+    nome: str
+    canal: str
+
+
 class ModeloParams(BaseModel):
     """Posições do modelo de corte, em frações da altura do vídeo final (0 = topo, 1 = base)."""
     model_config = ConfigDict(extra="allow")
