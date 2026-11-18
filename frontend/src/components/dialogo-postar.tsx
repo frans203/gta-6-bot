@@ -46,9 +46,12 @@ export function DialogoPostar({ conta, video, children }: { conta: Conta; video?
         </DialogHeader>
         <div className="space-y-4">
           <EscolherPlataformas valor={plats} onChange={setPlats} disponiveis={conta.plataformas} />
-          <Label className="flex items-center gap-3 font-normal">
-            <Switch checked={revisar} onCheckedChange={setRevisar} />
-            Só revisar (preenche tudo e <b>não</b> publica; feche o Chrome quando terminar)
+          <Label className="flex cursor-pointer items-start gap-3 font-normal leading-snug">
+            <Switch checked={revisar} onCheckedChange={setRevisar} className="mt-0.5 shrink-0" />
+            <span>
+              <b className="block font-semibold">Só revisar</b>
+              <span className="text-xs text-muted-foreground">Preenche tudo e não publica. Feche o Chrome quando terminar.</span>
+            </span>
           </Label>
         </div>
         <DialogFooter>

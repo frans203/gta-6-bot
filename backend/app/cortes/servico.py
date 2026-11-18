@@ -355,7 +355,7 @@ def publicar_na_fila(corte_id: int, conta_id: str | None = None) -> Path:
     origem = Path(c["arquivo"])
     destino = destino_dir / origem.name
     shutil.copy2(origem, destino)
-    titulo, tags = c["titulo"] or c["fonte_titulo"], conta.tags or ""
+    titulo, tags = c["titulo"] or c["fonte_titulo"], contas.tags_para_cortes(conta)
     st = obter_streamer(c["streamer_id"])
     tag_streamer = "#" + slug(st.nome).replace("_", "")
     escrever_txt(destino, titulo, f"{tag_streamer} {tags}".strip())

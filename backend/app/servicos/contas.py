@@ -11,6 +11,13 @@ from ..models import Conta
 PADRAO = "gta6"
 TAGS_PT = "#gameplay #gamer #viral #fyp #shorts #gaming #cortes #twitch"
 TAGS_EN = "#gaming #gamer #twitch #clips #funny #viral #fyp #shorts #streamer"
+# hashtags do pack de GTA 6: não servem para cortes de outros jogos/streamers
+TAGS_GTA = {"#gta6", "#gtavi", "#gta", "#rockstargames", "#vicecity", "#gta6trailer"}
+
+
+def tags_para_cortes(c: Conta) -> str:
+    """Hashtags da conta sem as específicas de GTA (um corte de live não é sobre GTA 6)."""
+    return " ".join(t for t in (c.tags or "").split() if t.lower() not in TAGS_GTA)
 
 
 def listar() -> list[Conta]:
