@@ -28,10 +28,10 @@ backend/app/
                    webcam (OpenCV), layouts (filtros ffmpeg 1080x1920), legendas (faster-whisper + .ass),
                    render, servico (CRUD), jobs
 backend/tests/     pytest (banco temporário via fixture `banco`)
-frontend/          Vite + React + TS + Tailwind + shadcn/ui + TanStack Query; tipos gerados do OpenAPI
+frontend/          Vite + React + TS + Tailwind + shadcn/ui + cult-ui + motion + TanStack Query; tipos do OpenAPI
 ```
 
-Fluxo do cortador: `buscar_fontes` → `analisar_fonte` (cria Cortes "candidato") → revisão na UI →
+Fluxo do cortador: `buscar_fontes` → `analisar_fonte` (cria Cortes "candidato") → revisão na **Biblioteca** →
 `enquadrar_corte` (opcional: baixa o trecho em `midia/tmp/corte_<id>`, salva `midia/quadros/corte_<id>.jpg`,
 detecta a webcam) → `renderizar_corte` (status "pronto", mp4 em `midia/cortes/`) → "Mandar para a fila" copia
 mp4 + .txt para a pasta da conta (status "na_fila") → agendamento normal.
@@ -40,8 +40,17 @@ mp4 + .txt para a pasta da conta (status "na_fila") → agendamento normal.
 twitch|youtube|kick|outro) → `POST /api/cortar` (cadastra streamer/fonte se novos) → job `cortar_video`
 (`_analisar` + `render.preparar_enquadramento` por corte: webcam, `midia.area_util` = barras pretas → vira
 `corte.jogo`, idioma falado via Whisper → `fonte.extra.idioma`) → `POST /api/fontes/{id}/aplicar`
-(idioma_legenda, fundo, modelo para todos) → `POST /api/fontes/{id}/renderizar`. Tradução da legenda:
-`cortes/traducao.py` (Argos/OPUS-MT no CTranslate2, grátis e local; `sentencepiece` instalado em
+(idioma_legenda, fundo, modelo para todos) → `POST /api/fontes/{id}/renderizar`.
+
+**Interface (menu)**: Painel, Cortar vídeo, Biblioteca, Fila, Modelos, Contas, Jobs, Logs. Não há tela de
+Agenda nem de Streamers no menu (agendar é pela CLI; `/cortador/streamers/:id` abre pelo modal). **Biblioteca**
+(`pages/biblioteca.tsx`, estado na URL `?aba=&fonte=&corte=`): "Para revisar" = `GET /api/fontes?com_cortes=...`
+(um card por vídeo original, modal com os cortes); Prontos/Na fila/Descartados = cortes (miniatura em
+`GET /api/cortes/{id}/miniatura`). Mudar a webcam (PATCH ou `enquadrar_corte`) de um corte `pronto` re-renderiza
+sozinho (`servico.rerenderizar`). Visual: tokens em `src/index.css` (nomes antigos rosa/ciano/laranja/roxo com
+tons novos), fonte Bricolage Grotesque, utilitários `cartao-brilho`/`botao-brilho`/`texto-gradiente`.
+
+Tradução da legenda: `cortes/traducao.py` (Argos/OPUS-MT no CTranslate2, grátis e local; `sentencepiece` instalado em
 `E:\jason-midia\libs`; modelos em `JASON_MIDIA/modelos/traducao`). Imagens de fundo: `JASON_MIDIA/fundos`
 (`POST /api/fundos` com os bytes da imagem), usadas pelo layout `fundo_imagem`.
 

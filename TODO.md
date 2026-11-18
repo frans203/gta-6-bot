@@ -14,7 +14,7 @@
 - [x] Testado de ponta a ponta: VOD real do alanzoka → corte 1080x1920 com webcam + legenda (106 s, Whisper CPU);
       análise de VOD de 2,7 h do Speed em 35 s
 - [x] Testes (pytest) e lint (ruff)
-- [x] Frontend React + TS + Tailwind + shadcn/ui (Painel, Fila, Agenda, Cortador, Revisão, Jobs, Logs, Contas)
+- [x] Frontend React + TS + Tailwind + shadcn/ui (Painel, Fila, Cortar vídeo, Biblioteca, Modelos, Jobs, Logs, Contas)
 - [x] Whisper na GPU (libs CUDA em E:\jason-midia\libs, modelo medium); streamers do MVP e conta gamer_en cadastrados
 - [x] Enquadramento por corte: detecção do streamer (Haar frente + perfil) no próprio trecho; se não achar com
       segurança, status "marcar webcam" e marcação manual na revisão (render bloqueado até confirmar);
@@ -24,6 +24,13 @@
 - [x] Fluxo rápido "Cortar vídeo": colar link (Twitch/YouTube/Kick/outros) → quantos cortes → prepara cada um
       (streamer, barras pretas, idioma) → legenda original ou traduzida (EN↔PT local, grátis) → imagem de
       fundo quando há espaço preto (layout fundo_imagem) → enquadramento manual dos não identificados → gerar
+- [x] (18/11/2026) Biblioteca no lugar de "Revisar cortes": vídeos originais em grade (modal com os cortes,
+      legenda/fundo/modelo para todos, renderizar todos), prontos em grade vertical que toca no hover, editor
+      com abas Corte / Cara do streamer; "Detectar de novo" com progresso; mudar a webcam de um corte pronto
+      gera o vídeo de novo sozinho. Saíram do menu: Agenda (CLI continua) e Streamers (página acessível pelo modal)
+- [x] (18/11/2026) Visual novo: preto + roxo/rosa, fonte Bricolage Grotesque, componentes do cult-ui
+      (GradientHeading, BgAnimateButton, RollingNumber, abas no estilo Direction Aware Tabs), animações
+      com `motion` (respeitam "reduzir movimento"); tarefas antigas `instagram_gta6_*` do Windows removidas
 - [ ] Tradução: o modelo grátis puxa para PT de Portugal ("O que raio..."); avaliar trocar o par en→pt
 - [ ] **Usuário**: criar app grátis na Twitch (dev.twitch.tv) e pôr `JASON_TWITCH_CLIENT_ID/SECRET` no `.env`
 - [ ] **Usuário**: criar a conta gamer em inglês nas 3 redes, `python jason.py --conta gamer_en login`

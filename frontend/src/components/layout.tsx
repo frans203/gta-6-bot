@@ -1,6 +1,7 @@
 import { Cog, LayoutDashboard, LayoutTemplate, Library, ListVideo, Menu, Scissors, ScrollText, Users } from 'lucide-react'
+import { motion } from 'motion/react'
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { NavLink, Outlet, useLocation } from 'react-router'
 
 import { useConectado, useEventos } from '@/api/eventos'
 import { useSistema } from '@/api/hooks/contas'
@@ -23,9 +24,18 @@ const MENU = [
 
 function Logo() {
   return (
-    <div className="px-2">
-      <div className="texto-sunset font-heading text-3xl font-black tracking-[0.2em]">JASON</div>
-      <div className="text-[10px] font-semibold tracking-[0.35em] text-ciano">GTA VI · PIPELINE</div>
+    <div className="flex items-center gap-3 px-3">
+      <motion.div
+        className="relative grid size-10 place-items-center rounded-xl bg-gradient-to-br from-roxo to-rosa shadow-[0_0_24px_-4px] shadow-rosa/70"
+        whileHover={{ rotate: -8, scale: 1.06 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+      >
+        <span className="font-heading text-xl font-extrabold text-white">J</span>
+      </motion.div>
+      <div className="leading-none">
+        <div className="texto-gradiente font-heading text-2xl font-extrabold tracking-tight">jason</div>
+        <div className="mt-1 text-[10px] font-medium tracking-[0.25em] text-muted-foreground uppercase">cortes · postagem</div>
+      </div>
     </div>
   )
 }
@@ -55,7 +65,8 @@ function SeletorConta() {
 function Indicadores() {
   const conectado = useConectado()
   const { data: sis } = useSistema()
-  const ponto = (ok: boolean | undefined) => cn('size-2 rounded-full', ok ? 'bg-verde shadow-[0_0_8px] shadow-verde' : 'bg-destructive')
+  const ponto = (ok: boolean | undefined) =>
+    cn('size-2 rounded-full', ok ? 'animate-pulse bg-verde shadow-[0_0_8px] shadow-verde' : 'bg-destructive')
   return (
     <div className="space-y-1 px-2 text-xs text-muted-foreground">
       <div className="flex items-center gap-2" title="Conexão de tempo real com o backend (SSE)">
@@ -69,9 +80,9 @@ function Indicadores() {
   )
 }
 
-function Navegacao({ onNavegar }: { onNavegar?: () => void }) {
+function Navegacao({ onNavegar, id }: { onNavegar?: () => void; id: string }) {
   return (
-    <nav className="flex flex-col gap-0.5">
+    <nav className="flex flex-col gap-1">
       {MENU.map(({ para, rotulo, Icone }) => (
         <NavLink
           key={para}
@@ -80,26 +91,42 @@ function Navegacao({ onNavegar }: { onNavegar?: () => void }) {
           onClick={onNavegar}
           className={({ isActive }) =>
             cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-              isActive && 'bg-sidebar-accent text-white shadow-[inset_3px_0_0] shadow-rosa',
+              'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+              isActive ? 'text-white' : 'text-sidebar-foreground/70 hover:bg-white/[0.04] hover:text-white',
             )
           }
         >
-          <Icone className="size-4" />
-          {rotulo}
+          {({ isActive }) => (
+            <>
+              {isActive && (
+                <motion.span
+                  layoutId={`menu-ativo-${id}`}
+                  className="absolute inset-0 rounded-xl border border-white/10 bg-gradient-to-r from-roxo/30 via-roxo/10 to-transparent shadow-[inset_2px_0_0] shadow-rosa"
+                  transition={{ type: 'spring', bounce: 0.2, duration: 0.45 }}
+                />
+              )}
+              <Icone
+                className={cn(
+                  'relative size-4 transition-all duration-200 group-hover:scale-110',
+                  isActive ? 'text-rosa drop-shadow-[0_0_6px_var(--vc-rosa)]' : 'group-hover:text-ciano',
+                )}
+              />
+              <span className="relative transition-transform duration-200 group-hover:translate-x-0.5">{rotulo}</span>
+            </>
+          )}
         </NavLink>
       ))}
     </nav>
   )
 }
 
-function ConteudoLateral({ onNavegar }: { onNavegar?: () => void }) {
+function ConteudoLateral({ onNavegar, id }: { onNavegar?: () => void; id: string }) {
   return (
     <div className="flex h-full flex-col gap-6 py-5">
       <Logo />
       <SeletorConta />
-      <div className="px-2">
-        <Navegacao onNavegar={onNavegar} />
+      <div className="px-1">
+        <Navegacao onNavegar={onNavegar} id={id} />
       </div>
       <div className="mt-auto">
         <Indicadores />
@@ -112,10 +139,11 @@ function ConteudoLateral({ onNavegar }: { onNavegar?: () => void }) {
 export function Layout() {
   useEventos()
   const [aberto, setAberto] = useState(false)
+  const { pathname } = useLocation()
   return (
-    <div className="fundo-vice min-h-svh">
-      <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-sidebar-border bg-sidebar/95 px-2 lg:block">
-        <ConteudoLateral />
+    <div className="fundo-app relative min-h-svh">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 border-r border-sidebar-border bg-sidebar/80 px-2 backdrop-blur-xl lg:block">
+        <ConteudoLateral id="lateral" />
       </aside>
       <header className="sticky top-0 z-30 flex items-center gap-3 border-b bg-background/80 px-4 py-2 backdrop-blur lg:hidden">
         <Sheet open={aberto} onOpenChange={setAberto}>
@@ -126,15 +154,22 @@ export function Layout() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 bg-sidebar p-2">
             <SheetTitle className="sr-only">Menu</SheetTitle>
-            <ConteudoLateral onNavegar={() => setAberto(false)} />
+            <ConteudoLateral onNavegar={() => setAberto(false)} id="gaveta" />
           </SheetContent>
         </Sheet>
-        <span className="texto-sunset font-heading text-xl font-black tracking-[0.2em]">JASON</span>
+        <span className="texto-gradiente font-heading text-xl font-extrabold tracking-tight">jason</span>
       </header>
-      <main className="px-4 py-6 lg:ml-60 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <main className="relative z-10 px-4 py-6 lg:ml-60 lg:px-8 lg:py-8">
+        {/* cada página entra com um leve deslize + desfoque */}
+        <motion.div
+          key={pathname}
+          className="mx-auto max-w-7xl"
+          initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
           <Outlet />
-        </div>
+        </motion.div>
       </main>
     </div>
   )

@@ -135,20 +135,7 @@ export function ModalFonte({ fonteId, corteId, jobs, onCorte, onFechar }: {
                     <Skeleton className="h-60" />
                   ) : (
                     <>
-                      <SugerirModeloComStreamer fonteId={fonteId} cortes={ativos} />
-                      <div className="grid gap-4 lg:grid-cols-2">
-                        <Secao icone={<Languages />} titulo="Legenda">
-                          <PerguntaIdioma fonteId={fonteId} cortes={ativos} />
-                        </Secao>
-                        <Secao icone={<Layers />} titulo="Modelo de corte (todos)">
-                          <ModeloParaTodos fonteId={fonteId} cortes={ativos} />
-                        </Secao>
-                      </div>
-                      <Secao icone={<Layers />} titulo="Imagem de fundo">
-                        <ImagemDeFundo fonteId={fonteId} cortes={ativos} />
-                      </Secao>
-
-                      <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
+                      <div className="flex flex-wrap items-end justify-between gap-3">
                         <div>
                           <h3 className="font-heading text-base font-bold">Cortes para gerar</h3>
                           <p className="text-xs text-muted-foreground">
@@ -185,6 +172,20 @@ export function ModalFonte({ fonteId, corteId, jobs, onCorte, onFechar }: {
                           Nenhum corte esperando: os deste vídeo já foram gerados ou descartados.
                         </p>
                       )}
+                      <h3 className="pt-4 font-heading text-base font-bold">Ajustes para todos os cortes</h3>
+                      <SugerirModeloComStreamer fonteId={fonteId} cortes={ativos} />
+                      <div className="grid gap-4 lg:grid-cols-2">
+                        <Secao icone={<Languages />} titulo="Legenda">
+                          <PerguntaIdioma fonteId={fonteId} cortes={ativos} />
+                        </Secao>
+                        <Secao icone={<Layers />} titulo="Modelo de corte (todos)">
+                          <ModeloParaTodos fonteId={fonteId} cortes={ativos} />
+                        </Secao>
+                      </div>
+                      <Secao icone={<Layers />} titulo="Imagem de fundo">
+                        <ImagemDeFundo fonteId={fonteId} cortes={ativos} />
+                      </Secao>
+
                     </>
                   )}
                 </div>

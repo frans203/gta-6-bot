@@ -14,7 +14,7 @@ export function BarraJob({ job, className }: { job: Pick<Job, 'status' | 'progre
   if (job.progresso == null && job.status === 'rodando') {
     return (
       <div className={cn('relative h-1.5 overflow-hidden rounded-full bg-muted', className)}>
-        <div className="absolute inset-y-0 w-1/3 animate-[pulse_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-rosa to-laranja" />
+        <div className="absolute inset-y-0 w-1/3 animate-[pulse_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-roxo to-rosa" />
       </div>
     )
   }

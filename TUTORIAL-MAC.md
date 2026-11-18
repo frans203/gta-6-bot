@@ -275,8 +275,8 @@ São os mesmos do Windows (horário de **Brasília**, ~5 posts por dia em cada r
 python jason.py web
 ```
 
-Abra **http://127.0.0.1:8765** no navegador: **Painel**, **Fila**, **Agenda**, **Cortador**, **Jobs**, **Logs** e
-**Contas**. Tarefas longas viram **jobs** em segundo plano (dá pra acompanhar e cancelar).
+Abra **http://127.0.0.1:8765** no navegador: **Painel**, **Cortar vídeo**, **Biblioteca**, **Fila**,
+**Modelos de corte**, **Contas**, **Jobs** e **Logs**. Tarefas longas viram **jobs** em segundo plano (dá pra acompanhar e cancelar).
 Para fechar: `Ctrl + C` no Terminal (é **Ctrl** mesmo, não ⌘). Se um envio estiver no meio, espere terminar.
 
 ## ✂️ MISSÃO 5 — O CORTADOR

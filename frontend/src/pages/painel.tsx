@@ -13,6 +13,7 @@ import { IconeTwitch } from '@/components/icones-marca'
 import { Plataforma } from '@/components/plataforma'
 import { StatusChip } from '@/components/status-chip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { RollingNumber } from '@/components/ui/rolling-number'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ABAS_BIBLIOTECA, urlMiniatura } from '@/lib/biblioteca'
 import { useConta } from '@/lib/conta'
@@ -21,9 +22,14 @@ import { cn } from '@/lib/utils'
 
 function Indicador({ icone, rotulo, valor, ok }: { icone: React.ReactNode; rotulo: string; valor: React.ReactNode; ok?: boolean }) {
   return (
-    <Card size="sm">
+    <Card size="sm" className="group hover:-translate-y-0.5">
       <CardContent className="flex items-center gap-3">
-        <div className={cn('rounded-lg p-2 [&_svg]:size-5', ok === false ? 'bg-destructive/15 text-destructive' : 'bg-ciano/10 text-ciano')}>
+        <div
+          className={cn(
+            'rounded-xl p-2.5 ring-1 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6 [&_svg]:size-5',
+            ok === false ? 'bg-destructive/15 text-destructive ring-destructive/30' : 'bg-gradient-to-br from-roxo/25 to-rosa/15 text-ciano ring-white/10',
+          )}
+        >
           {icone}
         </div>
         <div className="min-w-0">
@@ -103,9 +109,15 @@ function ContagensConta() {
           {PLATAFORMAS.map((p) => (
             <div key={p} className="contents">
               <Plataforma p={p} />
-              <div className="font-semibold text-muted-foreground">{conta3(p, 'pendente', 'erro', 'atrasado', 'limite_diario', 'nao_logado')}</div>
-              <div className="font-semibold text-rosa">{conta3(p, 'agendado', 'agendado_pc')}</div>
-              <div className="font-semibold text-verde">{conta3(p, 'publicado')}</div>
+              <div className="font-mono text-lg font-semibold text-muted-foreground tabular-nums">
+                <RollingNumber value={conta3(p, 'pendente', 'erro', 'atrasado', 'limite_diario', 'nao_logado')} />
+              </div>
+              <div className="font-mono text-lg font-semibold text-rosa tabular-nums">
+                <RollingNumber value={conta3(p, 'agendado', 'agendado_pc')} />
+              </div>
+              <div className="font-mono text-lg font-semibold text-verde tabular-nums">
+                <RollingNumber value={conta3(p, 'publicado')} />
+              </div>
             </div>
           ))}
         </div>

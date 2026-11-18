@@ -12,6 +12,7 @@ import { Plataforma } from '@/components/plataforma'
 import { SelectModelo } from '@/components/previa'
 import { StatusChip } from '@/components/status-chip'
 import { Badge } from '@/components/ui/badge'
+import { BgAnimateButton } from '@/components/ui/bg-animate-button'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -220,7 +221,10 @@ function PassosIniciais({ onComecar }: { onComecar: (fonte: number, job: number)
               </div>
             </div>
             <div className="flex justify-end">
-              <Button
+              <BgAnimateButton
+                gradient="jason"
+                animation="spin-slow"
+                rounded="xl"
                 disabled={cortar.isPending}
                 onClick={() =>
                   cortar.mutate(
@@ -229,8 +233,10 @@ function PassosIniciais({ onComecar }: { onComecar: (fonte: number, job: number)
                   )
                 }
               >
-                <Scissors /> Fazer os cortes
-              </Button>
+                <span className="flex items-center gap-2">
+                  <Scissors className="size-4" /> Fazer os cortes
+                </span>
+              </BgAnimateButton>
             </div>
           </div>
         </Passo>

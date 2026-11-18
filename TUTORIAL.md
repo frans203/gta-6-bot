@@ -249,8 +249,8 @@ Pesquisa completa em `horarios-tiktok.md`.
 python jason.py web
 ```
 
-Abre `http://127.0.0.1:8765` no navegador com tudo num lugar só: **Painel**, **Fila**, **Agenda**,
-**Cortador**, **Jobs**, **Logs** e **Contas**. Tarefas longas (postar, agendar, baixar, renderizar)
+Abre `http://127.0.0.1:8765` no navegador com tudo num lugar só: **Painel**, **Cortar vídeo**, **Biblioteca**, **Fila**,
+**Modelos de corte**, **Contas**, **Jobs** e **Logs**. Tarefas longas (postar, agendar, baixar, renderizar)
 viram **jobs** que rodam em segundo plano. Dá para acompanhar o progresso ao vivo e cancelar.
 Feche com `Ctrl+C` no terminal. Se um envio estiver no meio, espere ele terminar.
 
@@ -262,30 +262,32 @@ Feche com `Ctrl+C` no terminal. Se um envio estiver no meio, espere ele terminar
    a duração e se o streamer já está cadastrado (se não estiver, cadastra sozinho).
 2. **Quantos cortes?** (1 a 20), a duração de cada um e o modelo → **Fazer os cortes**.
 3. Ele acha os melhores trechos e já prepara cada um: procura o **streamer**, mede as **barras pretas** e
-   descobre o **idioma falado**.
-4. **Legenda em:** se o vídeo for em inglês ou português, escolha manter o original ou traduzir (a tradução
-   roda no seu PC, grátis; na 1ª vez baixa ~80 MB).
-5. **Imagem de fundo:** se o vídeo tiver muito espaço preto, ele avisa. Envie/escolha uma imagem e o corte
-   fica: **imagem atrás, vídeo em cima, legenda, streamer embaixo**.
-6. **Enquadramento:** os cortes em amarelo não tiveram o streamer identificado: arraste o retângulo
-   STREAMER até a webcam e **Salvar enquadramento**.
-7. **Gerar os vídeos** → depois “Ver prontos e mandar para a fila”.
+   descobre o **idioma falado**. Quando termina, abre o vídeo direto na **Biblioteca**.
 
-### Jeito completo (por streamer)
+### 📚 Biblioteca (revisar, renderizar, mandar para a fila)
 
-1. **Cortador → Novo streamer**: nome, Twitch ou YouTube, canal, idioma e para qual **conta** os cortes vão.
-2. **Buscar VODs** (ou cole a URL de uma live) → **Analisar**: o programa acha os momentos mais
-   agitados (picos de áudio, partes mais assistidas do YouTube, clipes da Twitch) e cria **cortes candidatos**.
-3. **Revisar**: assista ao trecho original, ajuste início/fim, escreva o título e o **gancho** (texto que
-   aparece nos primeiros segundos), escolha o **modelo de corte** e o estilo de legenda.
-4. **Enquadramento** (no mesmo cartão): clique em **Enquadrar**. Ele baixa o trecho, procura o streamer
-   (o rosto que fica parado no mesmo lugar) e mostra o quadro com o retângulo **STREAMER** e a **prévia** do
-   vertical ao lado. Se ele **não achar o streamer com segurança**, o corte fica amarelo, **“marcar webcam”**:
-   arraste o retângulo até a webcam (puxe o canto para o tamanho) e confira na prévia. Opcional: ligue
-   “Escolher a área do jogo” para recortar outra parte da tela.
-5. **Renderizar**. Sem o streamer identificado ou marcado à mão, o botão fica bloqueado: nunca sai um corte
-   com a webcam errada.
-6. Ficou bom? **Mandar para a fila** → ele entra na fila da conta e é agendado igual aos outros vídeos.
+- **Para revisar**: um card por **vídeo original** (capa, título, quantos cortes, aviso de webcam pendente).
+  Clique para abrir o modal do vídeo:
+  - **Cortes para gerar**: os trechos encontrados (#1, #2... na ordem em que aparecem no vídeo). O selo
+    amarelo **“marcar a webcam”** quer dizer que o streamer não foi identificado com segurança.
+  - **Renderizar todos** gera os que já estão liberados.
+  - **Ajustes para todos os cortes**: legenda (original ou traduzida, tradução grátis no seu PC; na 1ª vez
+    baixa ~80 MB), modelo de corte e **imagem de fundo** (quando há muito espaço preto: imagem atrás, vídeo
+    em cima, legenda, streamer embaixo).
+- Clique num corte para abrir o editor, com duas abas:
+  - **Corte**: trecho original, início/fim, título, **gancho** (texto dos primeiros segundos), modelo,
+    legenda, score e **Renderizar**.
+  - **Cara do streamer**: o quadro com o retângulo **STREAMER** e a **prévia** do vertical. Arraste o
+    retângulo até a webcam (puxe o canto para o tamanho). **Detectar de novo** procura de novo e mostra a
+    barra de progresso. Sem o streamer identificado ou marcado à mão, o Renderizar fica bloqueado: nunca
+    sai um corte com a webcam errada.
+- **Prontos**: um card por corte gerado (`#N · data · título do vídeo original`). Passe o mouse para ver o
+  vídeo. Clique para abrir: mesmo editor, com **Mandar para a fila** (entra na fila da conta e é agendado
+  igual aos outros vídeos). Mudou a região do streamer de um corte pronto? Ele **gera o vídeo de novo sozinho**.
+- **Na fila** e **Descartados**: os que já foram para a fila e os que você descartou (dá para restaurar).
+
+> 🎯 **Por streamer**: no modal, clique no nome do streamer para abrir a página dele (buscar VODs, analisar
+> uma live inteira, modelo e webcam padrão).
 
 > 🧩 **Modelos de corte** (menu lateral): o padrão é **jogo em cima + streamer embaixo**, com a legenda na
 > divisa. Lá você ajusta a altura do jogo, a posição da legenda (em cima / no meio / embaixo ou no slider),

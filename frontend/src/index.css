@@ -1,13 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    --font-heading: 'Bricolage Grotesque Variable', var(--font-sans);
+    --font-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,48 +50,53 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Paleta Vice City (a mesma do jason.py). Tema único escuro: :root e .dark iguais. */
+/*
+ * Paleta "neon noir": quase preto, roxo e rosa. Tema único escuro (:root e .dark iguais).
+ * Os nomes antigos das cores (rosa/ciano/laranja/roxo...) continuam valendo nas classes, só mudaram os tons:
+ *   rosa = rosa quente (ação, destaque) · roxo = violeta · ciano = lilás (info, links) · laranja = magenta
+ *   verde/amarelo ficam só para status (ok / atenção).
+ */
 :root,
 .dark {
-    --vc-rosa: #ff2e88;
-    --vc-ciano: #00e5ff;
-    --vc-laranja: #ff8a00;
-    --vc-roxo: #b026ff;
-    --vc-verde: #3dffb0;
-    --vc-amarelo: #ffe45c;
+    --vc-rosa: #ff3d9a;
+    --vc-ciano: #b9a4ff;
+    --vc-laranja: #e879f9;
+    --vc-roxo: #8b5cf6;
+    --vc-verde: #34d399;
+    --vc-amarelo: #fbbf24;
 
-    --background: #120a1f;
-    --foreground: #f5ecff;
-    --card: #1b1030;
-    --card-foreground: #f5ecff;
-    --popover: #1e1236;
-    --popover-foreground: #f5ecff;
-    --primary: #ff2e88;
+    --background: #07060b;
+    --foreground: #f4f0ff;
+    --card: #0f0d16;
+    --card-foreground: #f4f0ff;
+    --popover: #13101c;
+    --popover-foreground: #f4f0ff;
+    --primary: #ff3d9a;
     --primary-foreground: #ffffff;
-    --secondary: #2a1a45;
-    --secondary-foreground: #f5ecff;
-    --muted: #24163b;
-    --muted-foreground: #a99bc4;
-    --accent: #2f1d50;
+    --secondary: #1a1626;
+    --secondary-foreground: #f4f0ff;
+    --muted: #16131f;
+    --muted-foreground: #9a93ad;
+    --accent: #1f1a2e;
     --accent-foreground: #ffffff;
-    --destructive: #ff4d5e;
-    --border: #3a2760;
-    --input: #3a2760;
-    --ring: #00e5ff;
-    --chart-1: #ff2e88;
-    --chart-2: #00e5ff;
-    --chart-3: #ff8a00;
-    --chart-4: #b026ff;
-    --chart-5: #3dffb0;
-    --radius: 0.75rem;
-    --sidebar: #0e0719;
-    --sidebar-foreground: #e7dcff;
-    --sidebar-primary: #ff2e88;
+    --destructive: #ff4d6d;
+    --border: #231e31;
+    --input: #2a2438;
+    --ring: #a78bfa;
+    --chart-1: #ff3d9a;
+    --chart-2: #8b5cf6;
+    --chart-3: #e879f9;
+    --chart-4: #b9a4ff;
+    --chart-5: #34d399;
+    --radius: 0.85rem;
+    --sidebar: #0a0910;
+    --sidebar-foreground: #ddd6f3;
+    --sidebar-primary: #ff3d9a;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #24163b;
+    --sidebar-accent: #17131f;
     --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #2a1a45;
-    --sidebar-ring: #00e5ff;
+    --sidebar-border: #1c1828;
+    --sidebar-ring: #a78bfa;
     color-scheme: dark;
 }
 
@@ -105,24 +112,116 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
-    @apply bg-background text-foreground;
-    }
+    @apply bg-background text-foreground antialiased;
+    font-optical-sizing: auto;
+  }
   html {
     @apply font-sans;
-    }
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--vc-rosa) 45%, transparent);
+  }
+  /* barra de rolagem fina, no tom do tema */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2e2742 transparent;
+  }
 }
+
+@keyframes brilho-passando {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@keyframes girar-borda {
+  to { --angulo: 360deg; }
+}
+@property --angulo {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @layer utilities {
-  .texto-sunset {
-    background-image: linear-gradient(90deg, var(--vc-rosa), #ff5a6e, var(--vc-laranja), #ffc23d);
+  /* texto em gradiente lilás -> roxo -> rosa (logo, números de destaque) */
+  .texto-gradiente {
+    background-image: linear-gradient(95deg, #d8ccff 0%, var(--vc-roxo) 45%, var(--vc-rosa) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .fundo-vice {
+  /* fundo da aplicação: brilhos roxo/rosa nos cantos + granulado bem leve */
+  .fundo-app {
+    background-color: var(--background);
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in oklab, var(--vc-roxo) 22%, transparent), transparent),
-      radial-gradient(ellipse 60% 40% at 100% 100%, color-mix(in oklab, var(--vc-rosa) 10%, transparent), transparent);
+      radial-gradient(ellipse 60% 45% at 15% -5%, color-mix(in oklab, var(--vc-roxo) 20%, transparent), transparent 70%),
+      radial-gradient(ellipse 50% 40% at 100% 105%, color-mix(in oklab, var(--vc-rosa) 12%, transparent), transparent 70%);
+    background-attachment: fixed;
+  }
+  .fundo-app::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* card clicável: borda em gradiente que acende e brilho rosa no hover */
+  .cartao-brilho {
+    position: relative;
+    border-radius: 1.1rem;
+    background: linear-gradient(180deg, color-mix(in oklab, var(--card) 92%, white 3%), var(--card));
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.8);
+    transition: box-shadow 0.3s ease;
+  }
+  .cartao-brilho::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: conic-gradient(from var(--angulo), var(--vc-roxo), var(--vc-rosa), #d8ccff, var(--vc-roxo));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .cartao-brilho:hover {
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04), 0 18px 40px -14px color-mix(in oklab, var(--vc-rosa) 45%, transparent);
+  }
+  .cartao-brilho:hover::before {
+    opacity: 1;
+    animation: girar-borda 3s linear infinite;
+  }
+
+  /* botão de ação principal: brilho rosa que cresce no hover */
+  .botao-brilho {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  .botao-brilho:not(:disabled):hover {
+    box-shadow: 0 0 28px -4px color-mix(in oklab, var(--vc-rosa) 70%, transparent);
+  }
+
+  /* skeleton com brilho passando */
+  .brilho-carregando {
+    background: linear-gradient(90deg, var(--muted) 0%, #221c30 40%, var(--muted) 80%);
+    background-size: 200% 100%;
+    animation: brilho-passando 1.6s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cartao-brilho:hover::before,
+  .brilho-carregando {
+    animation: none;
   }
 }

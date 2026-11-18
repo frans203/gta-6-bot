@@ -1,6 +1,7 @@
 import '@/index.css'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'motion/react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
@@ -21,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <ProvedorConta>
         <TooltipProvider>
-          <RouterProvider router={router} />
+          <MotionConfig reducedMotion="user">
+            <RouterProvider router={router} />
+          </MotionConfig>
           <Toaster theme="dark" richColors position="bottom-right" />
         </TooltipProvider>
       </ProvedorConta>
