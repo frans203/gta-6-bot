@@ -29,4 +29,5 @@ export const chaves = {
   editor: (corteId: number) => ['editor', corteId] as const,
   vigia: (streamerId: number) => ['vigia', streamerId] as const,
   vigiaTodos: ['vigia'] as const,
+  aprendizado: ['aprendizado'] as const,
 }

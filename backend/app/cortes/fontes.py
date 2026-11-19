@@ -1,6 +1,7 @@
 """Onde os vídeos vêm: listar VODs/clipes de um canal, ler dados de uma URL e baixar trechos.
 Usa o yt-dlp (Twitch e YouTube) e, se configurada, a API oficial da Twitch (Helix) para os clipes."""
 import json
+import math
 import re
 import time
 import urllib.parse
@@ -179,7 +180,58 @@ def info(url: str) -> dict:
     return {"titulo": i.get("title") or "", "duracao": i.get("duration"), "views": i.get("view_count"),
             "publicado_em": _data(i.get("timestamp") or i.get("upload_date")),
             "miniatura": thumbs[-1]["url"] if thumbs else i.get("thumbnail"),
-            "heatmap": i.get("heatmap") or [], "id": i.get("id"), "largura": i.get("width"), "altura": i.get("height")}
+            "heatmap": i.get("heatmap") or [], "id": i.get("id"), "largura": i.get("width"), "altura": i.get("height"),
+            "tem_chat": "live_chat" in (i.get("subtitles") or {})}
+
+
+class _ChatChegou(Exception):
+    """O chat baixado já passou do fim do trecho: para o download (o resto não interessa)."""
+
+
+def _ultimo_offset(arquivo: str) -> float | None:
+    """Segundo do vídeo da última mensagem já gravada no .part do chat (lê só o fim do arquivo)."""
+    try:
+        with open(arquivo, "rb") as fp:
+            fp.seek(0, 2)
+            fp.seek(max(0, fp.tell() - 65536))
+            achados = re.findall(rb'videoOffsetTimeMsec"\s*:\s*"(\d+)', fp.read())
+    except OSError:
+        return None
+    return int(achados[-1]) / 1000 if achados else None
+
+
+def baixar_chat_youtube(url: str, destino: Path, ate: float | None = None, ao_progresso=None) -> tuple[Path, float | None] | None:
+    """Chat gravado de uma live do YouTube (a 'legenda' live_chat do yt-dlp: JSON, uma ação por linha).
+    O YouTube entrega o chat em páginas, ~8x mais rápido que o tempo real (11h de live = ~1h20 baixando), então
+    com `ate` o download para quando o chat passa desse segundo. Devolve (arquivo, até onde cobre ou None se
+    veio inteiro), ou None se o vídeo não tem chat gravado."""
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    parou: dict = {}
+
+    def gancho(d):
+        arq = d.get("tmpfilename") or d.get("filename")
+        if d.get("status") != "downloading" or not arq or not ate:
+            return
+        s = _ultimo_offset(arq)
+        if s is None:
+            return
+        if ao_progresso:
+            ao_progresso(min(s / ate, 1.0))
+        if s > ate + 60:
+            parou["ate"] = s
+            raise _ChatChegou()
+
+    try:
+        with _ydl(skip_download=True, writesubtitles=True, subtitleslangs=["live_chat"], progress_hooks=[gancho],
+                  outtmpl=str(destino.with_suffix(".%(ext)s"))) as y:
+            y.extract_info(url, download=True)
+    except Exception:
+        if "ate" not in parou:
+            raise
+    achados = sorted(destino.parent.glob(destino.stem + "*.live_chat.json*"), key=lambda p: p.suffix == ".part")
+    if not achados:
+        return None
+    return achados[0], parou.get("ate")
 
 
 # ------------------------------------------------------------------ baixar
@@ -297,4 +349,40 @@ def identificar(url: str) -> dict:
         "idioma": (i.get("language") or "")[:2] or None,   # nem todo site informa; o Whisper confirma depois
         "largura": i.get("width"),
         "altura": i.get("height"),
+        "heatmap": i.get("heatmap") or [],   # só para o mapa (a resposta da API não devolve)
     }
+
+
+def mapa_momentos(ident: dict, passo: int = 300) -> dict | None:
+    """Onde está a ação num VOD, para ajudar a escolher o trecho: uma nota 0..1 a cada `passo` s.
+    Twitch: clipes que os espectadores fizeram nesta live (Helix). YouTube: o gráfico de "mais assistidos".
+    None se não houver nenhum dos dois (ou a API falhar: o mapa é só uma ajuda)."""
+    dur = int(ident.get("duracao") or 0)
+    if dur < passo * 2:
+        return None
+    n = -(-dur // passo)
+    caixas = [0.0] * n
+    origem = None
+    try:
+        m = re.search(r"videos/(\d+)", ident["url"])
+        if ident["plataforma"] == "twitch" and m and TwitchAPI.disponivel():
+            v = TwitchAPI.video(m.group(1))
+            if v and v.get("criado_em"):
+                ini = datetime.fromisoformat(v["criado_em"].replace("Z", "+00:00"))
+                clipes = TwitchAPI.clipes_entre(ident["canal"], ini, ini + timedelta(seconds=dur + 3600), limite=300)
+                for c in clipes:
+                    if c.get("video_id") == m.group(1) and c.get("vod_offset") is not None:
+                        k = min(n - 1, int(c["vod_offset"] // passo))
+                        caixas[k] += math.log1p(c.get("view_count") or 0) + 1
+                origem = "clipes_twitch" if any(caixas) else None
+        if not origem and ident.get("heatmap"):
+            for ponto in ident["heatmap"]:
+                k = min(n - 1, int(ponto["start_time"] // passo))
+                caixas[k] = max(caixas[k], float(ponto["value"]))
+            origem = "mais_assistidos"
+    except Exception:  # noqa: BLE001 - o mapa é opcional
+        return None
+    topo = max(caixas)
+    if not origem or topo <= 0:
+        return None
+    return {"mapa": [round(x / topo, 3) for x in caixas], "mapa_passo": passo, "mapa_origem": origem}

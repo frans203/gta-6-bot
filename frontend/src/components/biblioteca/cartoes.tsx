@@ -6,6 +6,7 @@ import { urls } from '@/api/cliente'
 import type { Corte, Fonte, Job } from '@/api/tipos'
 import { BarraJob } from '@/components/job-progresso'
 import { Plataforma } from '@/components/plataforma'
+import { Motivos } from '@/components/sinais'
 import { StatusChip } from '@/components/status-chip'
 import { gerando, LIMITE_TITULO, urlMiniatura } from '@/lib/biblioteca'
 import { fmtDataHora, fmtDuracao, fmtTempo } from '@/lib/formatos'
@@ -161,6 +162,7 @@ export function CartaoTrecho({ corte, job, onAbrir, capaFonte }: {
       </div>
       <div className="space-y-2 p-3">
         <p className="line-clamp-2 text-sm">{corte.titulo || <span className="text-muted-foreground">sem título</span>}</p>
+        <Motivos sinais={corte.sinais} />
         {gerando(corte) && job && <BarraJob job={job} />}
       </div>
     </Casca>

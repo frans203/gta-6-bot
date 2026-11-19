@@ -1,7 +1,7 @@
 import { DndContext, type DragEndEvent, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { horizontalListSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Pause, Play, Scissors, SkipBack, Trash2 } from 'lucide-react'
+import { ClipboardPaste, Copy, CopyPlus, GripVertical, Pause, Play, Scissors, ScissorsLineDashed, SkipBack, Star, Trash2, Zap } from 'lucide-react'
 import { useRef, useState } from 'react'
 import useMeasure from 'react-use-measure'
 
@@ -26,6 +26,14 @@ interface Props {
   onChange: (ed: Edicao, grupo?: string) => void
   onCortar: () => void
   onApagar: () => void
+  onCopiar: () => void
+  onRecortar: () => void
+  onColar: () => void
+  onDuplicar: () => void
+  temCopia: boolean
+  /** momento mais forte do corte, em segundos do ARQUIVO (análise: sinais.pico); null = não se sabe */
+  pico?: number | null
+  onGanchoInicio?: () => void
 }
 
 function Dica({ texto, atalho, children }: { texto: string; atalho?: string; children: React.ReactNode }) {
@@ -92,10 +100,10 @@ function Bloco({ id, k, seg, largura, selecionado, onSelecionar, onAparar }: {
 }
 
 /**
- * Linha do tempo do vídeo editado (trechos na ordem) + barra do vídeo original embaixo, com a folga baixada
+ * Linha do tempo do vídeo editado (trechos na ordem; arraste um trecho para movê-lo; copiar/recortar/colar no cursor) + barra do vídeo original embaixo, com a folga baixada
  * e onde cada trecho foi tirado.
  */
-export function Timeline({ ed, segs, base, duracaoArquivo, janela, rep, selecionado, onSelecionar, onChange, onCortar, onApagar }: Props) {
+export function Timeline({ ed, segs, base, duracaoArquivo, janela, rep, selecionado, onSelecionar, onChange, onCortar, onApagar, onCopiar, onRecortar, onColar, onDuplicar, temCopia, pico, onGanchoInicio }: Props) {
   const trilha = useRef<HTMLDivElement>(null)
   const sensores = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
   // enquanto apara, a escala (px por segundo) fica parada: senão os blocos "fogem" do mouse
@@ -183,6 +191,34 @@ export function Timeline({ ed, segs, base, duracaoArquivo, janela, rep, selecion
               <Scissors /> Cortar aqui
             </Button>
           </Dica>
+          <span className="mx-1 h-5 w-px bg-white/10" />
+          <Dica texto="Copiar o trecho selecionado" atalho="Ctrl+C">
+            <Button size="icon-sm" variant="outline" disabled={selecionado == null} onClick={onCopiar} aria-label="Copiar trecho">
+              <Copy />
+            </Button>
+          </Dica>
+          <Dica texto="Recortar o trecho selecionado (tira daqui para colar em outro lugar)" atalho="Ctrl+X">
+            <Button size="icon-sm" variant="outline" disabled={selecionado == null || ed.segmentos.length <= 1} onClick={onRecortar} aria-label="Recortar trecho">
+              <ScissorsLineDashed />
+            </Button>
+          </Dica>
+          <Dica texto="Colar no cursor (no meio de um trecho, ele é dividido)" atalho="Ctrl+V">
+            <Button size="sm" variant={temCopia ? 'default' : 'outline'} disabled={!temCopia} onClick={onColar}>
+              <ClipboardPaste /> Colar
+            </Button>
+          </Dica>
+          <Dica texto="Duplicar o trecho selecionado" atalho="Ctrl+D">
+            <Button size="icon-sm" variant="outline" disabled={selecionado == null} onClick={onDuplicar} aria-label="Duplicar trecho">
+              <CopyPlus />
+            </Button>
+          </Dica>
+          {onGanchoInicio && (
+            <Dica texto="Gancho no início: copia ~3 s em volta do ★ (momento mais forte) para o começo do vídeo">
+              <Button size="sm" variant="outline" disabled={pico == null} onClick={onGanchoInicio}>
+                <Zap /> Gancho no início
+              </Button>
+            </Dica>
+          )}
           <Dica texto="Apagar o trecho selecionado" atalho="Delete">
             <Button size="sm" variant="outline" disabled={selecionado == null || ed.segmentos.length <= 1} onClick={onApagar}>
               <Trash2 /> Apagar trecho
@@ -219,6 +255,17 @@ export function Timeline({ ed, segs, base, duracaoArquivo, janela, rep, selecion
               </div>
             </SortableContext>
           </DndContext>
+          {/* ★ momento mais forte (em cada trecho que o contém) */}
+          {pico != null &&
+            segs
+              .filter((s) => pico >= s.a && pico < s.b)
+              .map((s) => (
+                <Star
+                  key={`pico-${s.ini}`}
+                  className="pointer-events-none absolute -top-2 z-20 size-3.5 -translate-x-1/2 fill-amarelo text-amarelo drop-shadow"
+                  style={{ left: (s.ini + pico - s.a) * pxPorSeg }}
+                />
+              ))}
           {/* cursor */}
           <div className="pointer-events-none absolute -top-5 bottom-0 z-30 w-0.5 bg-rosa shadow-[0_0_8px] shadow-rosa" style={{ left: rep.t * pxPorSeg }}>
             <span className="absolute -top-1 -left-1.5 size-3.5 rotate-45 rounded-sm bg-rosa" />
@@ -248,6 +295,12 @@ export function Timeline({ ed, segs, base, duracaoArquivo, janela, rep, selecion
               {s.k + 1}
             </div>
           ))}
+          {pico != null && (
+            <Star
+              className="pointer-events-none absolute top-0.5 z-10 size-3.5 -translate-x-1/2 fill-amarelo text-amarelo"
+              style={{ left: `${(pico / duracaoArquivo) * 100}%` }}
+            />
+          )}
           <div className="absolute inset-y-0 w-px bg-rosa" style={{ left: `${(posArquivo / duracaoArquivo) * 100}%` }} />
         </div>
       </div>

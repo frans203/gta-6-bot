@@ -308,7 +308,8 @@ pronto tem **Mandar e agendar** (manda para a fila e já abre aqui) e o que já 
 Funciona igual ao Windows (passo a passo completo no [TUTORIAL.md](TUTORIAL.md#️-missão-5--o-cortador-cortes-de-lives)).
 Resumo:
 
-1. **Cortar vídeo**: cole o link da live/VOD, diga quantos cortes e clique em **Fazer os cortes**.
+1. **Cortar vídeo**: cole o link da live/VOD. Se a live for longa (mais de 3h), escolha **de qual trecho** cortar
+   (ex.: da 4ª à 6ª hora; as barrinhas mostram onde estão os clipes). Diga quantos cortes e clique em **Fazer os cortes**.
 2. **Biblioteca → Para revisar**: abra o vídeo, confira os cortes (selo amarelo = marcar onde está a webcam),
    escolha legenda/fundo e **Renderizar todos**.
 3. **Biblioteca → Prontos**: abra o corte e **Mandar para a fila** de uma conta. Daí ele é agendado como os outros.
@@ -316,6 +317,9 @@ Resumo:
    mude a ordem e confira com **Conferir no render** antes de **Salvar e gerar vídeo**.
 
 ### 📡 Vigia de clipes (Twitch)
+
+**Para vigiar um canal novo**: no **Painel**, card **Vigia de clipes**, digite o canal (ex.: `cellbit` ou o link) e
+clique **Vigiar**. Pronto: ele já começa a olhar sozinho. Para mudar as opções, clique no nome do canal no card.
 
 Na página do streamer da Twitch, aba **Vigia de clipes**: ligue e ele olha os clipes que o público faz a cada
 poucos minutos. Quando um clipe passa do **mínimo de views**, vira um corte **com contexto da live** (por padrão

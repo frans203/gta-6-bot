@@ -24,6 +24,10 @@ import {
   apagarTrecho,
   blocos,
   cortarEm,
+  duplicarTrecho,
+  ganchoNoInicio,
+  inserirTrecho,
+  type Trecho,
   type Edicao,
   type EditorInfo,
   type Palavra,
@@ -159,6 +163,50 @@ function Editor({ corte, info }: { corte: Corte; info: EditorInfo }) {
     }
   }, [ed, selTrecho, mudar])
 
+  // área de transferência de trechos (copiar/recortar → colar no cursor)
+  const [copia, setCopia] = useState<Trecho | null>(null)
+  const copiar = useCallback(() => {
+    if (selTrecho == null) return toast('Selecione um trecho (clique nele) para copiar')
+    const s = ed.segmentos[selTrecho]
+    setCopia({ i: s.i, f: s.f })
+    toast(`Trecho ${selTrecho + 1} copiado: ponha o cursor onde quiser e cole (Ctrl+V)`)
+  }, [ed, selTrecho])
+  const recortar = useCallback(() => {
+    if (selTrecho == null) return toast('Selecione um trecho (clique nele) para recortar')
+    const s = ed.segmentos[selTrecho]
+    const novo = apagarTrecho(ed, selTrecho)
+    if (!novo) return toast('O vídeo precisa de pelo menos um trecho: use Copiar')
+    setCopia({ i: s.i, f: s.f })
+    mudar(novo)
+    setSelTrecho(null)
+    toast(`Trecho ${selTrecho + 1} recortado: ponha o cursor onde quiser e cole (Ctrl+V)`)
+  }, [ed, selTrecho, mudar])
+  const colar = useCallback(() => {
+    if (!copia) return toast('Copie ou recorte um trecho antes')
+    const r = inserirTrecho(ed, segs, rep.tRef.current, copia, info.base)
+    if (!r) return toast('Limite de 60 trechos')
+    mudar(r.ed)
+    setSelTrecho(r.k)
+  }, [copia, ed, segs, rep.tRef, info.base, mudar])
+  const duplicar = useCallback(() => {
+    if (selTrecho == null) return toast('Selecione um trecho (clique nele) para duplicar')
+    const novo = duplicarTrecho(ed, selTrecho)
+    if (!novo) return toast('Limite de 60 trechos')
+    mudar(novo)
+    setSelTrecho(selTrecho + 1)
+  }, [ed, selTrecho, mudar])
+
+  const picoLive = typeof corte.sinais?.pico === 'number' ? (corte.sinais.pico as number) : null
+  const picoArq = picoLive != null && picoLive >= info.base && picoLive <= info.base + info.duracao ? picoLive - info.base : null
+  const ganchoInicio = useCallback(() => {
+    if (picoLive == null) return
+    const novo = ganchoNoInicio(ed, picoLive, info.base, info.duracao)
+    if (!novo) return toast('Limite de 60 trechos')
+    mudar(novo)
+    setSelTrecho(0)
+    rep.ir(0)
+  }, [ed, picoLive, info.base, info.duracao, mudar, rep])
+
   const gravar = (depois?: () => void) =>
     salvar.mutate(
       { edicao: ed, gancho: gancho || null },
@@ -186,6 +234,9 @@ function Editor({ corte, info }: { corte: Corte; info: EditorInfo }) {
       } else if (ctrl && e.key.toLowerCase() === 'y') {
         e.preventDefault()
         hist.refazer()
+      } else if (ctrl && ['c', 'x', 'v', 'd'].includes(e.key.toLowerCase())) {
+        e.preventDefault()
+        ;({ c: copiar, x: recortar, v: colar, d: duplicar })[e.key.toLowerCase() as 'c' | 'x' | 'v' | 'd']()
       } else if (ctrl && e.key.toLowerCase() === 's') {
         e.preventDefault()
         gravar()
@@ -351,6 +402,13 @@ function Editor({ corte, info }: { corte: Corte; info: EditorInfo }) {
         onChange={mudar}
         onCortar={cortar}
         onApagar={apagar}
+        onCopiar={copiar}
+        onRecortar={recortar}
+        onColar={colar}
+        onDuplicar={duplicar}
+        temCopia={!!copia}
+        pico={picoArq}
+        onGanchoInicio={ganchoInicio}
       />
       <p className="text-center text-[11px] text-muted-foreground">
         <kbd>Espaço</kbd> tocar · <kbd>S</kbd> cortar · <kbd>Delete</kbd> apagar trecho · <kbd>←</kbd>/<kbd>→</kbd> 1 quadro (

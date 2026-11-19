@@ -46,3 +46,11 @@ export function useVigiarAgora(streamerId: number) {
     { sucesso: 'Olhando os clipes agora...', invalidar: [chaves.jobsTodos] },
   )
 }
+
+/** Cadastra o canal da Twitch (se for novo) e já liga o vigia. */
+export function useAdicionarVigia() {
+  return useAcao(
+    (canal: string) => dados(api.POST('/api/vigia', { body: { canal } })),
+    { sucesso: (r) => `${r.nome} no vigia: olha os clipes a cada ${r.config.intervalo_min} min`, invalidar: [chaves.vigiaTodos, chaves.streamers] },
+  )
+}

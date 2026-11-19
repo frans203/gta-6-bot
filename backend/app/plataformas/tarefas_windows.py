@@ -30,7 +30,8 @@ def criar(conta, plataforma: str, video: Path, quando: datetime) -> str:
     _ps(
         f"$a = New-ScheduledTaskAction -Execute '{sys.executable}' -Argument '{args}' -WorkingDirectory '{config.raiz}';"
         f"$t = New-ScheduledTaskTrigger -Once -At ([datetime]'{quando:%Y-%m-%dT%H:%M:%S}');"
-        "$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -ExecutionTimeLimit (New-TimeSpan -Hours 1);"
+        "$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -WakeToRun -AllowStartIfOnBatteries "
+        "-DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Hours 1);"
         f"Register-ScheduledTask -TaskName '{nome}' -TaskPath '{PASTA}' -Action $a -Trigger $t -Settings $s -Force | Out-Null"
     )
     return nome

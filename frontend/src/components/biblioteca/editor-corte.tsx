@@ -22,18 +22,25 @@ import { AbasAnimadas } from '@/components/abas-animadas'
 import { gerando } from '@/lib/biblioteca'
 import { useConta } from '@/lib/conta'
 import { modeloEfetivo, podeRenderizar } from '@/lib/enquadramento'
+import { Motivos, NOMES_SINAIS } from '@/components/sinais'
 import { fmtTempo, lerTempo } from '@/lib/formatos'
+import { cn } from '@/lib/utils'
 
 const COR_SINAL: Record<string, string> = {
   audio: 'bg-rosa',
   mais_assistidos: 'bg-ciano',
   clipes_twitch: 'bg-roxo',
   views: 'bg-laranja',
+  chat_youtube: 'bg-amarelo',
 }
+const FORA_DAS_BARRAS = new Set(['pico', 'views', 'frase', 'aprendido'])
 
 /** Barrinhas com a força de cada detector no pico do corte. */
 function Sinais({ corte }: { corte: Corte }) {
-  const sinais = Object.entries(corte.sinais).filter(([k, v]) => k !== 'pico' && typeof v === 'number' && k !== 'views')
+  // só os detectores principais viram barra; os auxiliares (fala_risada, chat_reacoes...) aparecem em Motivos
+  const sinais = Object.entries(corte.sinais).filter(
+    ([k, v]) => !FORA_DAS_BARRAS.has(k) && typeof v === 'number' && !k.startsWith('fala_') && !k.startsWith('chat_m') && !k.startsWith('chat_r'),
+  )
   return (
     <div className="space-y-1.5 rounded-xl border bg-muted/30 p-3">
       <div className="flex items-center justify-between text-xs">
@@ -42,7 +49,7 @@ function Sinais({ corte }: { corte: Corte }) {
       </div>
       {sinais.map(([k, v], i) => (
         <div key={k} className="flex items-center gap-2 text-[11px]">
-          <span className="w-28 truncate text-muted-foreground">{k.replaceAll('_', ' ')}</span>
+          <span className="w-28 truncate text-muted-foreground">{NOMES_SINAIS[k] ?? k.replaceAll('_', ' ')}</span>
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
             <motion.div
               className={`h-full rounded-full ${COR_SINAL[k] ?? 'bg-verde'}`}
@@ -53,6 +60,7 @@ function Sinais({ corte }: { corte: Corte }) {
           </div>
         </div>
       ))}
+      <Motivos sinais={corte.sinais} className="pt-1" />
     </div>
   )
 }
@@ -173,7 +181,7 @@ function ContextoDaLive({ corte, inicio, fim, onChange }: {
   fim: number
   onChange: (c: { inicio?: number; fim?: number }) => void
 }) {
-  const extra = corte.extra as { clipes?: ClipeVigia[]; contexto?: { fonte?: string } }
+  const extra = corte.extra as { clipes?: ClipeVigia[]; contexto?: { fonte?: string; motivo?: string } }
   const clipes = extra.clipes ?? []
   const doVod = extra.contexto?.fonte === 'vod'
   const t = Math.floor(inicio)
@@ -207,7 +215,11 @@ function ContextoDaLive({ corte, inicio, fim, onChange }: {
           </a>
         </div>
       ) : (
-        <p className="text-muted-foreground">Sem VOD da live: este corte é o próprio clipe (sem contexto extra).</p>
+        <p className="text-muted-foreground">
+          {extra.contexto?.motivo === 'VOD só para inscritos'
+            ? 'O VOD desta live é só para inscritos (não dá para baixar): este corte é o próprio clipe, sem contexto extra.'
+            : 'Esta live não tem VOD (o streamer não salva as lives): este corte é o próprio clipe, sem contexto extra.'}
+        </p>
       )}
     </div>
   )
@@ -279,7 +291,8 @@ export function EditorCorte({ corte, jobs }: { corte: Corte; jobs: Job[] }) {
   )
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+    // corte vertical já renderizado: coluna estreita; prévia da live (16:9): coluna larga, senão fica minúscula
+    <div className={cn('grid gap-6', renderizado ? 'lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]' : 'lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]')}>
       {/* coluna do vídeo */}
       <div className="space-y-3">
         <div className="relative">

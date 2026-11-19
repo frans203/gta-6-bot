@@ -1,0 +1,24 @@
+{
+  "_leia": "Expressões que costumam marcar um momento forte da live (choque, grito, reação). Cada ocorrência numa frase aumenta a nota da fala. Sem acento e minúsculas tanto faz (a comparação ignora). 'todos' vale para qualquer idioma.",
+  "todos": ["omg", "wtf", "no way", "let's go", "lets go", "gg", "clip it", "clipa", "clip that"],
+  "pt": [
+    "caralho", "porra", "puta que pariu", "meu deus", "mano do ceu", "nossa senhora", "que isso",
+    "nao acredito", "nao creio", "mentira", "socorro", "ai meu deus", "vai vai vai", "corre", "cuidado",
+    "olha isso", "olha so", "olha ali", "eita", "vixe", "misericordia", "jesus", "nao nao", "para para",
+    "que absurdo", "absurdo", "inacreditavel", "impossivel", "ganhei", "ganhamos", "perdi", "morri",
+    "matei", "fodeu", "deu ruim", "que loucura", "loucura", "insano", "surreal", "pqp", "slk", "mds",
+    "clipa isso", "manda clip", "acabou", "toma", "toma essa", "rapaz"
+  ],
+  "en": [
+    "oh my god", "what the", "what the hell", "holy", "holy shit", "no no no", "yes yes", "bro", "dude",
+    "insane", "crazy", "unbelievable", "i can't believe", "are you serious", "are you kidding", "oh no",
+    "run", "go go go", "look at this", "look at that", "watch this", "chat", "clip that", "let's go",
+    "i'm dead", "i died", "we won", "we lost", "what just happened", "no shot", "bruh", "sheesh",
+    "fuck", "shit", "damn", "jesus", "wait wait", "stop stop", "help", "oh hell no"
+  ],
+  "es": [
+    "dios mio", "que es eso", "no puede ser", "madre mia", "joder", "hostia", "que locura", "increible",
+    "no no no", "vamos", "corre", "cuidado", "mira esto", "mira eso", "ayuda", "gane", "perdi", "me mori",
+    "que pasa", "en serio", "chat", "clip"
+  ]
+}

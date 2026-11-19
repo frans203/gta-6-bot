@@ -4,7 +4,8 @@ Projeto pessoal (Windows 11, PowerShell, Python 3.11+, Node 24) com duas partes:
 1. **Postagem**: posta/agenda vídeos em **TikTok, YouTube Shorts e Instagram Reels** controlando o Chrome com
    Playwright, com várias **contas** (cada conta = um perfil do Chrome + uma pasta de vídeos).
 2. **Cortador**: transforma lives (Twitch/YouTube) em cortes verticais com legenda, **sem IA paga**
-   (picos de áudio, heatmap do YouTube, clipes da Twitch via API oficial; Whisper local para legenda).
+   (picos de áudio, heatmap do YouTube, clipes da Twitch via API oficial, fala transcrita e chat gravado do
+   YouTube; Whisper local para legenda e para a análise).
 
 Idioma do projeto e do usuário: **português (BR)**. Fuso: America/Sao_Paulo (hora do PC).
 Leia também: [README.md](README.md) (arquitetura e comandos), [TUTORIAL.md](TUTORIAL.md) (manual do usuário),
@@ -42,6 +43,24 @@ twitch|youtube|kick|outro) → `POST /api/cortar` (cadastra streamer/fonte se no
 `corte.jogo`, idioma falado via Whisper → `fonte.extra.idioma`) → `POST /api/fontes/{id}/aplicar`
 (idioma_legenda, fundo, modelo para todos) → `POST /api/fontes/{id}/renderizar`.
 
+**Melhores momentos (sem IA paga)**: `detectores.py` = curvas de 1 nota/s no tempo da live, somadas com pesos:
+`audio` (1.0), `mais_assistidos` (1.5), `clipes_twitch` (2.0), `fala` (1.5: `cortes/fala.py`, Whisper
+`whisper_modelo_analise`=small, só se o trecho ≤ `fala_max_h`=4h; ritmo, explosão depois de silêncio, risada,
+`palavras_gancho.json`), `chat_youtube` (2.0: `cortes/chat.py`, legenda `live_chat` do yt-dlp; o YouTube entrega
+~8x o tempo real, então o download **para no fim do trecho**; cache `midia/chat/fonte_<id>.npz` com `_ate`).
+Curvas auxiliares (`fala_*`, `chat_*`) vão em `Analise.extras` → `corte.sinais` (não entram na nota).
+**Trecho**: VOD > 3h pede na tela "Cortar vídeo" de qual pedaço cortar (barra sobre o `mapa` que o
+`/api/identificar` devolve: clipes da Twitch ou heatmap, `fontes.mapa_momentos`); `inicio`/`fim` vão em
+`CortarVideoIn`/`AnalisarIn` → `fonte.extra.trecho` (reanalisar sem trecho usa o último). `escolher_picos` ajusta
+início/fim às frases (`fala.ajustar_as_frases`, `sinais.frase=1`) e a análise preenche `corte.gancho` com a frase
+mais forte (`fala.sugerir_gancho`). Transcrição da análise em `midia/transcricoes/fonte_<id>_<ini>_<fim>.json`; o
+idioma dela vira `fonte.extra.idioma` (o enquadramento não roda o Whisper de novo). **Aprendizado**
+(`cortes/aprendizado.py`): regressão logística em numpy sobre `corte.sinais`; bons = aprovado/pronto/na_fila,
+ruins = descartados **na revisão** (`extra.descartado_de` ∈ candidato/enquadrar, gravado pelo PATCH); com ≥ 30
+exemplos (≥ 10 de cada) pega 3x candidatos e reordena (`sinais.aprendido`); `dados/pesos_aprendidos.json`,
+`GET/PUT /api/aprendizado`, card na tela Modelos. Chat da Twitch de VOD: não (só sai por GQL, proibido).
+Editor: ★ = `sinais.pico`; botão "Gancho no início" (`ganchoNoInicio`) copia ~3 s em volta dele para o começo.
+
 **Interface (menu)**: Painel, Cortar vídeo, Biblioteca, Fila, Modelos, Contas, Jobs, Logs. Não há tela de
 Agenda nem de Streamers no menu (`/cortador/streamers/:id` abre pelo modal). **Agendar um vídeo**: Fila → gaveta do
 vídeo (`?video=X&aba=agendar`, `?conta=` troca a conta) → `components/agendar-video.tsx`: um horário por rede, sugeridos
@@ -74,7 +93,9 @@ ciclo pega na Helix os clipes das últimas `OBSERVAR_H` h, espera passarem de `m
 momento (mesmo VOD), espera o VOD cobrir clipe + `depois` + folga e cria o corte no VOD (`vod_offset` − `antes` até
 fim + `depois`), com `extra.origem="vigia"`; sem VOD usa o próprio clipe. Só prepara (`enquadrar_corte`): nunca
 renderiza nem posta sozinho. Estado (vistos, recentes, aguardando, momentos) em `streamers.vigia.estado`. Jobs do
-vigia sem resultado somem depois de 2 h. Credenciais da Twitch no `.env`.
+vigia sem resultado somem depois de 2 h. Credenciais da Twitch no `.env`. Adicionar canal: card do Painel →
+`POST /api/vigia {canal}` (`vigia.adicionar_canal`: confere na Helix, cadastra, liga). VOD só para inscritos: o
+download falha, `render._trecho` chama `vigia.usar_clipe_se_vod_fechado` (corte vira o clipe; `estado.vod_fechado`).
 
 Tradução da legenda: `cortes/traducao.py` (Argos/OPUS-MT no CTranslate2, grátis e local; `sentencepiece` instalado em
 `E:\jason-midia\libs`; modelos em `JASON_MIDIA/modelos/traducao`). Imagens de fundo: `JASON_MIDIA/fundos`
@@ -171,14 +192,17 @@ Pedido tipo "X vídeos por hora até HH:MM": calcule `X × horas` por plataforma
 - **Rodar lote longo**: pela interface (job) ou em processo independente (`Start-Process`), não como comando com
   timeout do agente. Para parar: cancele o job na tela Jobs (para entre um envio e outro). Na CLI: filtre por
   `Name='python.exe'` + `*agendar*` (um filtro só por linha de comando casa com o próprio shell do agente) e
-  feche os `chrome.exe` com `*perfil-chrome*` na linha de comando. Parar o `jason.py web` mata o worker.
+  feche os `chrome.exe` com `*perfil-chrome*` na linha de comando. Parar o `jason.py web` mata o worker (fechado à força,
+  o worker percebe pelo `JASON_PAI` em até 5 s e sai: antes ficavam workers órfãos rodando código velho).
 - **Perfil do Chrome é exclusivo**: só um processo por vez por conta. `trava_perfil(conta)` serializa lote, jobs
   e tarefas do Windows. Se o Chrome do script estiver aberto à mão, o envio falha ("browser has been closed").
 - Durante um lote, Instagram cujo horário chegar é postado **pelo próprio lote**; a tarefa do Windows depois vê
   `publicado` e não reposta (`enviar --video` pula o que já está publicado).
 - **yt-dlp no Windows**: o downloader HLS nativo perde fragmentos ("Frag… No such file"). O áudio usa formato
   HTTP direto ou o ffmpeg para HLS; `fontes._baixar` tenta de novo sem paralelismo.
-- **Lives longas** (Kai Cenat faz VODs de 30h+): o detector de áudio processa em blocos de 3h.
+- **Lives longas** (Kai Cenat faz VODs de 30h+): o detector de áudio processa em blocos de 3h; escolher um trecho
+  na tela evita baixar/analisar a live inteira. Whisper `medium` na RTX 3050 é ~2,5x o tempo real (lento para
+  análise): por isso a análise usa o `small` (~70x), e a legenda continua no `whisper_modelo` do `.env`.
 - **ffmpeg `ass=`** no Windows: o render roda o ffmpeg com `cwd` na pasta temporária e usa caminho relativo
   (caminho absoluto com `C:` quebra o filtro).
 - Muitos posts por hora podem ser tratados como spam (queda de alcance). O usuário está testando 3/h.

@@ -104,3 +104,49 @@ def test_api_vigia(banco, helix):
         assert cli.post(f"/api/streamers/{st.id}/vigia/agora").json()["tipo"] == "vigiar_clipes"
         painel = cli.get("/api/vigia").json()
         assert [p["nome"] for p in painel] == ["Kai"] and painel[0]["config"]["min_views"] == 50
+
+
+def test_vod_so_para_inscritos_vira_o_clipe(banco, helix):
+    from app.cortes import servico, vigia
+    sid = _streamer(min_views=10)
+    helix["clipes"] = [clipe("a", 100, offset=3000)]
+    cid = vigia.ciclo(sid, agora=AGORA, log=lambda m: None)["cortes"][0]
+    c = servico.obter_corte(cid)
+    assert c["fonte_tipo"] == "vod"
+    assert vigia.usar_clipe_se_vod_fechado(c, Exception("outro erro")) is None
+    erro = Exception("[twitch:vod] 1: You must be logged into an account that has access to this subscriber-only content")
+    novo = vigia.usar_clipe_se_vod_fechado(c, erro, log=lambda m: None)
+    assert novo["fonte_tipo"] == "clipe" and novo["fonte_url"] == "https://clips.twitch.tv/a"
+    assert (novo["inicio"], novo["fim"]) == (0.0, 30.0) and novo["extra"]["contexto"]["fonte"] == "clipe"
+    # o próximo clipe já nasce do clipe, sem esperar o VOD
+    helix["clipes"] = [clipe("b", 100, offset=6000, minutos_atras=5)]
+    cid2 = vigia.ciclo(sid, agora=AGORA, log=lambda m: None)["cortes"][0]
+    assert servico.obter_corte(cid2)["fonte_tipo"] == "clipe"
+
+
+def test_ciclo_que_falha_espera_o_intervalo(banco, helix):
+    from app.cortes import servico, vigia
+    sid = _streamer(intervalo_min=5)
+    vigia.salvar(sid, estado={**vigia.estado_de(servico.obter_streamer(sid)), "proxima": "2000-01-01T00:00:00"})
+    vigia.adiar(sid)
+    assert vigia.agendar(lambda *a: None) == []  # sem internet: não fica tentando a cada 30 s
+
+
+def test_adicionar_canal_ao_vigia(banco, helix, monkeypatch):
+    from app.api.main import create_app
+    from app.cortes import fontes, servico
+
+    def get(cls, caminho, **p):
+        if caminho == "users":
+            return {"data": [{"id": "9", "display_name": "Cellbit"}] if p["login"] == "cellbit" else []}
+        return {"data": [{"broadcaster_language": "pt"}]}
+    monkeypatch.setattr(fontes.TwitchAPI, "get", classmethod(get))
+    with TestClient(create_app()) as cli:
+        r = cli.post("/api/vigia", json={"canal": "https://www.twitch.tv/Cellbit/"})
+        assert r.status_code == 201, r.text
+        r = r.json()
+        assert r["nome"] == "Cellbit" and r["canal"] == "cellbit" and r["config"]["ativo"] and r["proxima"]
+        # de novo: não duplica, só mantém ligado
+        assert cli.post("/api/vigia", json={"canal": "cellbit", "config": {"min_views": 80}}).json()["config"]["min_views"] == 80
+        assert len(servico.listar_streamers()) == 1
+        assert cli.post("/api/vigia", json={"canal": "naoexiste"}).status_code == 400

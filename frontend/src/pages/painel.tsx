@@ -1,9 +1,10 @@
-import { AlertTriangle, Cpu, HardDrive, Radar, Scissors, Zap } from 'lucide-react'
+import { AlertTriangle, Cpu, HardDrive, Loader2, Plus, Radar, Scissors, Zap } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 
 import { useSistema } from '@/api/hooks/contas'
 import { useFontesComCortes } from '@/api/hooks/cortador'
-import { registros, usePainelVigia } from '@/api/hooks/vigia'
+import { registros, useAdicionarVigia, usePainelVigia } from '@/api/hooks/vigia'
 import { useJobs } from '@/api/hooks/jobs'
 import { usePosts, useVideos } from '@/api/hooks/postagem'
 import { urls } from '@/api/cliente'
@@ -13,7 +14,9 @@ import { JobProgresso } from '@/components/job-progresso'
 import { IconeTwitch } from '@/components/icones-marca'
 import { Plataforma } from '@/components/plataforma'
 import { StatusChip } from '@/components/status-chip'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { RollingNumber } from '@/components/ui/rolling-number'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ABAS_BIBLIOTECA, urlMiniatura } from '@/lib/biblioteca'
@@ -178,6 +181,32 @@ function ParaRevisar() {
   )
 }
 
+/** Campo "canal da Twitch" → cadastra (se for novo) e já liga o vigia. */
+function AdicionarAoVigia() {
+  const [canal, setCanal] = useState('')
+  const adicionar = useAdicionarVigia()
+  return (
+    <form
+      className="flex gap-2"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (canal.trim()) adicionar.mutate(canal.trim(), { onSuccess: () => setCanal('') })
+      }}
+    >
+      <Input
+        value={canal}
+        onChange={(e) => setCanal(e.target.value)}
+        placeholder="canal da Twitch (nome ou link)"
+        aria-label="Canal da Twitch para vigiar"
+        className="h-8 text-sm"
+      />
+      <Button size="sm" type="submit" variant="outline" disabled={!canal.trim() || adicionar.isPending}>
+        {adicionar.isPending ? <Loader2 className="animate-spin" /> : <Plus />} Vigiar
+      </Button>
+    </form>
+  )
+}
+
 function VigiaPainel() {
   const { data = [] } = usePainelVigia()
   const ativos = data.filter((v) => v.config.ativo)
@@ -185,7 +214,6 @@ function VigiaPainel() {
     .flatMap((v) => registros(v.recentes).filter((x) => x.situacao === 'corte').map((x) => ({ ...x, nome: v.nome })))
     .sort((a, b) => String(b.em).localeCompare(String(a.em)))
     .slice(0, 5)
-  if (!data.length) return null
   return (
     <Card>
       <CardHeader>
@@ -194,6 +222,7 @@ function VigiaPainel() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
+        <AdicionarAoVigia />
         <div className="flex flex-wrap gap-2">
           {data.map((v) => (
             <Link
@@ -224,7 +253,7 @@ function VigiaPainel() {
           </ul>
         ) : (
           <p className="text-xs text-muted-foreground">
-            {ativos.length ? 'Nenhum clipe virou corte ainda.' : 'Ligue o vigia na página de um streamer da Twitch (aba “Vigia de clipes”).'}
+            {ativos.length ? 'Nenhum clipe virou corte ainda.' : 'Digite um canal da Twitch acima: o vigia olha os clipes novos sozinho e manda os bons para a Biblioteca.'}
           </p>
         )}
       </CardContent>

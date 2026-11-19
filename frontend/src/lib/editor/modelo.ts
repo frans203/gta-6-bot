@@ -125,6 +125,65 @@ export function apagarTrecho(ed: Edicao, k: number): Edicao | null {
   return { ...ed, segmentos: ed.segmentos.filter((_, i) => i !== k) }
 }
 
+/** Mesmo limite do backend (schemas.Edicao.segmentos). */
+export const MAX_TRECHOS = 60
+
+export interface Trecho {
+  i: number
+  f: number
+}
+
+/**
+ * Insere um trecho (segundos da live) no tempo t da linha do tempo. Perto da ponta de um trecho, entra antes/depois
+ * dele; no meio, divide o trecho em dois e entra entre as metades. Devolve a edição e o índice do trecho inserido.
+ */
+export function inserirTrecho(ed: Edicao, segs: SegArq[], t: number, trecho: Trecho, base: number): { ed: Edicao; k: number } | null {
+  if (ed.segmentos.length >= MAX_TRECHOS) return null
+  const novo = { i: trecho.i, f: trecho.f }
+  const segmentos = [...ed.segmentos]
+  const total = duracaoTotal(segs)
+  const pos = t < total - 1e-6 ? localizar(segs, t) : null
+  if (!pos) {
+    segmentos.push(novo)
+    return { ed: { ...ed, segmentos }, k: segmentos.length - 1 }
+  }
+  const { seg } = pos
+  const dentro = t - seg.ini
+  if (dentro < DUR_MIN) {
+    segmentos.splice(seg.k, 0, novo)
+    return { ed: { ...ed, segmentos }, k: seg.k }
+  }
+  if (seg.b - seg.a - dentro < DUR_MIN) {
+    segmentos.splice(seg.k + 1, 0, novo)
+    return { ed: { ...ed, segmentos }, k: seg.k + 1 }
+  }
+  if (segmentos.length + 2 > MAX_TRECHOS) return null
+  const s = segmentos[seg.k]
+  const corte = pos.arquivo + base
+  segmentos.splice(seg.k, 1, { i: s.i, f: corte }, novo, { i: corte, f: s.f })
+  return { ed: { ...ed, segmentos }, k: seg.k + 1 }
+}
+
+/** Cópia do trecho logo depois dele. */
+export function duplicarTrecho(ed: Edicao, k: number): Edicao | null {
+  if (ed.segmentos.length >= MAX_TRECHOS) return null
+  const segmentos = [...ed.segmentos]
+  segmentos.splice(k + 1, 0, { ...segmentos[k] })
+  return { ...ed, segmentos }
+}
+
+/** "Gancho em vídeo": cópia de ~`dur` s em volta do pico (segundos da live) no COMEÇO do vídeo.
+ *  O momento mais forte aparece logo de cara e depois de novo no lugar dele. */
+export function ganchoNoInicio(ed: Edicao, pico: number, base: number, duracaoArquivo: number, dur = 3): Edicao | null {
+  if (ed.segmentos.length >= MAX_TRECHOS) return null
+  const fimArq = base + duracaoArquivo
+  if (pico < base || pico > fimArq) return null
+  let i = Math.max(base, pico - dur / 2)
+  const f = Math.min(fimArq, i + dur)
+  i = Math.max(base, f - dur)
+  return { ...ed, segmentos: [{ i: Math.round(i * 1000) / 1000, f: Math.round(f * 1000) / 1000 }, ...ed.segmentos] }
+}
+
 export function moverTrecho(ed: Edicao, de: number, para: number): Edicao {
   const segmentos = [...ed.segmentos]
   const [s] = segmentos.splice(de, 1)

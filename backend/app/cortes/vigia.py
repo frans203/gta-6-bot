@@ -9,7 +9,9 @@ A cada `intervalo_min` (o worker agenda o job `vigiar_clipes`):
   4. cria o corte com `antes` / `depois` segundos de contexto e já prepara (baixa o trecho, acha a webcam);
   5. PARA: o corte fica na Biblioteca esperando você revisar. Nada é renderizado nem postado sozinho.
 
-Só usa a API oficial (Helix). Sem VOD (arquivo da live desligado, VOD só para inscritos): usa o próprio clipe.
+Só usa a API oficial (Helix). Sem VOD (arquivo da live desligado) usa o próprio clipe. VOD só para inscritos: o
+download falha, o corte passa para o clipe (`usar_clipe_se_vod_fechado`) e o streamer fica com `estado.vod_fechado`,
+então os próximos já nascem do clipe.
 """
 import math
 from datetime import UTC, datetime, timedelta
@@ -76,6 +78,29 @@ def configurar(streamer_id: int, config: dict) -> dict:
     return resumo(servico.obter_streamer(streamer_id))
 
 
+def adicionar_canal(canal: str, config: dict | None = None) -> tuple[Streamer, bool]:
+    """Cadastra o canal da Twitch (se for novo) e já liga o vigia. Devolve (streamer, criado).
+
+    Confere na Helix que o canal existe e pega o nome de exibição e o idioma da live."""
+    if not fontes.TwitchAPI.disponivel():
+        raise ValueError("configure JASON_TWITCH_CLIENT_ID e JASON_TWITCH_CLIENT_SECRET no .env")
+    login = servico.normalizar_canal("twitch", canal)
+    if not login:
+        raise ValueError("informe o canal da Twitch (nome ou link)")
+    d = fontes.TwitchAPI.get("users", login=login)["data"]
+    if not d:
+        raise ValueError(f"canal da Twitch não encontrado: {login}")
+    nome, idioma = d[0].get("display_name") or login, "pt"
+    try:
+        ch = fontes.TwitchAPI.get("channels", broadcaster_id=d[0]["id"])["data"]
+        idioma = (ch[0].get("broadcaster_language") or "pt")[:2] if ch else "pt"
+    except Exception:  # noqa: BLE001 - o idioma é só um palpite
+        pass
+    st, criado = servico.streamer_por_canal("twitch", login, nome, idioma)
+    configurar(st.id, {**(config or {}), "ativo": True})
+    return servico.obter_streamer(st.id), criado
+
+
 def resumo(st: Streamer) -> dict:
     e = estado_de(st)
     return {"config": config_de(st), "ultima": e.get("ultima"), "proxima": e.get("proxima"), "hoje": e["hoje"],
@@ -128,6 +153,13 @@ def _miniatura(url: str | None) -> str | None:
     return url.replace("%{width}", "640").replace("%{height}", "360") if url else None
 
 
+def adiar(streamer_id: int):
+    """Um ciclo falhou (sem internet, Twitch fora): tenta de novo só no próximo intervalo, não a cada 30 s."""
+    st = servico.obter_streamer(streamer_id)
+    prox = datetime.now() + timedelta(minutes=config_de(st)["intervalo_min"])
+    salvar(streamer_id, estado={**estado_de(st), "proxima": prox.isoformat(timespec="seconds")})
+
+
 def ciclo(streamer_id: int, agora: datetime | None = None, log=print, enfileirar=None) -> dict:
     """Uma olhada nos clipes do streamer. `agora` (UTC) e `enfileirar` existem para os testes."""
     st = servico.obter_streamer(streamer_id)
@@ -170,7 +202,8 @@ def ciclo(streamer_id: int, agora: datetime | None = None, log=print, enfileirar
             e["recentes"].append(_registro(principal, "ignorado", f"mesmo momento do corte #{repetido['corte_id']}"))
             continue
 
-        video = fontes.TwitchAPI.video(principal["video_id"]) if principal.get("video_id") else None
+        fechado = e.get("vod_fechado")  # VOD só para inscritos: não dá para baixar o contexto da live
+        video = fontes.TwitchAPI.video(principal["video_id"]) if principal.get("video_id") and not fechado else None
         if intervalo and video:
             precisa = intervalo[1] + cfg["depois"] + edicao.MARGEM
             if video["duracao"] < precisa:
@@ -185,7 +218,7 @@ def ciclo(streamer_id: int, agora: datetime | None = None, log=print, enfileirar
                 "publicado_em": (video["criado_em"] or "")[:16].replace("T", " ") or None}])[0]
             inicio, fim = max(0.0, intervalo[0] - cfg["antes"]), intervalo[1] + cfg["depois"]
             origem = "vod"
-        elif agora - _quando(principal["created_at"]) < ESPERA_VOD and principal.get("video_id"):
+        elif not fechado and agora - _quando(principal["created_at"]) < ESPERA_VOD and principal.get("video_id"):
             e["aguardando"][principal["id"]] = _registro(principal, "aguardando",
                                                          "esperando a Twitch ligar o clipe ao VOD da live")
             aguardando += 1
@@ -213,7 +246,8 @@ def ciclo(streamer_id: int, agora: datetime | None = None, log=print, enfileirar
         if intervalo:
             e["momentos"] = (e["momentos"] + [{"video_id": principal["video_id"], "i": intervalo[0],
                                                "f": intervalo[1], "corte_id": cid}])[-200:]
-        e["recentes"].append(_registro(principal, "corte", "sem VOD: usei o próprio clipe" if origem == "clipe" else
+        e["recentes"].append(_registro(principal, "corte", ("VOD só para inscritos: usei o próprio clipe" if fechado else
+                                                            "sem VOD: usei o próprio clipe") if origem == "clipe" else
                                        f"+{cfg['antes']}s antes / +{cfg['depois']}s depois", cid))
         criados.append(cid)
         log(f"corte #{cid}: “{principal.get('title')}” ({views} views, {len(grupo)} clipe(s), {origem})")
@@ -226,6 +260,31 @@ def ciclo(streamer_id: int, agora: datetime | None = None, log=print, enfileirar
     e["proxima"] = (datetime.now() + timedelta(minutes=cfg["intervalo_min"])).isoformat(timespec="seconds")
     salvar(st.id, estado=e)
     return {"novos": len(criados), "cortes": criados, "aguardando": aguardando, "clipes": len(clipes)}
+
+
+# ------------------------------------------------------------------ VOD só para inscritos
+
+def vod_fechado(erro: Exception | str) -> bool:
+    t = str(erro).lower()
+    return "subscriber-only" in t or "subscriber only" in t or "must be logged into an account" in t
+
+
+def usar_clipe_se_vod_fechado(c: dict, erro: Exception, log=print) -> dict | None:
+    """O VOD de um corte do vigia não baixa (só para inscritos): o corte passa a ser o clipe mais visto do grupo e o
+    streamer fica marcado para os próximos cortes já nascerem do clipe. Devolve o corte atualizado (ou None)."""
+    extra = c.get("extra") or {}
+    clipes = extra.get("clipes") or []
+    if not vod_fechado(erro) or c.get("fonte_tipo") != "vod" or extra.get("origem") != "vigia" or not clipes:
+        return None
+    cl = max(clipes, key=lambda x: x.get("views") or 0)
+    fid = servico.salvar_fontes(c["streamer_id"], [{"url": cl["url"], "tipo": "clipe", "titulo": cl.get("titulo") or "",
+                                                    "duracao": cl["duracao"], "views": cl.get("views")}])[0]
+    novo = servico.atualizar_corte(c["id"], fonte_id=fid, inicio=0.0, fim=float(cl["duracao"]), extra={
+        **extra, "contexto": {"antes": 0, "depois": 0, "fonte": "clipe", "motivo": "VOD só para inscritos"}})
+    st = servico.obter_streamer(c["streamer_id"])
+    salvar(st.id, estado={**estado_de(st), "vod_fechado": True})
+    log("o VOD é só para inscritos: usando o próprio clipe (sem o contexto antes/depois)")
+    return novo
 
 
 # ------------------------------------------------------------------ agendamento (chamado pelo worker)

@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Plataforma = Literal["tiktok", "youtube", "instagram"]
 
@@ -290,6 +290,11 @@ class VigiaOut(BaseModel):
     aguardando: list[dict[str, Any]] = []
 
 
+class VigiaAdicionarIn(BaseModel):
+    canal: str = Field(min_length=2, description="nome ou link do canal da Twitch")
+    config: VigiaConfig | None = None
+
+
 class VigiaStreamerOut(VigiaOut):
     streamer_id: int
     nome: str
@@ -413,6 +418,24 @@ class FonteOut(Saida):
     cortes_status: dict[str, int] = {}
     streamer_nome: str = ""
     plataforma: str = ""
+    trecho: dict[str, float] | None = Field(None, description="último trecho analisado {inicio, fim}")
+
+
+class AprendizadoOut(BaseModel):
+    ligado: bool
+    pronto: bool
+    exemplos: int
+    aprovados: int
+    descartados: int
+    minimo: int
+    minimo_por_tipo: int
+    pesos: dict[str, float] = {}
+    vies: float = 0.0
+    treinado_em: str | None = None
+
+
+class AprendizadoIn(BaseModel):
+    ligado: bool
 
 
 class FonteIn(BaseModel):
@@ -420,7 +443,18 @@ class FonteIn(BaseModel):
     url: str
 
 
-class AnalisarIn(BaseModel):
+class Trecho(BaseModel):
+    inicio: float | None = Field(None, ge=0, description="trecho da live a analisar (s); sem = o vídeo inteiro")
+    fim: float | None = Field(None, gt=0)
+
+    @model_validator(mode="after")
+    def _ordem(self):
+        if self.fim is not None and (self.inicio or 0) + 60 > self.fim:
+            raise ValueError("o trecho precisa ter pelo menos 1 minuto")
+        return self
+
+
+class AnalisarIn(Trecho):
     max_cortes: int = Field(8, ge=1, le=40)
     duracao: int = Field(45, ge=15, le=180, description="duração alvo de cada corte, em segundos")
     detectores: list[str] | None = None
@@ -512,9 +546,15 @@ class IdentificarOut(BaseModel):
     streamer_nome: str | None = None
     streamer_modelo_id: int | None = Field(None, description="modelo de corte do streamer (None = o padrão)")
     fonte_id: int | None = Field(None, description="este vídeo já foi adicionado antes")
+    mapa: list[float] | None = Field(None, description="onde está a ação: uma nota (0..1) a cada `mapa_passo` s, "
+                                     "pelos clipes da Twitch ou pelo 'mais assistidos' do YouTube")
+    mapa_passo: int = 300
+    mapa_origem: str | None = Field(None, description="clipes_twitch | mais_assistidos")
+    trecho_obrigatorio_s: int = Field(10800, description="vídeos mais longos que isso pedem um trecho")
+    fala_max_s: int = Field(14400, description="trechos maiores que isso pulam a leitura da fala")
 
 
-class CortarVideoIn(BaseModel):
+class CortarVideoIn(Trecho):
     url: str = Field(min_length=8)
     quantidade: int = Field(3, ge=1, le=20)
     duracao: int = Field(45, ge=15, le=180)

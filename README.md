@@ -6,7 +6,9 @@ Duas ferramentas num projeto só, controladas pela **interface web** (React) ou 
    Chrome de verdade (Playwright), com várias contas, e cada conta tem o próprio perfil do Chrome e a própria pasta
    de vídeos.
 2. **Cortador**: transforma lives da **Twitch/YouTube** em cortes verticais 1080×1920 **sem IA paga**. Ele:
-   - acha os momentos bons por picos de áudio, heatmap do YouTube e clipes da Twitch;
+   - acha os momentos bons por picos de áudio, heatmap do YouTube, clipes da Twitch, fala transcrita (risadas,
+     gritos, palavras de choque) e chat gravado do YouTube, num trecho da live que você escolhe;
+   - aprende com os cortes que você aprova e descarta (regressão logística local);
    - detecta a webcam do streamer (OpenCV);
    - monta o layout com ffmpeg;
    - legenda palavra por palavra com Whisper local (com tradução local opcional);
@@ -144,10 +146,13 @@ Menu da interface: **Painel · Cortar vídeo · Biblioteca · Fila · Modelos ·
 - **Modelos**: layout + estilo de legenda + parâmetros (divisão, altura da legenda e do gancho, barra, crédito
   `twitch.tv/<canal>`). Vale o modelo do corte, depois o do streamer, depois o padrão.
 - **Vigia de clipes** (Twitch): fica na aba "Vigia de clipes" na página do streamer, e há um card no Painel.
+  - **Adicionar canal**: no card do Painel, digite o canal (nome ou link) e clique **Vigiar**: cadastra o streamer
+    (se for novo) e já liga o vigia (`POST /api/vigia {canal}`).
   - **Ciclo**: a cada N min o vigia olha os clipes das últimas 3 h. Os clipes acima de X views viram corte; os do
     mesmo momento viram um só.
   - **Contexto**: ele corta do **VOD** com Y s antes e Z s depois e espera a live gravar o "depois". Sem VOD, usa
-    o próprio clipe.
+    o próprio clipe. VOD só para inscritos (ex.: Cellbit): o corte passa para o clipe sozinho, e os próximos desse
+    canal já nascem do clipe.
   - **Limite**: ele só **prepara** (baixa e acha a webcam); **nunca renderiza nem posta sozinho**.
   - No corte, os botões **"+10 s antes / depois"** aumentam o contexto.
 - **Jobs / Logs**: tudo que demora é um job, com progresso e log ao vivo (SSE) e botão de cancelar.

@@ -7,7 +7,7 @@ from pathlib import Path
 from ..config import config
 from .plugins import ESTILOS
 
-_modelo = None
+_modelos: dict[str, object] = {}
 _trava = threading.Lock()
 
 
@@ -29,10 +29,11 @@ def _dlls_cuda():
                 os.environ["PATH"] = str(bin_) + os.pathsep + os.environ.get("PATH", "")
 
 
-def modelo():
-    global _modelo
+def modelo(nome: str | None = None):
+    """Modelo do Whisper (carregado uma vez por nome). Sem nome: o da legenda (`whisper_modelo`)."""
+    nome = nome or config.whisper_modelo
     with _trava:
-        if _modelo is None:
+        if nome not in _modelos:
             from faster_whisper import WhisperModel
             _dlls_cuda()
             config.modelos.mkdir(parents=True, exist_ok=True)
@@ -41,18 +42,17 @@ def modelo():
             ultimo = None
             for disp, tipo in tentativas:
                 try:
-                    m = WhisperModel(config.whisper_modelo, device=disp, compute_type=tipo,
-                                     download_root=str(config.modelos))
+                    m = WhisperModel(nome, device=disp, compute_type=tipo, download_root=str(config.modelos))
                     if disp == "cuda":  # carrega as DLLs de verdade agora (falha cedo se faltar cuBLAS/cuDNN)
                         list(m.transcribe(_silencio(), language="en")[0])
-                    _modelo = m
-                    _modelo.dispositivo = disp
+                    m.dispositivo = disp
+                    _modelos[nome] = m
                     break
                 except Exception as e:  # sem CUDA -> CPU
                     ultimo = e
-            if _modelo is None:
+            if nome not in _modelos:
                 raise RuntimeError(f"não consegui carregar o Whisper: {ultimo}")
-        return _modelo
+        return _modelos[nome]
 
 
 def _silencio():
@@ -76,6 +76,25 @@ def transcrever(wav: Path, idioma: str | None = None) -> dict:
                 palavras.append({"p": p, "i": round(w.start, 2), "f": round(w.end, 2)})
     return {"texto": " ".join(textos), "idioma": info.language, "palavras": palavras, "segmentos": frases,
             "dispositivo": getattr(m, "dispositivo", "?")}
+
+
+def transcrever_frases(arquivo: Path, idioma: str | None = None, ao_progresso=None, duracao: float | None = None,
+                       checar=None) -> dict:
+    """Transcrição rápida (sem tempo por palavra, beam 1) de um áudio longo, para achar destaques:
+    {'segmentos': [{'texto', 'i', 'f'}], 'idioma', 'idioma_prob'}. Tempos em segundos do arquivo."""
+    segmentos, info = modelo(config.whisper_modelo_analise).transcribe(
+        str(arquivo), language=idioma, word_timestamps=False, vad_filter=True, beam_size=1,
+        condition_on_previous_text=False)
+    out = []
+    for s in segmentos:
+        if checar:
+            checar()
+        txt = s.text.strip()
+        if txt:
+            out.append({"texto": txt, "i": round(s.start, 2), "f": round(s.end, 2)})
+        if ao_progresso and duracao:
+            ao_progresso(min(s.end / duracao, 1.0))
+    return {"segmentos": out, "idioma": info.language, "idioma_prob": round(float(info.language_probability), 2)}
 
 
 def detectar_idioma(wav: Path) -> tuple[str, float]:

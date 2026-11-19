@@ -7,8 +7,9 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, Response
 
+from ...config import config
+from ...cortes import aprendizado, fontes, plugins, render, servico, vigia
 from ...cortes import edicao as ed
-from ...cortes import fontes, plugins, render, servico, vigia
 from ...jobs import enfileirar
 from ...plataformas import PLATAFORMAS
 from .. import schemas as S
@@ -190,6 +191,16 @@ def vigiar_agora(streamer_id: int):
     return enfileirar("vigiar_clipes", {"streamer_id": st.id}, f"Vigia de clipes · {st.nome}")
 
 
+@router.post("/vigia", response_model=S.VigiaStreamerOut, status_code=201)
+def adicionar_ao_vigia(dados: S.VigiaAdicionarIn):
+    """Cadastra um canal da Twitch (se for novo) e já liga o vigia de clipes nele."""
+    try:
+        st, _ = vigia.adicionar_canal(dados.canal, dados.config.model_dump(exclude={"ativo"}) if dados.config else None)
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from None
+    return {"streamer_id": st.id, "nome": st.nome, "canal": st.canal, **vigia.resumo(st)}
+
+
 @router.get("/vigia", response_model=list[S.VigiaStreamerOut])
 def painel_vigia():
     """Todos os streamers da Twitch com o resumo do vigia (Painel)."""
@@ -269,6 +280,10 @@ def editar_corte(corte_id: int, dados: S.CortePatch):
         campos["extra"] = extra
     if (sem or campos.get("webcam")) and atual["status"] == "enquadrar" and "status" not in campos:
         campos["status"] = "candidato"
+    if campos.get("status") == "descartado" and atual["status"] != "descartado":
+        # de onde veio o descarte: só os da revisão (candidato/enquadrar) ensinam o cortador (aprendizado.py)
+        extra["descartado_de"] = atual["status"]
+        campos["extra"] = extra
     if campos.get("status") == "descartado":  # libera o trecho baixado para o enquadramento
         shutil.rmtree(render.pasta_tmp(f"corte_{corte_id}"), ignore_errors=True)
     try:
@@ -430,8 +445,10 @@ async def identificar(dados: S.IdentificarIn):
     else:
         st = next((x for x in sts if x["plataforma"] == i["plataforma"]
                    and x["canal"].lower() == i["canal"].lower()), None)
+    mapa = await run_in_threadpool(fontes.mapa_momentos, i) if i["tipo"] == "vod" else None
     return {**i, "streamer_id": st["id"] if st else None, "streamer_nome": st["nome"] if st else None,
-            "streamer_modelo_id": st["modelo_id"] if st else None, "fonte_id": fonte.id if fonte else None}
+            "streamer_modelo_id": st["modelo_id"] if st else None, "fonte_id": fonte.id if fonte else None,
+            **(mapa or {}), "fala_max_s": int(config.fala_max_h * 3600)}
 
 
 @router.post("/cortar", response_model=S.CortarVideoOut, status_code=202)
@@ -456,7 +473,8 @@ async def cortar_video(dados: S.CortarVideoIn):
     if i["idioma"]:
         servico.atualizar_fonte_extra(fid, idioma_site=i["idioma"])
     job = enfileirar("cortar_video", {"fonte_id": fid, "streamer_id": st.id, "quantidade": dados.quantidade,
-                                      "duracao": dados.duracao, "modelo_id": dados.modelo_id},
+                                      "duracao": dados.duracao, "modelo_id": dados.modelo_id,
+                                      "inicio": dados.inicio, "fim": dados.fim},
                      f"Cortar · {i['titulo'][:60]}")
     return {"job": job, "fonte_id": fid, "streamer_id": st.id, "streamer_criado": criado}
 
@@ -530,3 +548,15 @@ def remover_fundo(nome: str):
     p = render.caminho_fundo(nome)
     if p:
         p.unlink()
+
+
+@router.get("/aprendizado", response_model=S.AprendizadoOut)
+def ver_aprendizado():
+    """O que o cortador aprendeu com os cortes aprovados/descartados (retreina na hora; é rápido)."""
+    return aprendizado.treinar()
+
+
+@router.put("/aprendizado", response_model=S.AprendizadoOut)
+def ligar_aprendizado(dados: S.AprendizadoIn):
+    """Liga/desliga o uso do aprendizado na escolha dos trechos (desligado = só os pesos fixos)."""
+    return aprendizado.ligar(dados.ligado)

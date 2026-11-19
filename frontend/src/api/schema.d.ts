@@ -724,7 +724,11 @@ export interface paths {
          */
         get: operations["painel_vigia_api_vigia_get"];
         put?: never;
-        post?: never;
+        /**
+         * Adicionar Ao Vigia
+         * @description Cadastra um canal da Twitch (se for novo) e já liga o vigia de clipes nele.
+         */
+        post: operations["adicionar_ao_vigia_api_vigia_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1186,6 +1190,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/aprendizado": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ver Aprendizado
+         * @description O que o cortador aprendeu com os cortes aprovados/descartados (retreina na hora; é rápido).
+         */
+        get: operations["ver_aprendizado_api_aprendizado_get"];
+        /**
+         * Ligar Aprendizado
+         * @description Liga/desliga o uso do aprendizado na escolha dos trechos (desligado = só os pesos fixos).
+         */
+        put: operations["ligar_aprendizado_api_aprendizado_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sistema": {
         parameters: {
             query?: never;
@@ -1257,6 +1285,13 @@ export interface components {
         /** AnalisarIn */
         AnalisarIn: {
             /**
+             * Inicio
+             * @description trecho da live a analisar (s); sem = o vídeo inteiro
+             */
+            inicio?: number | null;
+            /** Fim */
+            fim?: number | null;
+            /**
              * Max Cortes
              * @default 8
              */
@@ -1283,6 +1318,42 @@ export interface components {
             fundo?: string | null;
             /** Estilo Legenda */
             estilo_legenda?: string | null;
+        };
+        /** AprendizadoIn */
+        AprendizadoIn: {
+            /** Ligado */
+            ligado: boolean;
+        };
+        /** AprendizadoOut */
+        AprendizadoOut: {
+            /** Ligado */
+            ligado: boolean;
+            /** Pronto */
+            pronto: boolean;
+            /** Exemplos */
+            exemplos: number;
+            /** Aprovados */
+            aprovados: number;
+            /** Descartados */
+            descartados: number;
+            /** Minimo */
+            minimo: number;
+            /** Minimo Por Tipo */
+            minimo_por_tipo: number;
+            /**
+             * Pesos
+             * @default {}
+             */
+            pesos: {
+                [key: string]: number;
+            };
+            /**
+             * Vies
+             * @default 0
+             */
+            vies: number;
+            /** Treinado Em */
+            treinado_em?: string | null;
         };
         /** BuscarFontesIn */
         BuscarFontesIn: {
@@ -1373,6 +1444,13 @@ export interface components {
         };
         /** CortarVideoIn */
         CortarVideoIn: {
+            /**
+             * Inicio
+             * @description trecho da live a analisar (s); sem = o vídeo inteiro
+             */
+            inicio?: number | null;
+            /** Fim */
+            fim?: number | null;
             /** Url */
             url: string;
             /**
@@ -1729,6 +1807,13 @@ export interface components {
              * @default
              */
             plataforma: string;
+            /**
+             * Trecho
+             * @description último trecho analisado {inicio, fim}
+             */
+            trecho?: {
+                [key: string]: number;
+            } | null;
         };
         /** FonteTexto */
         FonteTexto: {
@@ -1894,6 +1979,33 @@ export interface components {
              * @description este vídeo já foi adicionado antes
              */
             fonte_id?: number | null;
+            /**
+             * Mapa
+             * @description onde está a ação: uma nota (0..1) a cada `mapa_passo` s, pelos clipes da Twitch ou pelo 'mais assistidos' do YouTube
+             */
+            mapa?: number[] | null;
+            /**
+             * Mapa Passo
+             * @default 300
+             */
+            mapa_passo: number;
+            /**
+             * Mapa Origem
+             * @description clipes_twitch | mais_assistidos
+             */
+            mapa_origem?: string | null;
+            /**
+             * Trecho Obrigatorio S
+             * @description vídeos mais longos que isso pedem um trecho
+             * @default 10800
+             */
+            trecho_obrigatorio_s: number;
+            /**
+             * Fala Max S
+             * @description trechos maiores que isso pulam a leitura da fala
+             * @default 14400
+             */
+            fala_max_s: number;
         };
         /** JobDetalheOut */
         JobDetalheOut: {
@@ -2533,6 +2645,15 @@ export interface components {
             plataformas: {
                 [key: string]: components["schemas"]["EstadoPlataforma"];
             };
+        };
+        /** VigiaAdicionarIn */
+        VigiaAdicionarIn: {
+            /**
+             * Canal
+             * @description nome ou link do canal da Twitch
+             */
+            canal: string;
+            config?: components["schemas"]["VigiaConfig"] | null;
         };
         /** VigiaConfig */
         VigiaConfig: {
@@ -4200,6 +4321,39 @@ export interface operations {
             };
         };
     };
+    adicionar_ao_vigia_api_vigia_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VigiaAdicionarIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VigiaStreamerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     quadro_api_streamers__streamer_id__quadro_get: {
         parameters: {
             query?: never;
@@ -5043,6 +5197,59 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ver_aprendizado_api_aprendizado_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AprendizadoOut"];
+                };
+            };
+        };
+    };
+    ligar_aprendizado_api_aprendizado_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AprendizadoIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AprendizadoOut"];
+                };
             };
             /** @description Validation Error */
             422: {

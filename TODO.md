@@ -42,11 +42,21 @@
 - [x] (18/11/2026) Textos do post por vídeo: título, descrição, hashtags (chips) e texto próprio por rede, com
       prévia e limites de cada rede; hashtags em lote; "não postar nesta rede" (status removido). Corrigida a trava
       do perfil do Chrome no Windows (recursão infinita ao liberar). gta6_001/003/004 removidos do Instagram
+- [x] (19/11/2026) Melhores momentos sem IA paga (inspirado no Unbored: transcrição + volume): escolher o **trecho**
+      da live (obrigatório > 3h, mapa de clipes/heatmap), detector da **fala** (Whisper small local: ritmo, grito
+      depois de silêncio, risada, palavras de choque), corte começa/termina em frase, **gancho** automático,
+      **chat gravado do YouTube** (download para no fim do trecho), **aprendizado** com aprovados/descartados
+      (card em Modelos), "por quê" de cada corte, ★ e **Gancho no início** no editor. Testado num VOD real do
+      alanzoka (15 min → 3 cortes em 150 s)
+- [ ] Chat da Twitch ao vivo (IRC, oficial) gravado pelo vigia enquanto a live está no ar → sinal para o VOD depois
 - [ ] YouTube: preencher o campo "Tags" (palavras-chave) do Studio — precisa mapear o fluxo antes
 - [x] (18/11/2026) Erros de envio gravados no histórico (aparecem na Fila e no card "Últimos erros")
 - [x] (18/11/2026) Vigia de clipes da Twitch: acha clipes novos que passam do mínimo de views, junta os do mesmo
       momento, espera a live/VOD cobrir o contexto e cria o corte com +antes/+depois segundos (prepara, não
       renderiza/posta); "+10 s antes/depois" no corte; ligado para alanzoka e Kai Cenat (30 views, 20 s/10 s)
+- [x] (18/11/2026) Vigia: campo "Vigiar" no card do Painel (canal da Twitch → cadastra e liga; `POST /api/vigia`);
+      VOD só para inscritos vira o próprio clipe (`vigia.usar_clipe_se_vod_fechado`, `estado.vod_fechado`); Cellbit
+      no vigia. Worker sai sozinho se o `jason.py web` for fechado à força (`JASON_PAI`), sem worker órfão
 - [ ] **Usuário**: gerar um novo client secret da Twitch (o atual foi colado no chat) e trocar no `.env`
 - [ ] Editor: "salvar como modelo" (reaproveitar fonte/cores/posições em outros cortes)
 - [ ] Tradução: o modelo grátis puxa para PT de Portugal ("O que raio..."); avaliar trocar o par en→pt

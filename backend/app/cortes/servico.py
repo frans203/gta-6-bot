@@ -184,7 +184,7 @@ def listar_fontes(streamer_id: int | None = None, limite: int = 200, com_cortes:
             por_status.setdefault(fid, {})[st] = n
         return [{**{c.name: getattr(f, c.name) for c in Fonte.__table__.columns},
                  "total_cortes": sum(por_status.get(f.id, {}).values()), "cortes_status": por_status.get(f.id, {}),
-                 "streamer_nome": st.nome, "plataforma": st.plataforma}
+                 "streamer_nome": st.nome, "plataforma": st.plataforma, "trecho": (f.extra or {}).get("trecho")}
                 for f, st in linhas]
 
 

@@ -38,6 +38,7 @@ export type Plugin = S['PluginOut']
 export type Plugins = S['PluginsOut']
 export type AnalisarIn = S['AnalisarIn']
 export type BuscarFontesIn = S['BuscarFontesIn']
+export type Aprendizado = S['AprendizadoOut']
 
 export type Plataforma = 'tiktok' | 'youtube' | 'instagram'
 export const PLATAFORMAS: Plataforma[] = ['tiktok', 'youtube', 'instagram']

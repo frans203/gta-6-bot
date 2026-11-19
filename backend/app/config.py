@@ -26,6 +26,8 @@ class Config(BaseSettings):
 
     whisper_modelo: str = "small"         # tiny | base | small | medium | large-v3
     whisper_dispositivo: str = "auto"     # auto | cuda | cpu
+    whisper_modelo_analise: str = "small" # achar destaques (small na GPU: ~70x o tempo real); legenda = whisper_modelo
+    fala_max_h: float = 4.0               # acima disso (trecho analisado), o detector da fala é pulado (demora)
 
     # API oficial da Twitch (grátis): crie um app em https://dev.twitch.tv/console/apps
     twitch_client_id: str = ""

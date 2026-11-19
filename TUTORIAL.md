@@ -272,9 +272,23 @@ pronto tem **Mandar e agendar** (manda para a fila e já abre aqui) e o que já 
 
 1. Cole o **link** (Twitch, YouTube, Kick ou outro site) → **Ler link**: ele mostra a plataforma, o canal,
    a duração e se o streamer já está cadastrado (se não estiver, cadastra sozinho).
-2. **Quantos cortes?** (1 a 20), a duração de cada um e o modelo → **Fazer os cortes**.
-3. Ele acha os melhores trechos e já prepara cada um: procura o **streamer**, mede as **barras pretas** e
-   descobre o **idioma falado**. Quando termina, abre o vídeo direto na **Biblioteca**.
+2. **Qual trecho da live?** (VODs com mais de 20 min; **obrigatório acima de 3h**): arraste os dois marcadores
+   para escolher de onde saem os cortes (ex.: da 4ª à 6ª hora). As barrinhas em cima mostram onde os espectadores
+   fizeram clipes (Twitch) ou o que mais foi repetido (YouTube): clique numa para centralizar o trecho ali.
+   Trechos de até 4h incluem a **leitura da fala** (risadas, gritos, palavras de choque).
+3. **Quantos cortes?** (1 a 20), a duração de cada um e o modelo → **Fazer os cortes**.
+4. Ele acha os melhores trechos e já prepara cada um: procura o **streamer**, mede as **barras pretas** e
+   descobre o **idioma falado**. Os cortes começam e terminam no fim de uma frase e já vêm com um **gancho**
+   (a frase mais forte do trecho; troque ou apague no corte). Quando termina, abre o vídeo na **Biblioteca**.
+
+> 🧠 **Como ele escolhe (sem IA paga):** volume do áudio, clipes da Twitch, "mais assistidos" do YouTube, fala
+> transcrita no seu PC e o chat gravado das lives do YouTube. Cada corte mostra o **porquê** (ex.: "Risada",
+> "Clipes da Twitch"). Ele também **aprende com você**: o que você aprova e o que descarta na revisão. Depois
+> de uns 30 cortes revisados, passa a preferir o tipo de momento que você costuma aprovar (veja e
+> desligue em **Modelos → Como o cortador escolhe**). Descartar um corte já pronto (webcam errada, repetido) não conta.
+>
+> ⚡ **Gancho no início:** no **Editar vídeo**, a ★ marca o momento mais forte; o botão **Gancho no início**
+> copia uns 3 s dele para o começo do vídeo (aparece logo de cara e de novo no lugar dele).
 
 ### 📚 Biblioteca (revisar, renderizar, mandar para a fila)
 
@@ -299,6 +313,9 @@ pronto tem **Mandar e agendar** (manda para a fila e já abre aqui) e o que já 
 - **Na fila** e **Descartados**: os que já foram para a fila e os que você descartou (dá para restaurar).
 
 ### 📡 Vigia de clipes (Twitch)
+
+**Para vigiar um canal novo**: no **Painel**, card **Vigia de clipes**, digite o canal (ex.: `cellbit` ou o link) e
+clique **Vigiar**. Pronto: ele já começa a olhar sozinho. Para mudar as opções, clique no nome do canal no card.
 
 Na página do streamer da Twitch, aba **Vigia de clipes**: ligue e ele olha os clipes que o público faz a cada
 poucos minutos. Quando um clipe passa do **mínimo de views**, vira um corte **com contexto da live** (por padrão

@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Library, Link2, Loader2, Scissors } from 'lucide-react'
+import { ArrowRight, Check, Library, Link2, Loader2, Mic, Scissors } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
@@ -123,6 +123,96 @@ function EmAndamento({ onAbrir }: { onAbrir: (fonte: number, job: number) => voi
   )
 }
 
+// ------------------------------------------------------------------ 2: trecho da live (VODs longos)
+
+type Trecho = [number, number]
+
+const hhmm = (s: number) => `${Math.floor(s / 3600)}h${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}`
+
+/** Escolher de qual pedaço da live sair os cortes (ex.: da 4ª à 6ª hora). O mapa mostra onde os espectadores
+ *  clipparam (Twitch) ou o que mais foi repetido (YouTube); clicar numa barra centraliza 2h ali. */
+function EscolherTrecho({ i, valor, onChange }: { i: Identificado; valor: Trecho | null; onChange: (t: Trecho | null) => void }) {
+  const dur = Math.floor(i.duracao ?? 0)
+  const obrigatorio = dur > (i.trecho_obrigatorio_s ?? 10800)
+  const atual: Trecho = valor ?? [0, Math.min(dur, 7200)]
+  const tamanho = atual[1] - atual[0]
+  const semFala = tamanho > (i.fala_max_s ?? 14400)
+  const passo = i.mapa_passo ?? 300
+  const centralizar = (k: number) => {
+    const meio = k * passo + passo / 2
+    const janela = Math.min(dur, Math.max(tamanho, 3600))
+    const ini = Math.max(0, Math.min(dur - janela, Math.round((meio - janela / 2) / 60) * 60))
+    onChange([ini, ini + janela])
+  }
+  return (
+    <div className="space-y-4">
+      {i.mapa && (
+        <div className="space-y-1">
+          <div className="flex h-14 items-end gap-px">
+            {i.mapa.map((v, k) => {
+              const dentro = k * passo + passo / 2 >= atual[0] && k * passo + passo / 2 <= atual[1]
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  title={`${hhmm(k * passo)}: ${Math.round(v * 100)}%`}
+                  onClick={() => centralizar(k)}
+                  className={cn('min-w-0 flex-1 rounded-t-sm transition-colors', dentro && valor ? 'bg-primary' : 'bg-muted-foreground/30 hover:bg-muted-foreground/60')}
+                  style={{ height: `${Math.max(4, v * 100)}%` }}
+                />
+              )
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {i.mapa_origem === 'clipes_twitch' ? 'Onde os espectadores fizeram clipes nesta live.' : 'Partes mais repetidas do vídeo (YouTube).'}{' '}
+            Clique numa barra para centralizar o trecho ali.
+          </p>
+        </div>
+      )}
+      <Slider
+        min={0}
+        max={dur}
+        step={60}
+        minStepsBetweenThumbs={5}
+        value={atual}
+        onValueChange={(v) => onChange([v[0], v[1]] as Trecho)}
+        className={cn(!valor && 'opacity-50')}
+      />
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span className="tabular-nums">
+          {valor ? (
+            <>
+              de <b>{hhmm(atual[0])}</b> até <b>{hhmm(atual[1])}</b> <span className="text-muted-foreground">({fmtDuracao(tamanho)} de {fmtDuracao(dur)})</span>
+            </>
+          ) : (
+            <span className="text-amarelo">Arraste os marcadores (ou clique no mapa) para escolher o trecho.</span>
+          )}
+        </span>
+        <Button type="button" size="sm" variant={valor && tamanho === dur ? 'default' : 'outline'} onClick={() => onChange([0, dur])}>
+          Vídeo inteiro
+        </Button>
+      </div>
+      {valor && (
+        <p className={cn('flex items-center gap-1.5 text-xs', semFala ? 'text-amarelo' : 'text-muted-foreground')}>
+          <Mic className="size-3.5" />
+          {semFala
+            ? `Trecho acima de ${fmtDuracao(i.fala_max_s ?? 14400)}: a leitura da fala fica de fora (mais rápido, porém menos preciso). Escolha um trecho menor para usar.`
+            : 'Inclui a leitura da fala (Whisper local): risadas, gritos, palavras de choque, cortes no fim das frases e o texto do gancho.'}
+        </p>
+      )}
+      {valor && i.plataforma === 'youtube' && (
+        <p className="text-xs text-muted-foreground">
+          Se a live tiver chat gravado, ele é baixado até o fim do trecho (o YouTube entrega devagar, ~8x o tempo real):
+          trechos do começo da live ficam prontos mais rápido.
+        </p>
+      )}
+      {obrigatorio && !valor && (
+        <p className="text-xs text-muted-foreground">Live longa ({fmtDuracao(dur)}): escolha um trecho para os cortes saírem mais rápido e melhores.</p>
+      )}
+    </div>
+  )
+}
+
 function PassosIniciais({ onComecar }: { onComecar: (fonte: number, job: number) => void }) {
   const [url, setUrl] = useState('')
   const [qtd, setQtd] = useState(3)
@@ -136,6 +226,11 @@ function PassosIniciais({ onComecar }: { onComecar: (fonte: number, job: number)
   const modeloStreamer = streamers.find((s) => s.id === i?.streamer_id)?.modelo_id ?? null
   const nomeModeloPadrao = (modelos.find((m) => m.id === modeloStreamer) ?? modelos.find((m) => m.padrao))?.nome
   const curto = i?.duracao != null && i.duracao <= duracao * 1.3
+  const [trecho, setTrecho] = useState<Trecho | null>(null)
+  const temTrecho = !!i && i.tipo === 'vod' && (i.duracao ?? 0) > 1200
+  const precisaTrecho = temTrecho && (i?.duracao ?? 0) > (i?.trecho_obrigatorio_s ?? 10800) && !trecho
+  const inteiro = !trecho || (trecho[0] === 0 && trecho[1] >= Math.floor(i?.duracao ?? 0))
+  const passoQtd = temTrecho ? 3 : 2
 
   return (
     <div className="space-y-4">
@@ -155,6 +250,7 @@ function PassosIniciais({ onComecar }: { onComecar: (fonte: number, job: number)
             onChange={(e) => {
               setUrl(e.target.value)
               identificar.reset()
+              setTrecho(null)
             }}
           />
           <Button type="submit" disabled={!url.trim() || identificar.isPending}>
@@ -177,8 +273,19 @@ function PassosIniciais({ onComecar }: { onComecar: (fonte: number, job: number)
         )}
       </Passo>
 
+      {i && temTrecho && (
+        <Passo
+          n={2}
+          titulo="Qual trecho da live?"
+          feito={!!trecho}
+          descricao={precisaTrecho || !trecho ? 'Os cortes saem só deste pedaço. Opcional em vídeos de até 3h.' : undefined}
+        >
+          <EscolherTrecho i={i} valor={trecho} onChange={setTrecho} />
+        </Passo>
+      )}
+
       {i && (
-        <Passo n={2} titulo="Quantos cortes?">
+        <Passo n={passoQtd} titulo="Quantos cortes?">
           <div className="space-y-5">
             {curto ? (
               <p className="text-sm text-muted-foreground">O vídeo é curto ({fmtDuracao(i.duracao)}): ele vira 1 corte inteiro.</p>
@@ -220,15 +327,22 @@ function PassosIniciais({ onComecar }: { onComecar: (fonte: number, job: number)
                 />
               </div>
             </div>
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {precisaTrecho && <span className="text-xs text-amarelo">Escolha o trecho da live acima.</span>}
               <BgAnimateButton
                 gradient="jason"
                 animation="spin-slow"
                 rounded="xl"
-                disabled={cortar.isPending}
+                disabled={cortar.isPending || precisaTrecho}
                 onClick={() =>
                   cortar.mutate(
-                    { url: i.url, quantidade: curto ? 1 : qtd, duracao, modelo_id: modelo },
+                    {
+                      url: i.url,
+                      quantidade: curto ? 1 : qtd,
+                      duracao,
+                      modelo_id: modelo,
+                      ...(inteiro || !trecho ? {} : { inicio: trecho[0], fim: trecho[1] }),
+                    },
                     { onSuccess: (r) => onComecar(r.fonte_id, r.job.id) },
                   )
                 }

@@ -2283,6 +2283,46 @@
       }
      }
     }
+   },
+   "post": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Adicionar Ao Vigia",
+    "description": "Cadastra um canal da Twitch (se for novo) e já liga o vigia de clipes nele.",
+    "operationId": "adicionar_ao_vigia_api_vigia_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/VigiaAdicionarIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/VigiaStreamerOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
    }
   },
   "/api/streamers/{streamer_id}/quadro": {
@@ -3510,6 +3550,68 @@
     }
    }
   },
+  "/api/aprendizado": {
+   "get": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Ver Aprendizado",
+    "description": "O que o cortador aprendeu com os cortes aprovados/descartados (retreina na hora; é rápido).",
+    "operationId": "ver_aprendizado_api_aprendizado_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AprendizadoOut"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "cortador"
+    ],
+    "summary": "Ligar Aprendizado",
+    "description": "Liga/desliga o uso do aprendizado na escolha dos trechos (desligado = só os pesos fixos).",
+    "operationId": "ligar_aprendizado_api_aprendizado_put",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AprendizadoIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AprendizadoOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/sistema": {
    "get": {
     "tags": [
@@ -3648,6 +3750,31 @@
    },
    "AnalisarIn": {
     "properties": {
+     "inicio": {
+      "anyOf": [
+       {
+        "type": "number",
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Inicio",
+      "description": "trecho da live a analisar (s); sem = o vídeo inteiro"
+     },
+     "fim": {
+      "anyOf": [
+       {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fim"
+     },
      "max_cortes": {
       "type": "integer",
       "maximum": 40.0,
@@ -3736,6 +3863,86 @@
     "type": "object",
     "title": "AplicarCortesIn",
     "description": "Aplica os mesmos ajustes a todos os cortes de um vídeo (os que não foram descartados)."
+   },
+   "AprendizadoIn": {
+    "properties": {
+     "ligado": {
+      "type": "boolean",
+      "title": "Ligado"
+     }
+    },
+    "type": "object",
+    "required": [
+     "ligado"
+    ],
+    "title": "AprendizadoIn"
+   },
+   "AprendizadoOut": {
+    "properties": {
+     "ligado": {
+      "type": "boolean",
+      "title": "Ligado"
+     },
+     "pronto": {
+      "type": "boolean",
+      "title": "Pronto"
+     },
+     "exemplos": {
+      "type": "integer",
+      "title": "Exemplos"
+     },
+     "aprovados": {
+      "type": "integer",
+      "title": "Aprovados"
+     },
+     "descartados": {
+      "type": "integer",
+      "title": "Descartados"
+     },
+     "minimo": {
+      "type": "integer",
+      "title": "Minimo"
+     },
+     "minimo_por_tipo": {
+      "type": "integer",
+      "title": "Minimo Por Tipo"
+     },
+     "pesos": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Pesos",
+      "default": {}
+     },
+     "vies": {
+      "type": "number",
+      "title": "Vies",
+      "default": 0.0
+     },
+     "treinado_em": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Treinado Em"
+     }
+    },
+    "type": "object",
+    "required": [
+     "ligado",
+     "pronto",
+     "exemplos",
+     "aprovados",
+     "descartados",
+     "minimo",
+     "minimo_por_tipo"
+    ],
+    "title": "AprendizadoOut"
    },
    "BuscarFontesIn": {
     "properties": {
@@ -3976,6 +4183,31 @@
    },
    "CortarVideoIn": {
     "properties": {
+     "inicio": {
+      "anyOf": [
+       {
+        "type": "number",
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Inicio",
+      "description": "trecho da live a analisar (s); sem = o vídeo inteiro"
+     },
+     "fim": {
+      "anyOf": [
+       {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fim"
+     },
      "url": {
       "type": "string",
       "minLength": 8,
@@ -4856,6 +5088,21 @@
       "type": "string",
       "title": "Plataforma",
       "default": ""
+     },
+     "trecho": {
+      "anyOf": [
+       {
+        "additionalProperties": {
+         "type": "number"
+        },
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Trecho",
+      "description": "último trecho analisado {inicio, fim}"
      }
     },
     "type": "object",
@@ -5274,6 +5521,50 @@
       ],
       "title": "Fonte Id",
       "description": "este vídeo já foi adicionado antes"
+     },
+     "mapa": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "number"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Mapa",
+      "description": "onde está a ação: uma nota (0..1) a cada `mapa_passo` s, pelos clipes da Twitch ou pelo 'mais assistidos' do YouTube"
+     },
+     "mapa_passo": {
+      "type": "integer",
+      "title": "Mapa Passo",
+      "default": 300
+     },
+     "mapa_origem": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Mapa Origem",
+      "description": "clipes_twitch | mais_assistidos"
+     },
+     "trecho_obrigatorio_s": {
+      "type": "integer",
+      "title": "Trecho Obrigatorio S",
+      "description": "vídeos mais longos que isso pedem um trecho",
+      "default": 10800
+     },
+     "fala_max_s": {
+      "type": "integer",
+      "title": "Fala Max S",
+      "description": "trechos maiores que isso pulam a leitura da fala",
+      "default": 14400
      }
     },
     "type": "object",
@@ -7039,6 +7330,31 @@
      "plataformas"
     ],
     "title": "VideoOut"
+   },
+   "VigiaAdicionarIn": {
+    "properties": {
+     "canal": {
+      "type": "string",
+      "minLength": 2,
+      "title": "Canal",
+      "description": "nome ou link do canal da Twitch"
+     },
+     "config": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/VigiaConfig"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "type": "object",
+    "required": [
+     "canal"
+    ],
+    "title": "VigiaAdicionarIn"
    },
    "VigiaConfig": {
     "properties": {

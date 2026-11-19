@@ -87,8 +87,12 @@ def rodar():
     batimento = config.logs / "worker.alive"
     ultimo_batimento = 0.0
     ultimo_vigia = 0.0
+    pai = int(os.environ.get("JASON_PAI") or 0)  # aberto pelo `jason.py web`
     while not _parar.is_set():
         if time.time() - ultimo_batimento > 5:
+            if pai and not _pid_vivo(pai):  # o web foi fechado à força: não fica um worker órfão com código velho
+                comum.log(f"o processo web (pid {pai}) fechou: worker saindo", "worker")
+                break
             batimento.write_text(str(os.getpid()))
             ultimo_batimento = time.time()
         if time.time() - ultimo_vigia > 30:  # vigia de clipes: enfileira os streamers cuja hora chegou

@@ -164,8 +164,17 @@ def _trecho(c: dict, tmp: Path, progresso, log) -> tuple[Path, dict, float, floa
         log("trecho já baixado: reaproveitando")
     else:
         progresso(0.02, "baixando o trecho")
-        fontes.baixar_trecho(c["fonte_url"], chave["inicio"], chave["fim"], bruto,
-                             ao_progresso=lambda f: progresso(0.02 + f * 0.3, "baixando o trecho"))
+        try:
+            fontes.baixar_trecho(c["fonte_url"], chave["inicio"], chave["fim"], bruto,
+                                 ao_progresso=lambda f: progresso(0.02 + f * 0.3, "baixando o trecho"))
+        except Exception as e:
+            from . import vigia
+            novo = vigia.usar_clipe_se_vod_fechado(c, e, log)
+            if novo is None:
+                raise
+            c.clear()
+            c.update(novo)  # quem chamou continua usando o mesmo dict
+            return _trecho(c, tmp, progresso, log)
         meta.write_text(json.dumps(chave), "utf-8")
     info = midia.ffprobe(bruto)
     ini_rel = c["inicio"] - base_do_trecho(c)  # clipe: o corte pode ter sido aparado na revisão

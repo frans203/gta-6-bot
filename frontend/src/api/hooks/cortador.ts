@@ -174,6 +174,19 @@ export function useEnquadrar() {
 
 // ------------------------------------------------------------------ modelos de corte
 
+// ------------------------------------------------------------------ aprendizado (aprovados x descartados)
+
+export function useAprendizado() {
+  return useQuery({ queryKey: chaves.aprendizado, queryFn: () => dados(api.GET('/api/aprendizado')) })
+}
+
+export function useLigarAprendizado() {
+  return useAcao((ligado: boolean) => dados(api.PUT('/api/aprendizado', { body: { ligado } })), {
+    sucesso: (a) => (a.ligado ? 'O cortador volta a usar o que aprendeu' : 'O cortador volta aos pesos padrão'),
+    invalidar: [chaves.aprendizado],
+  })
+}
+
 export function useModelos() {
   return useQuery({ queryKey: chaves.modelos, queryFn: () => dados(api.GET('/api/modelos')) })
 }

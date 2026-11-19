@@ -7,6 +7,7 @@ import { Cabecalho, Vazio } from '@/components/cabecalho'
 import { Confirmar } from '@/components/confirmar'
 import { SelectPlugin } from '@/components/form-streamer'
 import { Previa } from '@/components/previa'
+import { CardAprendizado } from '@/components/sinais'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -248,6 +249,9 @@ export function PaginaModelos() {
           </Card>
         </div>
       )}
+      <div className="mt-4">
+        <CardAprendizado />
+      </div>
     </>
   )
 }

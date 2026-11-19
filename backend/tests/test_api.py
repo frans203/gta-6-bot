@@ -161,3 +161,30 @@ def test_agendar_um_video_horario_por_rede(banco, tmp_path):
         r = cli.post(base, json={"itens": [{"plataforma": "tiktok", "quando": amanha.replace(minute=33).isoformat()}]})
         assert r.status_code == 400 and "múltiplo de 5" in r.json()["detail"]
         assert cli.post(f"/api/contas/{conta.id}/videos/x.mp4/agendar", json={"itens": itens}).status_code == 404
+
+
+def test_api_trecho_mapa_e_aprendizado(banco, monkeypatch):
+    """Cortar um trecho da live: identificar devolve o mapa, o job leva inicio/fim, descarte guarda a origem."""
+    from app.api.main import create_app
+    from app.cortes import fontes, servico
+    ident = {"url": "https://www.twitch.tv/videos/77", "plataforma": "twitch", "site": "TwitchVod", "tipo": "vod",
+             "canal": "fulano", "canal_nome": "Fulano", "titulo": "live de 12h", "duracao": 43200.0, "views": 1,
+             "publicado_em": None, "miniatura": None, "idioma": "pt", "largura": 1920, "altura": 1080,
+             "heatmap": []}
+    monkeypatch.setattr(fontes, "identificar", lambda url: dict(ident))
+    monkeypatch.setattr(fontes, "mapa_momentos", lambda i: {"mapa": [0.0, 1.0, 0.5], "mapa_passo": 300,
+                                                            "mapa_origem": "clipes_twitch"})
+    with TestClient(create_app()) as cli:
+        r = cli.post("/api/identificar", json={"url": ident["url"]}).json()
+        assert r["mapa"] == [0.0, 1.0, 0.5] and r["trecho_obrigatorio_s"] == 10800 and "heatmap" not in r
+        assert cli.post("/api/cortar", json={"url": ident["url"], "inicio": 100, "fim": 120}).status_code == 422
+        r = cli.post("/api/cortar", json={"url": ident["url"], "inicio": 14400, "fim": 21600}).json()
+        assert r["job"]["params"]["inicio"] == 14400 and r["job"]["params"]["fim"] == 21600
+        servico.substituir_candidatos(r["fonte_id"], [{"inicio": 15000.0, "fim": 15045.0, "score": 1,
+                                                       "sinais": {"audio": 1.0}}])
+        cid = servico.listar_cortes(fonte_id=r["fonte_id"])[0]["id"]
+        c = cli.patch(f"/api/cortes/{cid}", json={"status": "descartado"}).json()
+        assert c["extra"]["descartado_de"] == "candidato"
+        a = cli.get("/api/aprendizado").json()
+        assert a["exemplos"] == 1 and not a["pronto"]
+        assert cli.put("/api/aprendizado", json={"ligado": False}).json()["ligado"] is False
